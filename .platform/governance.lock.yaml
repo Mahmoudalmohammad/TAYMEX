@@ -2,10 +2,10 @@ schemaVersion: 1
 trustSource: versioned-artifact
 artifact:
   name: engineering-platform-governance
-  version: 0.1.1
-  file: .platform/artifacts/governance/engineering-platform-governance-0.1.1.tar.gz
-  sha256: c646b09b4ad2da036c8b6ae3b570c5ac3624eee6f7336e37f871dc977f81390d
-  size: 30405
+  version: 0.1.2
+  file: .platform/artifacts/governance/engineering-platform-governance-0.1.2.tar.gz
+  sha256: 7db8f7a550473c40cf1048bf2223a8ff9d5316da4ccd3d8ebd00d14c88344d36
+  size: 35026
   format: source-tar-gz
 pythonRuntimeDependencies:
   PyYAML: 6.0.3

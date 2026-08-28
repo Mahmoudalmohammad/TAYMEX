@@ -1,50 +1,63 @@
-id: FOUNDATION-001
-title: Establish TAYMEX foundation blueprint and readiness gate
-mode: feature
-risk: R2
-objective: Define the complete cross-cutting application foundation that must be implemented and proven before expanding TAYMEX domain features, with one human blueprint and one machine-readable readiness manifest, without changing runtime product behavior.
-baseRevision: 41b8586c37ec8169dd62e61b387de0ded521b741
+id: HANDOFF-001
+title: Establish repository-native engineering handoff protocol
+mode: platform-change
+risk: R4
+objective: Add a generated and verifiable handoff snapshot so execution can move safely between engineering agents without treating conversation memory or manually edited status files as project truth.
+baseRevision: da96176831f19bc10da06ebbf7036a328e9279b0
 modules:
   - catalog
 scope:
   allowedPaths:
-    - docs/FOUNDATION_BLUEPRINT.md
-    - blueprints/foundation/foundation.manifest.yaml
-    - scripts/foundation-status.py
     - .governance/task.yaml
+    - .gitignore
+    - docs/HANDOFF_PROTOCOL.md
+    - tooling/governance.config.yaml
+    - tooling/schemas/handoff.schema.json
+    - tooling/schemas/foundation-manifest.schema.json
+    - scripts/generate-settings-bindings.py
+    - scripts/generate-permission-bindings.py
+    - apps/api/src/generated/settings.generated.ts
+    - apps/api/src/generated/permissions.generated.ts
+    - .platform/governance.lock.yaml
+    - .platform/artifacts/governance/engineering-platform-governance-0.1.2.tar.gz
   forbiddenPaths:
-    - apps/**
-    - tooling/**
-    - .github/**
-    - .platform/**
+    - apps/api/src/modules/**
+    - apps/web/**
+    - blueprints/foundation/foundation.manifest.yaml
+    - tooling/registry/**
   allowNewFiles: true
   allowedNewFiles:
-    - docs/FOUNDATION_BLUEPRINT.md
-    - blueprints/foundation/foundation.manifest.yaml
-    - scripts/foundation-status.py
+    - docs/HANDOFF_PROTOCOL.md
+    - tooling/schemas/handoff.schema.json
+    - tooling/schemas/foundation-manifest.schema.json
+    - .platform/artifacts/governance/engineering-platform-governance-0.1.2.tar.gz
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
   allowArchitectureChanges: false
+  allowControlPlaneChanges: true
+  allowTrustRootChanges: true
 acceptance:
-  - id: AC-FOUNDATION-SCOPE
-    statement: The blueprint defines the complete cross-cutting foundation required before broad domain feature construction, including architecture, identity, authorization, settings, data, API, errors, audit, observability, security, performance, UI/UX, localization, files/media, notifications/events, testing, and operations.
-  - id: AC-FOUNDATION-GATE
-    statement: The machine-readable manifest classifies every foundation capability by current maturity and required exit maturity and can report whether feature expansion is blocked.
-  - id: AC-CLEAN-SYSTEM
-    statement: The new blueprint is self-contained and contains no historical project references or migration narrative.
-  - id: AC-NO-RUNTIME-CHANGE
-    statement: No application runtime behavior, domain model, database schema, API contract, dependency, platform package, or protected governance policy changes in this task.
+  - id: AC-HANDOFF-COMMANDS
+    statement: The trusted governance artifact exposes platform handoff status, create, and verify commands.
+  - id: AC-HANDOFF-TRUTH
+    statement: Handoff verification recomputes Git, task evidence, foundation/profile validity, artifact integrity, and generated-source freshness rather than trusting stored PASS fields.
+  - id: AC-HANDOFF-CLEAN
+    statement: A verified handoff requires an exact Git HEAD and branch match and a clean working tree.
+  - id: AC-HANDOFF-INDEPENDENCE
+    statement: Missing ENGINEERING_PLATFORM source does not block a valid independent TAYMEX handoff when locked runtime and governance artifacts are valid.
+  - id: AC-HANDOFF-NEGATIVE
+    statement: Regression tests cover stale HEAD, dirty tree, missing evidence, invalid foundation/profile truth, tampered artifacts, false PASS, and stale generated bindings.
 assumptions:
-  - statement: The existing Products implementation remains a validation slice and may be used later to prove foundation capabilities, but no new persistence/API/UI Product expansion occurs until the foundation gate is satisfied.
+  - statement: Git, Task Contracts, machine manifests and registries, verification evidence, and tests remain authoritative over the generated handoff snapshot.
     status: verified
-    evidence: Current project execution decision.
-  - statement: Optional domain capabilities such as commerce, payments, solar-engine, search, CMS, AI, and tenancy are not part of the mandatory application foundation unless a cross-cutting mechanism is required by multiple future modules.
+    evidence: docs/FOUNDATION_BLUEPRINT.md
+  - statement: The handoff snapshot is coordination evidence only and is not required at application runtime.
     status: verified
-    evidence: blueprints/project-profiles/taymex.yaml
+    evidence: Current engineering handoff decision.
 obligations:
-  securityDelta: not-applicable
+  securityDelta: completed
   performance: not-applicable
   ui: not-applicable
   responsive: not-applicable
@@ -53,16 +66,16 @@ obligations:
   idempotency: not-applicable
 functional:
   invariants:
-    - Domain feature expansion remains blocked while any mandatory foundation capability is below its exit maturity.
-    - Designed documentation alone is not sufficient evidence for a foundation capability to pass.
-    - Optional product capabilities do not become foundation requirements merely because they may be needed later.
+    - Stored handoff PASS values never override recomputed live failures.
+    - A verified snapshot is invalid after the repository HEAD changes.
+    - The coordination snapshot contains no secrets or hidden reasoning traces.
   edgeCases:
-    - A capability is architecturally designed but not implemented.
-    - A capability is implemented in the platform but not integrated in TAYMEX.
-    - A capability is integrated locally but not proven on the real runtime or merge authority where required.
+    - ENGINEERING_PLATFORM source is not present beside TAYMEX.
+    - A generated binding exists but its canonical registry changed.
+    - The current task evidence is missing or reports failure.
   failureModes:
-    - Readiness checker reports READY while a mandatory capability is below required maturity.
-    - Foundation documentation becomes a second source of runtime settings or permissions instead of referencing machine registries.
+    - A stale handoff is accepted after a new commit.
+    - Artifact tampering is hidden by a manually edited handoff snapshot.
 requiredGates:
   - TASK-001
   - BASE-001

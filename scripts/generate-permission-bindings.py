@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -25,6 +26,9 @@ def const_name(key: str) -> str:
     return first.lower() + ''.join(p[:1].upper() + p[1:] for p in rest) + 'Permission'
 
 
+def source_sha256() -> str:
+    return hashlib.sha256((ROOT / 'tooling/registry/permissions.registry.yaml').read_bytes()).hexdigest()
+
 def render() -> str:
     doc = yaml.safe_load(REGISTRY.read_text(encoding='utf-8'))
     permissions = doc.get('permissions') if isinstance(doc, dict) else None
@@ -35,6 +39,7 @@ def render() -> str:
     lines = [
         '// GENERATED FILE — DO NOT EDIT.',
         '// Source: tooling/registry/permissions.registry.yaml',
+        f'// Source-SHA256: {source_sha256()}',
         '// Regenerate: python3 scripts/generate-permission-bindings.py',
         '',
     ]

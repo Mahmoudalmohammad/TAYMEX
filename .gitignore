@@ -11,3 +11,5 @@ build/
 .platform/.cache/
 
 .governance/repository-truth.json
+
+.handoff/

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -97,6 +98,9 @@ def render_setting(setting: dict) -> str:
     )
 
 
+def source_sha256() -> str:
+    return hashlib.sha256((ROOT / 'tooling/registry/settings.registry.yaml').read_bytes()).hexdigest()
+
 def render() -> str:
     doc = yaml.safe_load(REGISTRY.read_text(encoding='utf-8'))
     if not isinstance(doc, dict) or not isinstance(doc.get('settings'), list):
@@ -116,6 +120,7 @@ def render() -> str:
     return (
         '// GENERATED FILE — DO NOT EDIT.\n'
         '// Source: tooling/registry/settings.registry.yaml\n'
+        + f'// Source-SHA256: {source_sha256()}\n'
         '// Regenerate: python3 scripts/generate-settings-bindings.py\n\n'
         "import type { SettingDefinition } from '@engineering-platform/settings';\n\n"
         + '\n'.join(chunks)

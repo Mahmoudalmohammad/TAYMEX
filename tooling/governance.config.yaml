@@ -48,6 +48,8 @@ schemas:
   projectProfile: tooling/schemas/project-profile.schema.json
   taskAuthorityPolicy: tooling/schemas/task-authority-policy.schema.json
   artifactBoundaryPolicy: tooling/schemas/artifact-boundary-policy.schema.json
+  handoff: tooling/schemas/handoff.schema.json
+  foundationManifest: tooling/schemas/foundation-manifest.schema.json
 contextDirectory: .agent-context
 evidenceDirectory: .governance/evidence
 controlPaths: [.governance/task.yaml, ".governance/exceptions/**"]

@@ -1,5 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
 // Source: tooling/registry/settings.registry.yaml
+// Source-SHA256: 6877862054fd902a1bcbd35ea6fc110dea3a2b6517343d8fd4df12c9f735adc9
 // Regenerate: python3 scripts/generate-settings-bindings.py
 
 import type { SettingDefinition } from '@engineering-platform/settings';

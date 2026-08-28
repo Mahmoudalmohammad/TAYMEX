@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/handoff.schema.json",
+  "title": "Engineering Handoff Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "productRepository", "platformRepository", "currentTask", "foundation", "projectProfile", "artifacts", "generatedArtifacts", "verification", "blockers", "status"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "generatedAt": {"type": "string", "minLength": 10},
+    "status": {"enum": ["verified", "blocked"]},
+    "productRepository": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "branch", "head", "clean"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "branch": {"type": "string", "minLength": 1},
+        "head": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "clean": {"type": "boolean"}
+      }
+    },
+    "platformRepository": {
+      "type": "object", "additionalProperties": false,
+      "required": ["availableLocally", "path", "gitTracked", "head", "branch"],
+      "properties": {
+        "availableLocally": {"type": "boolean"},
+        "path": {"type": ["string", "null"]},
+        "gitTracked": {"type": "boolean"},
+        "head": {"type": ["string", "null"]},
+        "branch": {"type": ["string", "null"]}
+      }
+    },
+    "currentTask": {
+      "type": "object",
+      "required": ["id", "status", "evidencePath", "passed"],
+      "properties": {
+        "id": {"type": ["string", "null"]},
+        "status": {"type": "string"},
+        "evidencePath": {"type": ["string", "null"]},
+        "passed": {"type": "boolean"},
+        "error": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "foundation": {"type": "object"},
+    "projectProfile": {"type": "object"},
+    "artifacts": {"type": "object"},
+    "generatedArtifacts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["checked", "stale"],
+      "properties": {
+        "checked": {"type": "array", "items": {"type": "string"}},
+        "stale": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "verification": {"type": "object", "additionalProperties": {"enum": ["pass", "fail"]}},
+    "blockers": {"type": "array", "items": {"type": "string"}}
+  }
+}
