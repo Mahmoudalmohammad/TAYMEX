@@ -1,18 +1,16 @@
-id: PRODUCT-004
-title: Enforce Products read and manage permissions
+id: PRODUCT-005
+title: Build Products application use-cases and repository contract
 mode: feature
 risk: R3
-objective: Generate typed Products permission bindings from the canonical permission registry and enforce catalog.products.read/manage through the versioned platform authorization primitive, with explicit positive and negative tests and no role-name hardcoding.
-baseRevision: ff3775c4a7b75c1c5619c9825d80961f93d8f2ee
+objective: Compose the canonical Product domain, generated settings, and generated permissions into bounded Products application use-cases behind a repository port, including optimistic concurrency semantics that a future PostgreSQL adapter must satisfy, without adding database or HTTP dependencies yet.
+baseRevision: 0d1b44c5df062fc2c0d04b3c7cc0b9fa91cb6a46
 modules:
   - catalog
 scope:
   allowedPaths:
-    - scripts/generate-permission-bindings.py
-    - apps/api/src/generated/permissions.generated.ts
-    - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
-    - package.json
+    - apps/api/src/modules/catalog/application/catalog-product-repository.ts
+    - apps/api/src/modules/catalog/application/catalog-products-service.ts
+    - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
     - .governance/task.yaml
   forbiddenPaths:
     - tooling/**
@@ -21,10 +19,9 @@ scope:
     - apps/web/**
   allowNewFiles: true
   allowedNewFiles:
-    - scripts/generate-permission-bindings.py
-    - apps/api/src/generated/permissions.generated.ts
-    - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
+    - apps/api/src/modules/catalog/application/catalog-product-repository.ts
+    - apps/api/src/modules/catalog/application/catalog-products-service.ts
+    - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
     - .governance/task.yaml
   allowDependencies: false
   allowMigrations: false
@@ -32,37 +29,49 @@ scope:
   allowPlatformChanges: false
   allowArchitectureChanges: false
 acceptance:
-  - id: AC-PERMISSION-TRUTH
-    statement: Product permission constants are generated from tooling/registry/permissions.registry.yaml and stale output is detectable.
-  - id: AC-READ
-    statement: Product read behavior requires catalog.products.read and denies a subject without it.
-  - id: AC-MANAGE
-    statement: Product create/edit/status behavior requires catalog.products.manage and denies a subject without it.
-  - id: AC-NO-ROLE-HARDCODE
-    statement: Authorization does not infer privileges from role names or subject identifiers.
+  - id: AC-APP-LIST
+    statement: Products listing requires catalog.products.read and always uses the canonical effective page size from Settings with page-based bounded pagination.
+  - id: AC-APP-WRITE
+    statement: Product create update and publication-status changes require catalog.products.manage and reuse the canonical Product domain functions.
+  - id: AC-REPO-CONTRACT
+    statement: The repository port explicitly models duplicate model code and compare-and-swap version conflicts so a PostgreSQL adapter cannot silently implement last-write-wins.
+  - id: AC-CONCURRENCY
+    statement: A stale write that loses the repository compare-and-swap is surfaced as PRODUCT_VERSION_CONFLICT even if the caller previously loaded a valid version.
+  - id: AC-NO-DB-CLAIM
+    statement: This task does not claim PostgreSQL persistence or DB-level concurrency proof; those remain pending until a real Postgres adapter can be executed.
 assumptions:
-  - statement: Products v0 permissions are global and resource/tenant authorization is out of scope for this slice.
+  - statement: Products v0 pagination uses a page number and the canonical configured page size; clients do not supply an arbitrary limit in this slice.
     status: verified
-    evidence: tooling/registry/permissions.registry.yaml
+    evidence: tooling/registry/settings.registry.yaml
+  - statement: Product deletion is out of scope for v0; archived Products are immutable.
+    status: verified
+    evidence: apps/api/src/modules/catalog/domain/product.ts
 obligations:
   securityDelta: completed
-  performance: not-applicable
+  performance: standard
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: not-applicable
+  concurrency: tested
   idempotency: not-applicable
 functional:
   invariants:
-    - Only canonical generated permission keys are used by Catalog authorization adapters.
-    - Missing permission always denies; role-like subject identifiers grant nothing.
+    - Read operations require catalog.products.read; write operations require catalog.products.manage.
+    - List queries are bounded by the canonical configured page size and a positive safe-integer page number.
+    - Model-code uniqueness is a repository invariant using the canonical comparison key.
+    - Mutations use compare-and-swap expectedVersion semantics; repository version conflicts never become last-write-wins.
   edgeCases:
+    - page is zero negative non-integer or would overflow offset arithmetic
+    - duplicate model code differs only by case or surrounding whitespace
     - subject has read but not manage
     - subject has manage but not read
-    - subject id equals admin but permissions are empty
-    - generated permission binding becomes stale
+    - concurrent update occurs after a valid Product was loaded
+    - requested Product does not exist
   failureModes:
-    - Missing permission throws the canonical AuthorizationDeniedError from the platform runtime artifact.
+    - Invalid page input fails before repository access.
+    - Duplicate model code produces a stable application error.
+    - Missing Product produces a stable application error.
+    - Repository compare-and-swap conflict produces PRODUCT_VERSION_CONFLICT.
 requiredGates:
   - TASK-001
   - BASE-001
