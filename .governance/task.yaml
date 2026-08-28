@@ -1,36 +1,24 @@
-id: HANDOFF-001
-title: Establish repository-native engineering handoff protocol
+id: PLATFORM-205
+title: Permit consumer-local workspace packages while preserving platform artifact isolation
 mode: platform-change
 risk: R4
-objective: Add a generated and verifiable handoff snapshot so execution can move safely between engineering agents without treating conversation memory or manually edited status files as project truth.
-baseRevision: da96176831f19bc10da06ebbf7036a328e9279b0
+objective: Upgrade the trusted governance artifact so TAYMEX may use workspace dependencies for its own internal packages while continuing to reject workspace, link, source-path, or tampered consumption of engineering-platform artifacts.
+baseRevision: 2aea0dfbfdd3e570cb00b39c0494ec226dba981e
 modules:
   - catalog
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - .gitignore
-    - docs/HANDOFF_PROTOCOL.md
-    - tooling/governance.config.yaml
-    - tooling/schemas/handoff.schema.json
-    - tooling/schemas/foundation-manifest.schema.json
-    - scripts/generate-settings-bindings.py
-    - scripts/generate-permission-bindings.py
-    - apps/api/src/generated/settings.generated.ts
-    - apps/api/src/generated/permissions.generated.ts
     - .platform/governance.lock.yaml
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.2.tar.gz
+    - .platform/artifacts/governance/engineering-platform-governance-0.1.3.tar.gz
   forbiddenPaths:
-    - apps/api/src/modules/**
-    - apps/web/**
-    - blueprints/foundation/foundation.manifest.yaml
-    - tooling/registry/**
+    - apps/**
+    - packages/**
+    - tooling/**
+    - blueprints/**
   allowNewFiles: true
   allowedNewFiles:
-    - docs/HANDOFF_PROTOCOL.md
-    - tooling/schemas/handoff.schema.json
-    - tooling/schemas/foundation-manifest.schema.json
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.2.tar.gz
+    - .platform/artifacts/governance/engineering-platform-governance-0.1.3.tar.gz
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
@@ -39,23 +27,14 @@ scope:
   allowControlPlaneChanges: true
   allowTrustRootChanges: true
 acceptance:
-  - id: AC-HANDOFF-COMMANDS
-    statement: The trusted governance artifact exposes platform handoff status, create, and verify commands.
-  - id: AC-HANDOFF-TRUTH
-    statement: Handoff verification recomputes Git, task evidence, foundation/profile validity, artifact integrity, and generated-source freshness rather than trusting stored PASS fields.
-  - id: AC-HANDOFF-CLEAN
-    statement: A verified handoff requires an exact Git HEAD and branch match and a clean working tree.
-  - id: AC-HANDOFF-INDEPENDENCE
-    statement: Missing ENGINEERING_PLATFORM source does not block a valid independent TAYMEX handoff when locked runtime and governance artifacts are valid.
-  - id: AC-HANDOFF-NEGATIVE
-    statement: Regression tests cover stale HEAD, dirty tree, missing evidence, invalid foundation/profile truth, tampered artifacts, false PASS, and stale generated bindings.
+  - id: AC-LOCAL-WORKSPACE
+    statement: TAYMEX-owned workspace dependencies remain inside the independent consumer repository and are not rejected by the platform artifact boundary.
+  - id: AC-PLATFORM-ISOLATION
+    statement: Any engineering-platform dependency using workspace, link, source path, missing lock, or invalid artifact integrity remains blocked.
 assumptions:
-  - statement: Git, Task Contracts, machine manifests and registries, verification evidence, and tests remain authoritative over the generated handoff snapshot.
+  - statement: TAYMEX is an independent monorepo and may legitimately contain its own internal packages under packages/*.
     status: verified
-    evidence: docs/FOUNDATION_BLUEPRINT.md
-  - statement: The handoff snapshot is coordination evidence only and is not required at application runtime.
-    status: verified
-    evidence: Current engineering handoff decision.
+    evidence: pnpm-workspace.yaml
 obligations:
   securityDelta: completed
   performance: not-applicable
@@ -66,16 +45,7 @@ obligations:
   idempotency: not-applicable
 functional:
   invariants:
-    - Stored handoff PASS values never override recomputed live failures.
-    - A verified snapshot is invalid after the repository HEAD changes.
-    - The coordination snapshot contains no secrets or hidden reasoning traces.
-  edgeCases:
-    - ENGINEERING_PLATFORM source is not present beside TAYMEX.
-    - A generated binding exists but its canonical registry changed.
-    - The current task evidence is missing or reports failure.
-  failureModes:
-    - A stale handoff is accepted after a new commit.
-    - Artifact tampering is hidden by a manually edited handoff snapshot.
+    - Consumer-local package composition must not weaken the versioned artifact boundary for @engineering-platform packages.
 requiredGates:
   - TASK-001
   - BASE-001
