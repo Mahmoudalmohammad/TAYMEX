@@ -3,7 +3,9 @@
   "version": "0.0.0-private",
   "private": true,
   "packageManager": "pnpm@11.24.0",
-  "engines": {"node": ">=24 <27"},
+  "engines": {
+    "node": ">=24 <27"
+  },
   "scripts": {
     "dev:web": "pnpm --filter @taymex/web dev",
     "dev:api": "pnpm --filter @taymex/api dev",
@@ -11,7 +13,9 @@
     "typecheck": "nx run-many -t typecheck",
     "governance:boundary": "./scripts/platform consumer verify-boundary",
     "governance:trust": "./scripts/verify-trust-local.sh",
-    "platform:profile": "./scripts/platform project validate blueprints/project-profiles/taymex.yaml"
+    "platform:profile": "./scripts/platform project validate blueprints/project-profiles/taymex.yaml",
+    "settings:generate": "python3 scripts/generate-settings-bindings.py",
+    "settings:check": "python3 scripts/generate-settings-bindings.py --check"
   },
   "devDependencies": {
     "nx": "23.1.2",

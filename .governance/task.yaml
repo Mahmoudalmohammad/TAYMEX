@@ -1,46 +1,56 @@
-id: RUNTIME-001
-title: Make TAYMEX API module format explicit ESM
-mode: fix
+id: PRODUCT-003
+title: Consume Products default page-size through canonical Settings Resolver
+mode: feature
 risk: R2
-objective: Align the NestJS API package with the ESM-only versioned platform runtime artifacts by declaring ESM explicitly and using NodeNext-compatible relative import specifiers, without changing domain behavior or platform artifacts.
-baseRevision: 31a1fdb331801af01cc68828db8fb92af0d58056
+objective: Generate typed runtime setting bindings from the canonical consumer registry and consume catalog.products.defaultPageSize through @engineering-platform/settings with explicit platform/project precedence and provenance, without adding a second setting definition.
+baseRevision: 9e810db94dc6961c9ec285edd5083a812d97b2ee
 modules:
   - catalog
 scope:
   allowedPaths:
-    - apps/api/package.json
-    - apps/api/src/main.ts
-    - apps/api/src/app.module.ts
-    - apps/api/src/modules/health/health.module.ts
-    - apps/api/src/modules/catalog/tests/product.domain.test.ts
+    - scripts/generate-settings-bindings.py
+    - apps/api/src/generated/settings.generated.ts
+    - apps/api/src/modules/catalog/application/catalog-products-settings.ts
+    - apps/api/src/modules/catalog/tests/catalog-products-settings.test.ts
+    - package.json
     - .governance/task.yaml
   forbiddenPaths:
     - tooling/**
     - .github/**
     - .platform/**
     - apps/web/**
-  allowNewFiles: false
+  allowNewFiles: true
+  allowedNewFiles:
+    - scripts/generate-settings-bindings.py
+    - apps/api/src/generated/settings.generated.ts
+    - apps/api/src/modules/catalog/application/catalog-products-settings.ts
+    - apps/api/src/modules/catalog/tests/catalog-products-settings.test.ts
+    - .governance/task.yaml
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
   allowArchitectureChanges: false
 acceptance:
-  - id: AC-ESM
-    statement: The API package explicitly declares ESM and TypeScript NodeNext emits ESM for API source files.
-  - id: AC-RELATIVE-IMPORTS
-    statement: Runtime relative imports in the API use NodeNext-compatible .js specifiers.
-  - id: AC-PLATFORM-RUNTIME
-    statement: Compiled ESM Catalog code can import the locked @engineering-platform/settings runtime artifact without require/export incompatibility.
-  - id: AC-NO-BEHAVIOR-CHANGE
-    statement: Existing Product domain behavior and tests remain unchanged apart from import specifier compatibility.
+  - id: AC-SOURCE-OF-TRUTH
+    statement: Runtime TypeScript setting definitions are generated from tooling/registry/settings.registry.yaml and stale generated output is detectable.
+  - id: AC-RESOLUTION
+    statement: catalog.products.defaultPageSize resolves through @engineering-platform/settings using explicit platform then project precedence.
+  - id: AC-EXPLAIN
+    statement: The Catalog settings adapter can return winning scope source and version provenance.
+  - id: AC-BOUNDS
+    statement: Values outside the governed 1 through 100 range fail rather than reaching pagination code.
+  - id: AC-NO-HARDCODE
+    statement: Catalog application code does not duplicate the literal default 25 or implement its own fallback chain.
 assumptions:
-  - statement: The platform settings runtime artifact is intentionally ESM and is already locked in TAYMEX.
+  - statement: "@engineering-platform/settings 0.1.0 is a locked TAYMEX runtime artifact, the API is ESM-compatible, and the consumer registry is schema-valid."
     status: verified
-    evidence: .platform/runtime.lock.yaml and @engineering-platform/settings package metadata
+    evidence: PLATFORM-202 and RUNTIME-001 verification plus .platform/runtime.lock.yaml
 obligations:
+  settings:
+    - catalog.products.defaultPageSize
   securityDelta: not-applicable
-  performance: not-applicable
+  performance: standard
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
@@ -48,13 +58,16 @@ obligations:
   idempotency: not-applicable
 functional:
   invariants:
-    - No Product domain behavior changes.
-    - No platform artifact or dependency version changes.
+    - Canonical registry remains the only setting definition source.
+    - Project value may override platform value only because this setting explicitly declares that precedence.
+    - Missing scoped values fall back to the registry default.
   edgeCases:
-    - NodeNext relative imports after ESM package declaration
-    - ESM-only platform artifact imported by compiled API code
+    - project override absent
+    - both platform and project values populated
+    - out of range value
+    - generated binding stale after registry change
   failureModes:
-    - Runtime module format mismatch must fail validation rather than be hidden by a test-only workaround.
+    - Resolver returns a stable settings error rather than silently clamping an invalid configured value.
 requiredGates:
   - TASK-001
   - BASE-001
