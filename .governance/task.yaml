@@ -1,80 +1,75 @@
-id: PRODUCT-002
-title: Implement Product domain core
-mode: feature
-risk: R2
-objective: Implement and executable-test the canonical Product v0 domain invariants before persistence or HTTP integration, keeping business rules independent from NestJS and database adapters.
-baseRevision: 1284c0141c6b9772ef044ac9c82aaeafc01c2ca6
+id: PLATFORM-202
+title: Adopt explicit settings precedence and settings runtime artifact
+mode: platform-change
+risk: R4
+objective: Upgrade the TAYMEX consumer governance contract to require explicit per-setting precedence and add the versioned platform settings runtime artifact needed by the Products slice, without changing unrelated product behavior.
+baseRevision: 078bcd98d7252b8a4c73c1a4842463139818b90d
 modules:
   - catalog
 scope:
   allowedPaths:
-    - apps/api/src/modules/catalog/domain/**
-    - apps/api/src/modules/catalog/tests/**
+    - tooling/schemas/settings-registry.schema.json
+    - tooling/registry/settings.registry.yaml
+    - .platform/artifacts/governance/**
+    - .platform/governance.lock.yaml
+    - .platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz
+    - .platform/runtime.lock.yaml
+    - apps/api/package.json
     - .governance/task.yaml
   forbiddenPaths:
-    - tooling/**
     - .github/**
-    - .platform/**
+    - tooling/trust-root/**
+    - tooling/registry/rules.registry.yaml
     - apps/web/**
   allowNewFiles: true
   allowedNewFiles:
-    - apps/api/src/modules/catalog/domain/product.ts
-    - apps/api/src/modules/catalog/tests/product.domain.test.ts
+    - .platform/artifacts/governance/engineering-platform-governance-0.1.1.tar.gz
+    - .platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz
     - .governance/task.yaml
-  allowDependencies: false
+  allowDependencies: true
   allowMigrations: false
   allowPublicContractChanges: false
-  allowPlatformChanges: false
+  allowPlatformChanges: true
   allowArchitectureChanges: false
+  allowControlPlaneChanges: true
+  allowTrustRootChanges: true
 acceptance:
-  - id: AC-CANONICAL-MODEL
-    statement: Product v0 has one canonical TypeScript domain model using the exact fields and category/status vocabulary defined by the slice specification.
-  - id: AC-LOCALIZED-NAMES
-    statement: Arabic Turkish and English Product names are required and normalized without page-specific validation copies.
-  - id: AC-PRICE
-    statement: Price amount and currency are either both absent or both valid and present, with no binary floating-point amount in the domain model.
-  - id: AC-STATE
-    statement: Archived Product is immutable in v0 and publication transitions are explicit.
-  - id: AC-CONCURRENCY
-    statement: Mutations require expected version and reject stale writes before applying changes.
-  - id: AC-TESTS
-    statement: Domain tests execute locally without NestJS database or external service dependencies.
+  - id: AC-PRECEDENCE
+    statement: Every OVERRIDE or REPLACE setting must declare explicit precedence containing exactly its allowed scopes.
+  - id: AC-SETTINGS-ARTIFACT
+    statement: TAYMEX consumes @engineering-platform/settings 0.1.0 through a locked versioned artifact rather than platform source.
+  - id: AC-GOVERNANCE-UPGRADE
+    statement: The trusted governance verifier artifact is upgraded immutably from 0.1.0 to 0.1.1 and its hash is verified.
+  - id: AC-RUNTIME-HONESTY
+    statement: catalog.products.defaultPageSize is marked restart until a real hot-reload settings store exists.
 assumptions:
-  - statement: The canonical Product v0 field/state decisions are approved by PRODUCT-001 slice specification.
+  - statement: The Products slice requires only platform and project setting scopes with OVERRIDE semantics.
     status: verified
     evidence: docs/slices/products/PRODUCTS_VERTICAL_SLICE_V0.md
 obligations:
-  securityDelta: not-applicable
+  securityDelta: required
   performance: not-applicable
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: tested
+  concurrency: considered
   idempotency: not-applicable
 functional:
   invariants:
-    - modelCode is non-empty and normalized for canonical comparison.
-    - all enabled locale names are non-empty.
-    - price amount and currency are an atomic optional pair.
-    - archived Product cannot be modified in v0.
-    - stale expectedVersion never overwrites a newer Product.
-  statesAndTransitions:
-    - draft -> published or archived
-    - published -> draft or archived
-    - archived -> no transition in v0
+    - Product feature tasks cannot modify governance schemas or governance artifacts after this upgrade.
+    - Explicit precedence is setting-specific and no universal precedence chain is invented.
   edgeCases:
-    - whitespace-only localized name
-    - malformed or negative price
-    - lowercase currency input
-    - stale version
-    - mutation after archive
+    - precedence omits an allowed scope
+    - precedence includes a forbidden scope
+    - governance artifact hash mismatch
   failureModes:
-    - invalid input returns a stable domain error code rather than partially mutated Product state.
+    - Consumer validation fails closed if registry and schema disagree.
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
+  - DEP-001
   - RISK-001
   - TRUST-001
   - AUTH-001

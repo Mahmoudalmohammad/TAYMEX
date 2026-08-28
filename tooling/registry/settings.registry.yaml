@@ -1,28 +1,34 @@
-version: 1
+version: 2
 settings:
-  - key: platform.governance.enforcementMode
-    owner: platform-governance
-    kind: invariant
-    valueType: enum
-    resolution: NO_OVERRIDE
-    scopes: [platform]
-    default: enforce
-    enumValues: [enforce]
-    sensitive: false
-    description: Non-bypassable governance mode for protected TAYMEX repositories.
-    lifecycle: stable
-    runtimeBehavior: deploy
-
-  - key: catalog.products.defaultPageSize
-    owner: catalog
-    kind: configuration
-    valueType: integer
-    resolution: OVERRIDE
-    scopes: [platform, project]
-    default: 25
-    minimum: 1
-    maximum: 100
-    sensitive: false
-    description: Default bounded page size for the Products administration list.
-    lifecycle: experimental
-    runtimeBehavior: hot
+- key: platform.governance.enforcementMode
+  owner: platform-governance
+  kind: invariant
+  valueType: enum
+  resolution: NO_OVERRIDE
+  scopes:
+  - platform
+  default: enforce
+  enumValues:
+  - enforce
+  sensitive: false
+  description: Non-bypassable governance mode for protected TAYMEX repositories.
+  lifecycle: stable
+  runtimeBehavior: deploy
+- key: catalog.products.defaultPageSize
+  owner: catalog
+  kind: configuration
+  valueType: integer
+  resolution: OVERRIDE
+  scopes:
+  - platform
+  - project
+  default: 25
+  minimum: 1
+  maximum: 100
+  sensitive: false
+  description: Default bounded page size for the Products administration list.
+  lifecycle: experimental
+  runtimeBehavior: restart
+  precedence:
+  - platform
+  - project

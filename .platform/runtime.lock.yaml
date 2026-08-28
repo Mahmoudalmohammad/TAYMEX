@@ -28,3 +28,9 @@ artifacts:
   sha256: 891c329f1f7e3d2287cffe005d2fcb73bf8c868d3e54d797d3f5cd5ba0a2f8da
   size: 2094
   format: npm-tgz
+- name: '@engineering-platform/settings'
+  version: 0.1.0
+  file: .platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz
+  sha256: eb3937aedc0c27fef522e068bb768d92c6ef1cc8255cec70c5d109a2691a6acd
+  size: 3578
+  format: npm-tgz
