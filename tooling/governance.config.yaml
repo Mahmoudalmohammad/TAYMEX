@@ -2,7 +2,11 @@ version: 1
 riskOrder: [R0, R1, R2, R3, R4]
 modeMinimumRisk: {feature: R1, fix: R1, refactor: R2, migration: R3, platform-change: R4, security-change: R4}
 protectedPaths:
-  - {pattern: "tooling/**", minimumRisk: R4, rule: RISK-GOVERNANCE}
+  - {pattern: "tooling/governance.config.yaml", minimumRisk: R4, rule: RISK-GOVERNANCE}
+  - {pattern: "tooling/policies/**", minimumRisk: R4, rule: RISK-GOVERNANCE}
+  - {pattern: "tooling/schemas/**", minimumRisk: R4, rule: RISK-GOVERNANCE}
+  - {pattern: "tooling/trust-root/**", minimumRisk: R4, rule: RISK-GOVERNANCE}
+  - {pattern: "tooling/registry/rules.registry.yaml", minimumRisk: R4, rule: RISK-GOVERNANCE}
   - {pattern: ".github/workflows/**", minimumRisk: R4, rule: RISK-CI-CONTROL}
   - {pattern: ".github/CODEOWNERS", minimumRisk: R4, rule: RISK-CODEOWNERS}
   - {pattern: ".platform/artifacts/governance/**", minimumRisk: R4, rule: RISK-TRUST-ARTIFACT}
@@ -18,7 +22,7 @@ pathClasses:
   contractSources: ["**/contracts/public/**/*.tsp"]
   generatedContracts: ["**/contracts/public/**/*.generated.yaml", "**/contracts/public/**/*.generated.json"]
   dataSchemas: ["**/src/data/schema.ts", "**/src/data/**/*.schema.ts"]
-  controlPlane: [".github/workflows/**", ".github/CODEOWNERS", "tooling/**", ".platform/artifacts/governance/**", ".platform/governance.lock.yaml"]
+  controlPlane: [".github/workflows/**", ".github/CODEOWNERS", "tooling/governance.config.yaml", "tooling/policies/**", "tooling/schemas/**", "tooling/trust-root/**", "tooling/registry/rules.registry.yaml", ".platform/artifacts/governance/**", ".platform/governance.lock.yaml"]
   trustRoot: [".github/workflows/trust-root.yml", "tooling/trust-root/**", "tooling/schemas/trust-root.schema.json", ".platform/artifacts/governance/**", ".platform/governance.lock.yaml"]
 registries:
   settings: tooling/registry/settings.registry.yaml

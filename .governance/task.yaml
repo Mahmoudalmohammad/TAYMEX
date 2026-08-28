@@ -9,6 +9,7 @@ modules:
 scope:
   allowedPaths:
     - tooling/trust-root/trust-root.yaml
+    - tooling/governance.config.yaml
     - .governance/task.yaml
   forbiddenPaths:
     - .platform/artifacts/governance/**
