@@ -1,46 +1,78 @@
-id: PLATFORM-201
-title: Correct consumer control-plane boundary
-mode: platform-change
-risk: R4
-objective: Narrow the consumer control-plane path classification so product-owned registries can evolve under governed feature tasks without weakening verifier, policy, schema, CI, or trust-root protection.
-baseRevision: 913e213a53e9d790d00b15e9074b35a091b4c21e
+id: PRODUCT-001
+title: Establish Products slice canonical declarations
+mode: feature
+risk: R3
+objective: Establish the minimal canonical Product slice requirements, product-owned settings and permissions, and catalog module declarations needed before implementation begins, without building Product runtime behavior yet.
+baseRevision: aff7e9cb475b1d040efe4c2ab4c167e067b401cd
 modules:
   - catalog
 scope:
   allowedPaths:
-    - tooling/trust-root/trust-root.yaml
-    - tooling/governance.config.yaml
+    - docs/slices/products/PRODUCTS_VERTICAL_SLICE_V0.md
+    - tooling/registry/settings.registry.yaml
+    - tooling/registry/permissions.registry.yaml
+    - apps/api/src/modules/catalog/module.manifest.yaml
     - .governance/task.yaml
   forbiddenPaths:
-    - .platform/artifacts/governance/**
-  allowNewFiles: false
+    - tooling/registry/rules.registry.yaml
+    - tooling/policies/**
+    - tooling/schemas/**
+    - tooling/trust-root/**
+    - .github/**
+    - .platform/**
+  allowNewFiles: true
+  allowedNewFiles:
+    - docs/slices/products/PRODUCTS_VERTICAL_SLICE_V0.md
+    - .governance/task.yaml
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
-  allowPlatformChanges: true
-  allowArchitectureChanges: false
-  allowVisualBaselineChanges: false
-  allowBreakingContractChanges: false
-  allowDestructiveMigrations: false
-  allowControlPlaneChanges: true
-  allowTrustRootChanges: true
+  allowPlatformChanges: false
+  allowArchitectureChanges: true
 acceptance:
-  - id: AC-REGISTRIES-NOT-CONTROL-PLANE
-    statement: Product-owned settings, permissions, events, and terminology registries are not classified as trust-root control-plane implementation.
-  - id: AC-JUDGE-STILL-PROTECTED
-    statement: Verifier policies schemas rules CI workflows and trust-root bootstrap assets remain protected at R4.
-  - id: AC-REDTEAM
-    statement: A normal feature can change a declared product registry within scope but still cannot change rules registry or trust-root policy.
+  - id: AC-SLICE-BOUNDARY
+    statement: The Product v0 specification clearly distinguishes source-backed requirements, slice-only technical decisions, and explicitly deferred product capabilities.
+  - id: AC-SETTING
+    statement: catalog.products.defaultPageSize exists exactly once as a project-consumable canonical setting using OVERRIDE resolution.
+  - id: AC-PERMISSIONS
+    statement: catalog.products.read and catalog.products.manage exist exactly once as canonical Product permissions.
+  - id: AC-MODULE
+    statement: The catalog module manifest declares the Product setting and permission relationships without claiming Product tables or API contracts that do not exist yet.
+  - id: AC-TRUST
+    statement: Product declarations remain feature-owned while verifier rules policies schemas and trust-root assets remain forbidden.
 assumptions:
-  - statement: Product registries are declarative product truth validated by governance rather than verifier implementation.
+  - statement: TAYMEX currently needs Arabic Turkish and English Product administration content.
     status: verified
-    evidence: Settings/permissions/events are module obligations and must evolve with domain features.
+    evidence: Accepted TAYMEX v0 project profile and website proposal.
+  - statement: The five v0 Product categories reflect the current UGP product catalog families supplied for TAYMEX.
+    status: verified
+    evidence: TAYMEX source archive UGP Products Catalogs 2026 folders.
+obligations:
+  ui: not-applicable
+  responsive: not-applicable
+  accessibility: not-applicable
+  performance: not-applicable
+  securityDelta: required
+  concurrency: considered
+  idempotency: not-applicable
+functional:
+  invariants:
+    - Product runtime behavior is not implemented in this declaration task.
+    - No Product-specific concept is promoted into ENGINEERING_PLATFORM.
+  edgeCases:
+    - Product permission registry already contains a conflicting key.
+    - Product setting registry already contains a conflicting key or alias.
+  failureModes:
+    - Canonical registry validation fails and the task blocks rather than introducing a duplicate declaration.
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
-  - RISK-001
+  - ARCH-001
+  - SET-001
+  - SET-002
+  - MOD-001
+  - PERM-001
   - TRUST-001
-  - TRUST-002
   - AUTH-001

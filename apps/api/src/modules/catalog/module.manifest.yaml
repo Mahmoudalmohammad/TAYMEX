@@ -12,11 +12,20 @@ data:
   classification: internal
   adapter: none
   schemaRoots: []
-settings: {defines: [], consumes: []}
-permissions: {defines: [], consumes: []}
-events: {emits: [], consumes: []}
-contracts: {owns: [], consumes: []}
-api: {internalOnly: false}
-securityTags: []
-performanceTags: []
+settings:
+  defines: [catalog.products.defaultPageSize]
+  consumes: [catalog.products.defaultPageSize]
+permissions:
+  defines: [catalog.products.read, catalog.products.manage]
+  consumes: [catalog.products.read, catalog.products.manage]
+events:
+  emits: []
+  consumes: []
+contracts:
+  owns: []
+  consumes: []
+api:
+  internalOnly: false
+securityTags: [authorization, audit]
+performanceTags: [bounded-list]
 extensionModes: []

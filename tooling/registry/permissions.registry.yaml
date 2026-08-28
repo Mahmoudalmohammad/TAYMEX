@@ -1,2 +1,15 @@
 version: 1
-permissions: []
+permissions:
+  - key: catalog.products.read
+    owner: catalog
+    description: Read and list Product administration data.
+    scope: global
+    sensitivity: normal
+    lifecycle: experimental
+
+  - key: catalog.products.manage
+    owner: catalog
+    description: Create edit and change publication status of Products.
+    scope: global
+    sensitivity: privileged
+    lifecycle: experimental
