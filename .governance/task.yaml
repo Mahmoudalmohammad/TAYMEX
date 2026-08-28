@@ -1,0 +1,45 @@
+id: PLATFORM-201
+title: Correct consumer control-plane boundary
+mode: platform-change
+risk: R4
+objective: Narrow the consumer control-plane path classification so product-owned registries can evolve under governed feature tasks without weakening verifier, policy, schema, CI, or trust-root protection.
+baseRevision: 913e213a53e9d790d00b15e9074b35a091b4c21e
+modules:
+  - catalog
+scope:
+  allowedPaths:
+    - tooling/trust-root/trust-root.yaml
+    - .governance/task.yaml
+  forbiddenPaths:
+    - .platform/artifacts/governance/**
+  allowNewFiles: false
+  allowDependencies: false
+  allowMigrations: false
+  allowPublicContractChanges: false
+  allowPlatformChanges: true
+  allowArchitectureChanges: false
+  allowVisualBaselineChanges: false
+  allowBreakingContractChanges: false
+  allowDestructiveMigrations: false
+  allowControlPlaneChanges: true
+  allowTrustRootChanges: true
+acceptance:
+  - id: AC-REGISTRIES-NOT-CONTROL-PLANE
+    statement: Product-owned settings, permissions, events, and terminology registries are not classified as trust-root control-plane implementation.
+  - id: AC-JUDGE-STILL-PROTECTED
+    statement: Verifier policies schemas rules CI workflows and trust-root bootstrap assets remain protected at R4.
+  - id: AC-REDTEAM
+    statement: A normal feature can change a declared product registry within scope but still cannot change rules registry or trust-root policy.
+assumptions:
+  - statement: Product registries are declarative product truth validated by governance rather than verifier implementation.
+    status: verified
+    evidence: Settings/permissions/events are module obligations and must evolve with domain features.
+requiredGates:
+  - TASK-001
+  - BASE-001
+  - SCP-001
+  - SCP-002
+  - RISK-001
+  - TRUST-001
+  - TRUST-002
+  - AUTH-001

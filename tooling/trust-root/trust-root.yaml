@@ -3,7 +3,11 @@ taskPath: .governance/task.yaml
 controlPlanePaths:
   - .github/workflows/**
   - .github/CODEOWNERS
-  - tooling/**
+  - tooling/governance.config.yaml
+  - tooling/policies/**
+  - tooling/schemas/**
+  - tooling/trust-root/**
+  - tooling/registry/rules.registry.yaml
   - .platform/artifacts/governance/**
   - .platform/governance.lock.yaml
 trustRootPaths:
