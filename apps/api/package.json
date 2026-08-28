@@ -15,7 +15,8 @@
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
     "@engineering-platform/settings": "file:../../.platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz",
-    "@engineering-platform/authorization": "file:../../.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz"
+    "@engineering-platform/authorization": "file:../../.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz",
+    "@taymex/foundation": "workspace:*"
   },
   "devDependencies": {
     "tsx": "4.20.5",

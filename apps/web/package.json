@@ -14,7 +14,8 @@
     "@engineering-platform/design-tokens": "file:../../.platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz",
     "@engineering-platform/ui": "file:../../.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz",
     "@engineering-platform/app-shell": "file:../../.platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz",
-    "@engineering-platform/ui-patterns": "file:../../.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz"
+    "@engineering-platform/ui-patterns": "file:../../.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz",
+    "@taymex/foundation": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "19.2.2",

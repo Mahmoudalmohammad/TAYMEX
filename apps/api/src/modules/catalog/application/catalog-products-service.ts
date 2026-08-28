@@ -1,3 +1,4 @@
+import { ApplicationError, ValidationError, requirePositiveSafeInteger, type Clock } from '@taymex/foundation';
 import type { AuthorizationSubject } from '@engineering-platform/authorization';
 import {
   PRODUCT_ERROR_CODES,
@@ -28,21 +29,26 @@ export const CATALOG_PRODUCTS_APPLICATION_ERROR_CODES = {
 export type CatalogProductsApplicationErrorCode =
   (typeof CATALOG_PRODUCTS_APPLICATION_ERROR_CODES)[keyof typeof CATALOG_PRODUCTS_APPLICATION_ERROR_CODES];
 
-export class CatalogProductsApplicationError extends Error {
+export class CatalogProductsApplicationError extends ApplicationError {
   readonly code: CatalogProductsApplicationErrorCode;
-  readonly field?: string;
 
   constructor(code: CatalogProductsApplicationErrorCode, message: string, field?: string) {
-    super(message);
+    super({
+      code,
+      category: code === CATALOG_PRODUCTS_APPLICATION_ERROR_CODES.notFound
+        ? 'not-found'
+        : code === CATALOG_PRODUCTS_APPLICATION_ERROR_CODES.invalidPage
+          ? 'validation'
+          : 'conflict',
+      message,
+      safeMessageKey: `errors.catalog.products.${code.toLowerCase()}`,
+      field,
+    });
     this.name = 'CatalogProductsApplicationError';
     this.code = code;
-    this.field = field;
   }
 }
 
-export interface CatalogClock {
-  now(): Date;
-}
 
 export interface ProductIdGenerator {
   next(): string;
@@ -98,7 +104,7 @@ export type ChangeCatalogProductStatusInput = Readonly<{
 export class CatalogProductsService {
   constructor(
     private readonly repository: CatalogProductRepository,
-    private readonly clock: CatalogClock,
+    private readonly clock: Clock,
     private readonly idGenerator: ProductIdGenerator,
   ) {}
 
@@ -218,14 +224,18 @@ export class CatalogProductsService {
 }
 
 function normalizePage(page: number): number {
-  if (!Number.isSafeInteger(page) || page < 1) {
-    throw new CatalogProductsApplicationError(
-      CATALOG_PRODUCTS_APPLICATION_ERROR_CODES.invalidPage,
-      'Page must be a positive safe integer.',
-      'page',
-    );
+  try {
+    return requirePositiveSafeInteger(page, 'page');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw new CatalogProductsApplicationError(
+        CATALOG_PRODUCTS_APPLICATION_ERROR_CODES.invalidPage,
+        'Page must be a positive safe integer.',
+        'page',
+      );
+    }
+    throw error;
   }
-  return page;
 }
 
 function calculateOffset(page: number, pageSize: number): number {

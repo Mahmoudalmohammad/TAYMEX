@@ -1,3 +1,14 @@
+import {
+  ApplicationError,
+  MoneyError,
+  ValidationError,
+  money,
+  requireNonBlank,
+  requireOneOf,
+  requireUuid,
+  requireValidDate,
+} from '@taymex/foundation';
+
 export const PRODUCT_CATEGORIES = [
   'solar-panel',
   'lithium-battery',
@@ -47,15 +58,19 @@ export const PRODUCT_ERROR_CODES = {
 
 export type ProductErrorCode = (typeof PRODUCT_ERROR_CODES)[keyof typeof PRODUCT_ERROR_CODES];
 
-export class ProductDomainError extends Error {
+export class ProductDomainError extends ApplicationError {
   readonly code: ProductErrorCode;
-  readonly field?: string;
 
   constructor(code: ProductErrorCode, message: string, field?: string) {
-    super(message);
+    super({
+      code,
+      category: code === PRODUCT_ERROR_CODES.validation ? 'validation' : 'conflict',
+      message,
+      safeMessageKey: `errors.catalog.product.${code.toLowerCase()}`,
+      field,
+    });
     this.name = 'ProductDomainError';
     this.code = code;
-    this.field = field;
   }
 }
 
@@ -86,9 +101,6 @@ export type ChangeProductPublicationStatusInput = Readonly<{
   now: Date;
 }>;
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const DECIMAL_PATTERN = /^\d+(?:\.\d{1,6})?$/;
-const CURRENCY_PATTERN = /^[A-Z]{3}$/;
 
 export function productModelCodeComparisonKey(modelCode: string): string {
   return normalizeRequiredText(modelCode, 'modelCode').toLocaleUpperCase('en-US');
@@ -247,60 +259,71 @@ function normalizePrice(
     );
   }
 
-  const amount = normalizeRequiredText(rawAmount as string, 'priceAmount');
-  if (!DECIMAL_PATTERN.test(amount)) {
-    throw validationError(
-      'priceAmount',
-      'Price amount must be a non-negative decimal string with up to 6 fractional digits.',
-    );
+  try {
+    const parsed = money(rawAmount as string, rawCurrency as string, {
+      maxScale: 6,
+      allowNegative: false,
+    });
+    return Object.freeze({ amount: parsed.amount, currency: parsed.currency });
+  } catch (error) {
+    if (error instanceof MoneyError) {
+      const field = error.code === 'MONEY_INVALID_CURRENCY' ? 'priceCurrency' : 'priceAmount';
+      throw validationError(field, error.message);
+    }
+    throw error;
   }
-
-  const currency = normalizeRequiredText(rawCurrency as string, 'priceCurrency').toUpperCase();
-  if (!CURRENCY_PATTERN.test(currency)) {
-    throw validationError('priceCurrency', 'Price currency must be a three-letter code.');
-  }
-
-  return Object.freeze({ amount, currency });
 }
 
 function normalizeUuid(id: string): string {
-  const normalized = normalizeRequiredText(id, 'id').toLowerCase();
-  if (!UUID_PATTERN.test(normalized)) {
-    throw validationError('id', 'Product id must be a UUID.');
+  try {
+    return requireUuid(id, 'id');
+  } catch (error) {
+    if (error instanceof ValidationError) throw validationError('id', error.message);
+    throw error;
   }
-  return normalized;
 }
 
 function normalizeCategory(category: ProductCategory): ProductCategory {
-  if (!(PRODUCT_CATEGORIES as readonly string[]).includes(category)) {
-    throw validationError('category', `Unsupported Product category: ${String(category)}.`);
+  try {
+    return requireOneOf(category, PRODUCT_CATEGORIES, 'category');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw validationError('category', `Unsupported Product category: ${String(category)}.`);
+    }
+    throw error;
   }
-  return category;
 }
 
 function normalizePublicationStatus(status: ProductPublicationStatus): ProductPublicationStatus {
-  if (!(PRODUCT_PUBLICATION_STATUSES as readonly string[]).includes(status)) {
-    throw validationError(
-      'publicationStatus',
-      `Unsupported publication status: ${String(status)}.`,
-    );
+  try {
+    return requireOneOf(status, PRODUCT_PUBLICATION_STATUSES, 'publicationStatus');
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw validationError(
+        'publicationStatus',
+        `Unsupported publication status: ${String(status)}.`,
+      );
+    }
+    throw error;
   }
-  return status;
 }
 
 function normalizeRequiredText(value: string, field: string): string {
-  const normalized = value.trim();
-  if (normalized.length === 0) {
-    throw validationError(field, `${field} must not be empty.`);
+  try {
+    return requireNonBlank(value, field);
+  } catch (error) {
+    if (error instanceof ValidationError) throw validationError(field, `${field} must not be empty.`);
+    throw error;
   }
-  return normalized;
 }
 
 function normalizeDate(value: Date, field: string): Date {
-  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
-    throw validationError(field, `${field} must be a valid Date.`);
+  try {
+    return requireValidDate(value, field);
+  } catch (error) {
+    if (error instanceof ValidationError) throw validationError(field, `${field} must be a valid Date.`);
+    throw error;
   }
-  return new Date(value.getTime());
 }
 
 function normalizeMutationTime(product: Product, value: Date): Date {

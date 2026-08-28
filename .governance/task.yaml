@@ -1,43 +1,73 @@
-id: PLATFORM-205
-title: Permit consumer-local workspace packages while preserving platform artifact isolation
-mode: platform-change
-risk: R4
-objective: Upgrade the trusted governance artifact so TAYMEX may use workspace dependencies for its own internal packages while continuing to reject workspace, link, source-path, or tampered consumption of engineering-platform artifacts.
-baseRevision: 2aea0dfbfdd3e570cb00b39c0494ec226dba981e
+id: FOUNDATION-F1-001
+title: Implement core application contracts and integrate them into TAYMEX
+mode: feature
+risk: R2
+objective: Implement the F1 application foundation as framework-neutral core contracts for canonical errors and validation, deterministic clock/time, exact money/currency, typed quantities/units, and localization primitives, then integrate those contracts into the existing Catalog and web localization paths without expanding product functionality.
+baseRevision: dd6243ff1f06dcde86553fa66258e8777d4fa599
 modules:
   - catalog
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - .platform/governance.lock.yaml
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.3.tar.gz
+    - packages/foundation/**
+    - apps/api/package.json
+    - apps/web/package.json
+    - apps/api/src/modules/catalog/domain/product.ts
+    - apps/api/src/modules/catalog/application/catalog-products-service.ts
+    - apps/api/src/generated/locales.generated.ts
+    - apps/web/src/i18n/locales.generated.ts
+    - apps/web/src/i18n/locales.ts
+    - scripts/generate-localization-bindings.py
+    - blueprints/foundation/foundation.manifest.yaml
   forbiddenPaths:
-    - apps/**
-    - packages/**
+    - apps/api/src/modules/catalog/application/catalog-product-repository.ts
+    - apps/api/src/modules/catalog/catalog.module.ts
+    - apps/api/src/modules/catalog/tests/**
+    - apps/web/app/**
     - tooling/**
-    - blueprints/**
+    - .platform/**
+    - .github/**
   allowNewFiles: true
   allowedNewFiles:
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.3.tar.gz
-  allowDependencies: false
+    - packages/foundation/**
+    - apps/api/src/generated/locales.generated.ts
+    - apps/web/src/i18n/locales.generated.ts
+    - scripts/generate-localization-bindings.py
+  allowDependencies: true
+  allowedDependencies:
+    - '@taymex/foundation'
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
-  allowArchitectureChanges: false
-  allowControlPlaneChanges: true
-  allowTrustRootChanges: true
+  allowArchitectureChanges: true
 acceptance:
-  - id: AC-LOCAL-WORKSPACE
-    statement: TAYMEX-owned workspace dependencies remain inside the independent consumer repository and are not rejected by the platform artifact boundary.
-  - id: AC-PLATFORM-ISOLATION
-    statement: Any engineering-platform dependency using workspace, link, source path, missing lock, or invalid artifact integrity remains blocked.
+  - id: AC-F1-ERRORS
+    statement: Canonical application errors separate machine code/category and safe client descriptors from internal messages, and validation primitives produce structured field issues.
+  - id: AC-F1-TIME
+    statement: Application code can depend on a Clock abstraction with deterministic fixed-clock tests and explicit UTC serialization helpers rather than reading wall-clock time directly.
+  - id: AC-F1-MONEY
+    statement: Money never uses binary floating point, validates currency/decimal precision, rejects incompatible currencies, and has explicit deterministic rounding modes with tests.
+  - id: AC-F1-UNITS
+    statement: Quantity values are decimal strings with canonical unit identifiers and exact compatible conversions while incompatible dimensions fail explicitly.
+  - id: AC-F1-LOCALIZATION
+    statement: AR/TR/EN locale bindings are generated from the project profile, directionality and bidi helpers are centralized, and locale-aware number/currency/time formatting has deterministic contract tests.
+  - id: AC-F1-INTEGRATION
+    statement: Catalog Product validation/money/errors and application clock/errors consume F1 contracts without changing Product feature scope or persisted field names.
+  - id: AC-F1-FOUNDATION
+    statement: Foundation manifest records F1 evidence and advances the current stage only to the next foundation stage after F1 checks pass.
 assumptions:
-  - statement: TAYMEX is an independent monorepo and may legitimately contain its own internal packages under packages/*.
+  - statement: Product priceAmount and priceCurrency remain the current Catalog domain fields; F1 standardizes their validation and behavior without introducing a new persistence model.
     status: verified
-    evidence: pnpm-workspace.yaml
+    evidence: apps/api/src/modules/catalog/domain/product.ts
+  - statement: Enabled locales and RTL locales are controlled by the canonical TAYMEX project profile.
+    status: verified
+    evidence: blueprints/project-profiles/taymex.yaml
+  - statement: F1 introduces no database, HTTP, identity, settings-administration, audit, or product-feature expansion.
+    status: verified
+    evidence: docs/FOUNDATION_BLUEPRINT.md
 obligations:
-  securityDelta: completed
-  performance: not-applicable
+  securityDelta: not-applicable
+  performance: standard
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
@@ -45,11 +75,27 @@ obligations:
   idempotency: not-applicable
 functional:
   invariants:
-    - Consumer-local package composition must not weaken the versioned artifact boundary for @engineering-platform packages.
+    - Internal error messages are not automatically exposed as client-safe error text.
+    - Monetary arithmetic never converts decimal business amounts through JavaScript Number.
+    - Unit conversion is permitted only between units of the same physical dimension.
+    - Locale bindings cannot silently diverge from the project profile.
+    - Clock consumers receive cloned Date values so mutable Date objects cannot mutate clock state.
+  edgeCases:
+    - Decimal values with leading zeros, trailing fractional zeros, excessive precision, and negative values.
+    - HALF_UP and HALF_EVEN rounding at exact midpoint values.
+    - Currency mismatch during addition/comparison.
+    - Incompatible unit conversion such as power to energy.
+    - Unknown locale and mixed-direction dynamic text.
+  failureModes:
+    - Product retains a private duplicate money validator after canonical money integration.
+    - Catalog service keeps its own clock contract instead of consuming the foundation Clock.
+    - Generated locale bindings become stale after project-profile changes.
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
+  - DEP-001
+  - ARCH-001
   - RISK-001
   - TRUST-001

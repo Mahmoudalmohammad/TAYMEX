@@ -10,6 +10,7 @@ foundation:
     - PROVEN
     - PRODUCTION_PROVEN
   readinessRule: Every capability with requiredBeforeFeatureExpansion=true must be at or above exitMaturity.
+  currentStage: F2
   validationSlice:
     module: catalog
     status: FROZEN_FOR_FOUNDATION_PROOF
@@ -57,46 +58,56 @@ capabilities:
   - id: core.errors-validation
     area: application-kernel
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: engineering-foundation
     purpose: Canonical machine errors, boundary mapping, validation, safe messages, and correlation IDs.
-    evidence: []
-    remaining:
-      - Implement and integrate canonical errors and validation contracts.
+    evidence:
+      - packages/foundation/src/errors.ts
+      - packages/foundation/src/validation.ts
+      - packages/foundation/tests/foundation.test.mjs
+      - apps/api/src/modules/catalog/domain/product.ts
+      - apps/api/src/modules/catalog/application/catalog-products-service.ts
+    remaining: []
 
   - id: core.clock-time
     area: application-kernel
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: INTEGRATED
     exitMaturity: INTEGRATED
     owner: engineering-foundation
     purpose: Deterministic time abstraction and UTC/timezone conventions.
-    evidence: []
-    remaining:
-      - Implement clock/time primitives and persistence conventions.
+    evidence:
+      - packages/foundation/src/clock.ts
+      - packages/foundation/tests/foundation.test.mjs
+      - apps/api/src/modules/catalog/application/catalog-products-service.ts
+    remaining: []
 
   - id: core.money-currency
     area: application-kernel
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: engineering-foundation
     purpose: Canonical monetary amount, currency, precision, and rounding behavior.
-    evidence: []
-    remaining:
-      - Replace ad-hoc monetary representation with the canonical contract and tests.
+    evidence:
+      - packages/foundation/src/money.ts
+      - packages/foundation/tests/foundation.test.mjs
+      - apps/api/src/modules/catalog/domain/product.ts
+    remaining: []
 
   - id: core.quantities-units
     area: application-kernel
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: INTEGRATED
     exitMaturity: INTEGRATED
     owner: engineering-foundation
     purpose: Typed/validated amount-plus-unit primitives before engineering-sensitive calculations.
-    evidence: []
-    remaining:
-      - Define canonical quantity/unit identifiers and conversion rules.
+    evidence:
+      - packages/foundation/src/quantity.ts
+      - packages/foundation/tests/foundation.test.mjs
+      - packages/foundation/module.manifest.yaml
+    remaining: []
 
   - id: identity.authentication-sessions
     area: identity-security
@@ -248,10 +259,16 @@ capabilities:
     owner: experience
     purpose: AR/TR/EN routing, RTL/LTR, translation policy, bidi, time/number/currency/unit formatting.
     evidence:
+      - blueprints/project-profiles/taymex.yaml
+      - scripts/generate-localization-bindings.py
+      - apps/api/src/generated/locales.generated.ts
+      - apps/web/src/i18n/locales.generated.ts
       - apps/web/src/i18n/locales.ts
       - apps/web/src/i18n/messages.ts
+      - packages/foundation/src/localization.ts
+      - packages/foundation/tests/foundation.test.mjs
     remaining:
-      - Prove missing translation behavior, mixed-script cases, and locale-aware formatting in the real UI path.
+      - Prove missing translation behavior, mixed-script cases, and locale-aware formatting in the real UI path during the UI/UX foundation stage.
 
   - id: ui.design-tokens-theme-typography
     area: experience

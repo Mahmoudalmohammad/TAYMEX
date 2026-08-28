@@ -1,0 +1,37 @@
+id: application-foundation
+layer: foundation
+owner: taymex-engineering
+sourceRoots:
+  - packages/foundation/src
+tags:
+  - layer:foundation
+  - foundation:application-kernel
+dependencies:
+  allowedModules: []
+  allowedTags: []
+data:
+  owns: []
+  readsViaContracts: []
+  classification: internal
+  adapter: none
+  schemaRoots: []
+settings:
+  defines: []
+  consumes: []
+permissions:
+  defines: []
+  consumes: []
+events:
+  emits: []
+  consumes: []
+contracts:
+  owns: []
+  consumes: []
+api:
+  internalOnly: true
+securityTags:
+  - validation
+  - safe-errors
+performanceTags: []
+extensionModes:
+  - USE
