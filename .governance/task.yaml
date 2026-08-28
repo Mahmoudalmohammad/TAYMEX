@@ -1,56 +1,45 @@
-id: PRODUCT-003
-title: Consume Products default page-size through canonical Settings Resolver
-mode: feature
-risk: R2
-objective: Generate typed runtime setting bindings from the canonical consumer registry and consume catalog.products.defaultPageSize through @engineering-platform/settings with explicit platform/project precedence and provenance, without adding a second setting definition.
-baseRevision: 9e810db94dc6961c9ec285edd5083a812d97b2ee
+id: PLATFORM-203
+title: Adopt authorization runtime artifact for Products slice
+mode: platform-change
+risk: R4
+objective: Add the versioned @engineering-platform/authorization 0.1.0 runtime artifact required by the Products slice and declare it in the API package without source linking or changing unrelated behavior.
+baseRevision: 191e12a001d0dcc22ba17629716c90b9f3188ad6
 modules:
   - catalog
 scope:
   allowedPaths:
-    - scripts/generate-settings-bindings.py
-    - apps/api/src/generated/settings.generated.ts
-    - apps/api/src/modules/catalog/application/catalog-products-settings.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-settings.test.ts
-    - package.json
+    - .platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz
+    - .platform/runtime.lock.yaml
+    - apps/api/package.json
     - .governance/task.yaml
   forbiddenPaths:
-    - tooling/**
     - .github/**
-    - .platform/**
+    - tooling/trust-root/**
+    - tooling/registry/**
     - apps/web/**
   allowNewFiles: true
   allowedNewFiles:
-    - scripts/generate-settings-bindings.py
-    - apps/api/src/generated/settings.generated.ts
-    - apps/api/src/modules/catalog/application/catalog-products-settings.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-settings.test.ts
+    - .platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz
     - .governance/task.yaml
-  allowDependencies: false
+  allowDependencies: true
   allowMigrations: false
   allowPublicContractChanges: false
-  allowPlatformChanges: false
+  allowPlatformChanges: true
   allowArchitectureChanges: false
 acceptance:
-  - id: AC-SOURCE-OF-TRUTH
-    statement: Runtime TypeScript setting definitions are generated from tooling/registry/settings.registry.yaml and stale generated output is detectable.
-  - id: AC-RESOLUTION
-    statement: catalog.products.defaultPageSize resolves through @engineering-platform/settings using explicit platform then project precedence.
-  - id: AC-EXPLAIN
-    statement: The Catalog settings adapter can return winning scope source and version provenance.
-  - id: AC-BOUNDS
-    statement: Values outside the governed 1 through 100 range fail rather than reaching pagination code.
-  - id: AC-NO-HARDCODE
-    statement: Catalog application code does not duplicate the literal default 25 or implement its own fallback chain.
+  - id: AC-AUTHZ-ARTIFACT
+    statement: TAYMEX consumes @engineering-platform/authorization 0.1.0 as a locked versioned artifact with SHA-256 verification.
+  - id: AC-NO-SOURCE-LINK
+    statement: The API dependency resolves only to the locked artifact and does not use workspace, link, or ENGINEERING_PLATFORM source paths.
+  - id: AC-BOUNDARY
+    statement: Consumer boundary verification passes with the new artifact.
 assumptions:
-  - statement: "@engineering-platform/settings 0.1.0 is a locked TAYMEX runtime artifact, the API is ESM-compatible, and the consumer registry is schema-valid."
+  - statement: Products uses global read/manage permissions and does not require tenant/resource authorization in this slice.
     status: verified
-    evidence: PLATFORM-202 and RUNTIME-001 verification plus .platform/runtime.lock.yaml
+    evidence: tooling/registry/permissions.registry.yaml and catalog module manifest
 obligations:
-  settings:
-    - catalog.products.defaultPageSize
-  securityDelta: not-applicable
-  performance: standard
+  securityDelta: required
+  performance: not-applicable
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
@@ -58,21 +47,19 @@ obligations:
   idempotency: not-applicable
 functional:
   invariants:
-    - Canonical registry remains the only setting definition source.
-    - Project value may override platform value only because this setting explicitly declares that precedence.
-    - Missing scoped values fall back to the registry default.
+    - Platform artifact immutability and independent consumer boundary remain intact.
+    - No Product authorization behavior is implemented in this adoption task.
   edgeCases:
-    - project override absent
-    - both platform and project values populated
-    - out of range value
-    - generated binding stale after registry change
+    - artifact hash mismatch
+    - source-link dependency attempt
   failureModes:
-    - Resolver returns a stable settings error rather than silently clamping an invalid configured value.
+    - Consumer boundary fails closed on artifact tampering or dependency mismatch.
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
+  - DEP-001
   - RISK-001
   - TRUST-001
   - AUTH-001

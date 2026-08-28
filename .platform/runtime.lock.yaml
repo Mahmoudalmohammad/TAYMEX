@@ -34,3 +34,9 @@ artifacts:
   sha256: eb3937aedc0c27fef522e068bb768d92c6ef1cc8255cec70c5d109a2691a6acd
   size: 3578
   format: npm-tgz
+- name: '@engineering-platform/authorization'
+  version: 0.1.0
+  file: .platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz
+  sha256: fb6a9f7418651b7730459d9caad09c811aac09ca11482701e37f059687a282df
+  size: 1284
+  format: npm-tgz
