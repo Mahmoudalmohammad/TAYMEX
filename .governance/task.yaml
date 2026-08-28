@@ -1,78 +1,80 @@
-id: PRODUCT-001
-title: Establish Products slice canonical declarations
+id: PRODUCT-002
+title: Implement Product domain core
 mode: feature
-risk: R3
-objective: Establish the minimal canonical Product slice requirements, product-owned settings and permissions, and catalog module declarations needed before implementation begins, without building Product runtime behavior yet.
-baseRevision: aff7e9cb475b1d040efe4c2ab4c167e067b401cd
+risk: R2
+objective: Implement and executable-test the canonical Product v0 domain invariants before persistence or HTTP integration, keeping business rules independent from NestJS and database adapters.
+baseRevision: 1284c0141c6b9772ef044ac9c82aaeafc01c2ca6
 modules:
   - catalog
 scope:
   allowedPaths:
-    - docs/slices/products/PRODUCTS_VERTICAL_SLICE_V0.md
-    - tooling/registry/settings.registry.yaml
-    - tooling/registry/permissions.registry.yaml
-    - apps/api/src/modules/catalog/module.manifest.yaml
+    - apps/api/src/modules/catalog/domain/**
+    - apps/api/src/modules/catalog/tests/**
     - .governance/task.yaml
   forbiddenPaths:
-    - tooling/registry/rules.registry.yaml
-    - tooling/policies/**
-    - tooling/schemas/**
-    - tooling/trust-root/**
+    - tooling/**
     - .github/**
     - .platform/**
+    - apps/web/**
   allowNewFiles: true
   allowedNewFiles:
-    - docs/slices/products/PRODUCTS_VERTICAL_SLICE_V0.md
+    - apps/api/src/modules/catalog/domain/product.ts
+    - apps/api/src/modules/catalog/tests/product.domain.test.ts
     - .governance/task.yaml
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
-  allowArchitectureChanges: true
+  allowArchitectureChanges: false
 acceptance:
-  - id: AC-SLICE-BOUNDARY
-    statement: The Product v0 specification clearly distinguishes source-backed requirements, slice-only technical decisions, and explicitly deferred product capabilities.
-  - id: AC-SETTING
-    statement: catalog.products.defaultPageSize exists exactly once as a project-consumable canonical setting using OVERRIDE resolution.
-  - id: AC-PERMISSIONS
-    statement: catalog.products.read and catalog.products.manage exist exactly once as canonical Product permissions.
-  - id: AC-MODULE
-    statement: The catalog module manifest declares the Product setting and permission relationships without claiming Product tables or API contracts that do not exist yet.
-  - id: AC-TRUST
-    statement: Product declarations remain feature-owned while verifier rules policies schemas and trust-root assets remain forbidden.
+  - id: AC-CANONICAL-MODEL
+    statement: Product v0 has one canonical TypeScript domain model using the exact fields and category/status vocabulary defined by the slice specification.
+  - id: AC-LOCALIZED-NAMES
+    statement: Arabic Turkish and English Product names are required and normalized without page-specific validation copies.
+  - id: AC-PRICE
+    statement: Price amount and currency are either both absent or both valid and present, with no binary floating-point amount in the domain model.
+  - id: AC-STATE
+    statement: Archived Product is immutable in v0 and publication transitions are explicit.
+  - id: AC-CONCURRENCY
+    statement: Mutations require expected version and reject stale writes before applying changes.
+  - id: AC-TESTS
+    statement: Domain tests execute locally without NestJS database or external service dependencies.
 assumptions:
-  - statement: TAYMEX currently needs Arabic Turkish and English Product administration content.
+  - statement: The canonical Product v0 field/state decisions are approved by PRODUCT-001 slice specification.
     status: verified
-    evidence: Accepted TAYMEX v0 project profile and website proposal.
-  - statement: The five v0 Product categories reflect the current UGP product catalog families supplied for TAYMEX.
-    status: verified
-    evidence: TAYMEX source archive UGP Products Catalogs 2026 folders.
+    evidence: docs/slices/products/PRODUCTS_VERTICAL_SLICE_V0.md
 obligations:
+  securityDelta: not-applicable
+  performance: not-applicable
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  performance: not-applicable
-  securityDelta: required
-  concurrency: considered
+  concurrency: tested
   idempotency: not-applicable
 functional:
   invariants:
-    - Product runtime behavior is not implemented in this declaration task.
-    - No Product-specific concept is promoted into ENGINEERING_PLATFORM.
+    - modelCode is non-empty and normalized for canonical comparison.
+    - all enabled locale names are non-empty.
+    - price amount and currency are an atomic optional pair.
+    - archived Product cannot be modified in v0.
+    - stale expectedVersion never overwrites a newer Product.
+  statesAndTransitions:
+    - draft -> published or archived
+    - published -> draft or archived
+    - archived -> no transition in v0
   edgeCases:
-    - Product permission registry already contains a conflicting key.
-    - Product setting registry already contains a conflicting key or alias.
+    - whitespace-only localized name
+    - malformed or negative price
+    - lowercase currency input
+    - stale version
+    - mutation after archive
   failureModes:
-    - Canonical registry validation fails and the task blocks rather than introducing a duplicate declaration.
+    - invalid input returns a stable domain error code rather than partially mutated Product state.
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
-  - ARCH-001
-  - SET-001
-  - SET-002
-  - MOD-001
-  - PERM-001
+  - RISK-001
   - TRUST-001
   - AUTH-001
