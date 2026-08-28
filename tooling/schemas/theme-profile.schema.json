@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Engineering Platform Theme Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "displayName", "overrides"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "displayName": {"type": "string", "minLength": 1, "maxLength": 80},
+    "description": {"type": "string", "maxLength": 240},
+    "overrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "common": {"$ref": "#/$defs/tokenMap"},
+        "light": {"$ref": "#/$defs/tokenMap"},
+        "dark": {"$ref": "#/$defs/tokenMap"}
+      }
+    }
+  },
+  "$defs": {
+    "tokenMap": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z][A-Za-z0-9.-]+$"},
+      "additionalProperties": {
+        "oneOf": [
+          {"type": "string", "minLength": 1},
+          {"type": "number"}
+        ]
+      }
+    }
+  }
+}

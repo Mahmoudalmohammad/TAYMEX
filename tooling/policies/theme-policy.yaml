@@ -1,0 +1,49 @@
+version: 1
+# Only these public design decisions may be overridden by a project theme.
+# Structural/accessibility invariants such as minimum touch size remain platform-owned.
+allowedOverrides:
+  color:
+    - semantic.color.action.primary
+    - semantic.color.action.primaryHover
+    - semantic.color.text.brand
+    - semantic.color.border.focus
+    - semantic.color.status.success
+    - semantic.color.status.warning
+    - semantic.color.status.danger
+  dimension:
+    - radius.control
+    - radius.card
+    - radius.panel
+    - size.sidebar
+    - size.sidebarCollapsed
+    - size.header
+    - font.size.xs
+    - font.size.sm
+    - font.size.md
+    - font.size.lg
+    - font.size.xl
+    - font.size.2xl
+  fontFamily:
+    - font.family.sans
+constraints:
+  colorFormat: hex
+  dimensions:
+    radius.control: {minPx: 4, maxPx: 20}
+    radius.card: {minPx: 6, maxPx: 28}
+    radius.panel: {minPx: 8, maxPx: 36}
+    size.sidebar: {minPx: 220, maxPx: 360}
+    size.sidebarCollapsed: {minPx: 64, maxPx: 96}
+    size.header: {minPx: 56, maxPx: 88}
+    font.size.xs: {minPx: 11, maxPx: 14}
+    font.size.sm: {minPx: 12, maxPx: 17}
+    font.size.md: {minPx: 14, maxPx: 20}
+    font.size.lg: {minPx: 16, maxPx: 24}
+    font.size.xl: {minPx: 18, maxPx: 30}
+    font.size.2xl: {minPx: 22, maxPx: 40}
+contrastPairs:
+  - foreground: semantic.color.text.inverse
+    background: semantic.color.action.primary
+    minimum: 4.5
+  - foreground: semantic.color.text.brand
+    background: semantic.color.surface.default
+    minimum: 4.5

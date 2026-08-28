@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/events-registry.schema.json",
+  "title": "Engineering Platform Event Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "events"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "owner",
+          "version",
+          "delivery",
+          "classification",
+          "lifecycle"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "delivery": {
+            "enum": [
+              "in-process",
+              "outbox",
+              "external"
+            ]
+          },
+          "classification": {
+            "enum": [
+              "public",
+              "internal",
+              "confidential",
+              "sensitive"
+            ]
+          },
+          "schemaRef": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "lifecycle": {
+            "enum": [
+              "experimental",
+              "stable",
+              "deprecated"
+            ]
+          },
+          "replacedBy": {
+            "type": "string"
+          }
+        }
+      },
+      "uniqueItems": true
+    }
+  }
+}

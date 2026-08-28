@@ -1,0 +1,28 @@
+version: 1
+principle: implementation-agent-may-request-but-not-self-approve-sensitive-authority
+risk:
+  R0:
+    preImplementationOwnerReview: optional
+  R1:
+    preImplementationOwnerReview: optional
+  R2:
+    preImplementationOwnerReview: required-on-manual-scope-expansion
+  R3:
+    preImplementationOwnerReview: required
+  R4:
+    preImplementationOwnerReview: required-platform-or-security-owner
+sensitiveAuthority:
+  - allowDependencies
+  - allowMigrations
+  - allowPublicContractChanges
+  - allowBreakingContractChanges
+  - allowDestructiveMigrations
+  - allowPlatformChanges
+  - allowArchitectureChanges
+  - allowVisualBaselineChanges
+  - allowControlPlaneChanges
+  - allowTrustRootChanges
+expansionBehavior: BLOCK_AND_REQUEST_SCOPE_EXPANSION
+externalAuthority:
+  source: repository-review-and-ruleset
+  selfDeclaredApprovalFieldsTrusted: false

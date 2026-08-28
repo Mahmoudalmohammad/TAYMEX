@@ -1,0 +1,17 @@
+version: 1
+boundary:
+  consumerMustBeIndependentRepository: true
+  directSourceImportsAcrossRepositories: forbidden
+  sourceCopying: forbidden
+bootstrap:
+  transport: pnpm-pack-tarball
+  versionLine: 0.x
+  pinExactVersionInFirstSlice: true
+  recordArtifactSha256: true
+registry:
+  preferredAfterOrganizationActivation: github-packages-npm
+  providerIsReplaceableTransport: true
+  finalScopeRequiresRealGithubNamespace: true
+publish:
+  allowLatestForGovernedPlatformPackages: false
+  stablePackagesMustUseDistExports: true

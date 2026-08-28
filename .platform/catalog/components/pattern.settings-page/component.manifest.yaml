@@ -1,0 +1,14 @@
+id: pattern.settings-page
+name: SettingsPage
+category: pattern
+package: '@engineering-platform/ui-patterns'
+export: SettingsPage
+canonicalRoles:
+- layout.settings-page
+status: beta
+requiredStates:
+- default
+- search
+- save
+- error
+stories: []

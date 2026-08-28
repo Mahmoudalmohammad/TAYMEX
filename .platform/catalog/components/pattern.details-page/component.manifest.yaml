@@ -1,0 +1,13 @@
+id: pattern.details-page
+name: DetailsPage
+category: pattern
+package: '@engineering-platform/ui-patterns'
+export: DetailsPage
+canonicalRoles:
+- layout.details-page
+status: beta
+requiredStates:
+- loading
+- error
+- success
+stories: []

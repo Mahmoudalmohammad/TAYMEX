@@ -1,0 +1,15 @@
+id: ui.select-field
+name: SelectField
+category: primitive
+package: '@engineering-platform/ui'
+export: SelectField
+canonicalRoles:
+- form.select
+status: beta
+thirdPartyPrimitive: react-aria-components
+requiredStates:
+- default
+- focus
+- disabled
+- invalid
+stories: []

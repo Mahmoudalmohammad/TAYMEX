@@ -1,0 +1,15 @@
+id: ui.text-field
+name: TextField
+category: primitive
+package: '@engineering-platform/ui'
+export: TextField
+canonicalRoles:
+- form.text-field
+status: stable
+thirdPartyPrimitive: react-aria-components/TextField
+requiredStates:
+- default
+- focus
+- disabled
+- invalid
+stories: []

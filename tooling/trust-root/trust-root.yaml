@@ -1,0 +1,21 @@
+version: 1
+taskPath: .governance/task.yaml
+controlPlanePaths:
+  - .github/workflows/**
+  - .github/CODEOWNERS
+  - tooling/**
+  - .platform/artifacts/governance/**
+  - .platform/governance.lock.yaml
+trustRootPaths:
+  - .github/workflows/trust-root.yml
+  - tooling/trust-root/**
+  - tooling/schemas/trust-root.schema.json
+  - .platform/artifacts/governance/**
+  - .platform/governance.lock.yaml
+proofAssetPaths:
+  - "**/visual-baselines/**"
+  - "**/__screenshots__/**"
+minimumRisk: {controlPlane: R4, trustRoot: R4, proofAsset: R3}
+allowedControlPlaneModes: [platform-change, security-change]
+allowedTrustRootModes: [platform-change, security-change]
+requiredExternalControls: [required-code-owner-review, required-trust-root-status, required-governance-summary-status, block-force-push, no-direct-push-to-default-branch]

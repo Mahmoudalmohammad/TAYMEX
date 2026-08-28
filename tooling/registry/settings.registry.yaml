@@ -1,0 +1,14 @@
+version: 1
+settings:
+  - key: platform.governance.enforcementMode
+    owner: platform-governance
+    kind: invariant
+    valueType: enum
+    resolution: NO_OVERRIDE
+    scopes: [platform]
+    default: enforce
+    enumValues: [enforce]
+    sensitive: false
+    description: Non-bypassable governance mode for protected TAYMEX repositories.
+    lifecycle: stable
+    runtimeBehavior: deploy

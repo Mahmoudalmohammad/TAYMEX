@@ -1,0 +1,14 @@
+id: ui.data-table
+name: DataTable
+category: component
+package: '@engineering-platform/ui'
+export: DataTable
+canonicalRoles:
+- data.table
+status: beta
+requiredStates:
+- default
+- empty
+- loading
+- overflow-mobile
+stories: []

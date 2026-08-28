@@ -1,0 +1,14 @@
+id: pattern.form-page
+name: FormPage
+category: pattern
+package: '@engineering-platform/ui-patterns'
+export: FormPage
+canonicalRoles:
+- layout.form-page
+status: beta
+requiredStates:
+- default
+- validation
+- loading
+- success
+stories: []

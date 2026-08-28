@@ -1,0 +1,22 @@
+id: catalog
+layer: domain
+owner: taymex
+sourceRoots: [apps/api/src/modules/catalog]
+tags: [layer:domain, domain:catalog]
+dependencies:
+  allowedModules: []
+  allowedTags: [layer:kernel, layer:foundation]
+data:
+  owns: []
+  readsViaContracts: []
+  classification: internal
+  adapter: none
+  schemaRoots: []
+settings: {defines: [], consumes: []}
+permissions: {defines: [], consumes: []}
+events: {emits: [], consumes: []}
+contracts: {owns: [], consumes: []}
+api: {internalOnly: false}
+securityTags: []
+performanceTags: []
+extensionModes: []

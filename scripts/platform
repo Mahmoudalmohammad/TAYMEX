@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import hashlib, os, shutil, subprocess, sys, tarfile, yaml
+root=Path(__file__).resolve().parents[1]
+lock=yaml.safe_load((root/'.platform/governance.lock.yaml').read_text())
+item=lock['artifact']; artifact=root/item['file']
+h=hashlib.sha256(artifact.read_bytes()).hexdigest()
+if h != item['sha256']:
+    print('ERROR: governance artifact hash mismatch',file=sys.stderr); raise SystemExit(2)
+cache=root/'.platform/.cache/governance'/item['version']
+marker=cache/'.sha256'
+if not marker.exists() or marker.read_text().strip()!=h:
+    shutil.rmtree(cache,ignore_errors=True); cache.mkdir(parents=True,exist_ok=True)
+    with tarfile.open(artifact,'r:gz') as tf: tf.extractall(cache, filter='data')
+    marker.write_text(h+'\n')
+env=os.environ.copy(); env['PYTHONPATH']=str(cache/'tooling/platform-cli/src') + os.pathsep + env.get('PYTHONPATH','')
+cp=subprocess.run([sys.executable,'-m','engineering_platform_cli.cli','--repo',str(root),*sys.argv[1:]],cwd=root,env=env)
+raise SystemExit(cp.returncode)

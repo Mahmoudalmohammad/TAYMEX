@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/terminology-registry.schema.json",
+  "title": "Engineering Platform Terminology Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "terms"],
+  "properties": {
+    "version": {"type": "integer", "minimum": 1},
+    "terms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["canonical", "kind", "definition"],
+        "properties": {
+          "canonical": {"type": "string", "minLength": 2},
+          "kind": {"enum": ["domain", "platform", "technical", "ui"]},
+          "definition": {"type": "string", "minLength": 5},
+          "forbiddenAliases": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+          "allowedAliases": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+          "owner": {"type": "string"}
+        }
+      }
+    }
+  }
+}

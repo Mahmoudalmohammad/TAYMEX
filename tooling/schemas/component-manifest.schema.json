@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Engineering Platform UI Component Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "category",
+    "package",
+    "export",
+    "canonicalRoles",
+    "status",
+    "requiredStates",
+    "stories"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9.-]+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "enum": [
+        "primitive",
+        "component",
+        "pattern",
+        "shell"
+      ]
+    },
+    "package": {
+      "type": "string",
+      "pattern": "^@engineering-platform/"
+    },
+    "export": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canonicalRoles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9.-]+$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "status": {
+      "enum": [
+        "experimental",
+        "beta",
+        "stable",
+        "deprecated"
+      ]
+    },
+    "thirdPartyPrimitive": {
+      "type": "string"
+    },
+    "requiredStates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "stories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    }
+  }
+}

@@ -1,0 +1,65 @@
+version: 1
+riskOrder: [R0, R1, R2, R3, R4]
+modeMinimumRisk: {feature: R1, fix: R1, refactor: R2, migration: R3, platform-change: R4, security-change: R4}
+protectedPaths:
+  - {pattern: "tooling/**", minimumRisk: R4, rule: RISK-GOVERNANCE}
+  - {pattern: ".github/workflows/**", minimumRisk: R4, rule: RISK-CI-CONTROL}
+  - {pattern: ".github/CODEOWNERS", minimumRisk: R4, rule: RISK-CODEOWNERS}
+  - {pattern: ".platform/artifacts/governance/**", minimumRisk: R4, rule: RISK-TRUST-ARTIFACT}
+  - {pattern: ".platform/governance.lock.yaml", minimumRisk: R4, rule: RISK-TRUST-LOCK}
+  - {pattern: "**/visual-baselines/**", minimumRisk: R3, rule: RISK-VISUAL-BASELINE}
+pathClasses:
+  dependencyManifests: [package.json, "**/package.json", pnpm-lock.yaml, package-lock.json, .platform/runtime.lock.yaml, ".platform/artifacts/runtime/**"]
+  migrations: ["**/migrations/**", "**/migration/**"]
+  publicContracts: ["**/contracts/public/**", "**/*.openapi.yaml", "**/*.openapi.json"]
+  platformChanges: []
+  architectureChanges: [nx.json, "**/project.json", "**/module.manifest.yaml"]
+  visualBaselines: ["**/visual-baselines/**", "**/__screenshots__/**"]
+  contractSources: ["**/contracts/public/**/*.tsp"]
+  generatedContracts: ["**/contracts/public/**/*.generated.yaml", "**/contracts/public/**/*.generated.json"]
+  dataSchemas: ["**/src/data/schema.ts", "**/src/data/**/*.schema.ts"]
+  controlPlane: [".github/workflows/**", ".github/CODEOWNERS", "tooling/**", ".platform/artifacts/governance/**", ".platform/governance.lock.yaml"]
+  trustRoot: [".github/workflows/trust-root.yml", "tooling/trust-root/**", "tooling/schemas/trust-root.schema.json", ".platform/artifacts/governance/**", ".platform/governance.lock.yaml"]
+registries:
+  settings: tooling/registry/settings.registry.yaml
+  terminology: tooling/registry/terminology.registry.yaml
+  rules: tooling/registry/rules.registry.yaml
+  permissions: tooling/registry/permissions.registry.yaml
+  events: tooling/registry/events.registry.yaml
+schemas:
+  task: tooling/schemas/task-contract.schema.json
+  module: tooling/schemas/module-manifest.schema.json
+  exception: tooling/schemas/exception.schema.json
+  settings: tooling/schemas/settings-registry.schema.json
+  terminology: tooling/schemas/terminology-registry.schema.json
+  component: tooling/schemas/component-manifest.schema.json
+  uiVerification: tooling/schemas/ui-verification.schema.json
+  rules: tooling/schemas/rules-registry.schema.json
+  themeProfile: tooling/schemas/theme-profile.schema.json
+  permissions: tooling/schemas/permissions-registry.schema.json
+  events: tooling/schemas/events-registry.schema.json
+  apiContract: tooling/schemas/api-contract-manifest.schema.json
+  repositoryTruth: tooling/schemas/repository-truth.schema.json
+  trustRoot: tooling/schemas/trust-root.schema.json
+  projectProfile: tooling/schemas/project-profile.schema.json
+  taskAuthorityPolicy: tooling/schemas/task-authority-policy.schema.json
+  artifactBoundaryPolicy: tooling/schemas/artifact-boundary-policy.schema.json
+contextDirectory: .agent-context
+evidenceDirectory: .governance/evidence
+controlPaths: [.governance/task.yaml, ".governance/exceptions/**"]
+uiPolicy: tooling/policies/ui-policy.yaml
+uiVerification:
+  manifestNames: [ui.verification.yaml, ui.verification.yml, ui.verification.json]
+  axeScriptCandidates: [node_modules/axe-core/axe.min.js]
+  coverageRequiredWhenGates: [UI-003, UI-004, UI-005, UI-006]
+themePolicy: tooling/policies/theme-policy.yaml
+repositoryTruth:
+  scanRoots: [apps, packages]
+  ignore: [node_modules, .git, .nx, .agent-context, .governance, dist, build, .next, .platform]
+  output: .governance/repository-truth.json
+trustRoot:
+  policy: tooling/trust-root/trust-root.yaml
+  schema: tooling/schemas/trust-root.schema.json
+policies:
+  taskAuthority: tooling/policies/task-authority-policy.yaml
+  artifactBoundary: tooling/policies/artifact-boundary-policy.yaml

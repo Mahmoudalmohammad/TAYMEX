@@ -1,0 +1,15 @@
+id: ui.search-field
+name: SearchField
+category: component
+package: '@engineering-platform/ui'
+export: SearchField
+canonicalRoles:
+- form.search
+status: beta
+thirdPartyPrimitive: react-aria-components/SearchField
+requiredStates:
+- default
+- focus
+- populated
+- disabled
+stories: []

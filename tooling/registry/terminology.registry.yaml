@@ -1,0 +1,17 @@
+version: 1
+terms:
+  - canonical: Setting
+    kind: platform
+    definition: A canonically registered runtime or deployment value resolved through an explicit policy.
+    forbiddenAliases: [ConfigValue, MagicSetting]
+    owner: platform-governance
+  - canonical: Capability
+    kind: platform
+    definition: A reusable optional functional building block consumed by one or more projects.
+    forbiddenAliases: [PluginThing]
+    owner: platform-architecture
+  - canonical: TaskContract
+    kind: platform
+    definition: The machine-readable execution contract that constrains an agent task and its allowed change scope.
+    forbiddenAliases: [AgentPromptSpec]
+    owner: platform-governance

@@ -1,0 +1,39 @@
+# Generated from ENGINEERING_PLATFORM taymex.v0 profile.
+schemaVersion: 1
+project:
+  id: taymex
+  displayName: TAYMEX
+  consumerMode: independent-repository
+platform:
+  versionRange: 0.x
+  artifactBoundary: versioned-tarball
+localization:
+  enabledLocales: [ar, tr, en]
+  defaultLocale: ar
+  rtlLocales: [ar]
+runtime:
+  web: nextjs-16
+  api: nestjs-fastify-modular-monolith
+  node: 24.x
+  database: postgresql-18
+capabilities:
+  ui: enabled
+  app-shell: enabled
+  identity-minimal: enabled
+  authorization: enabled
+  settings: enabled
+  audit: enabled
+  observability: enabled
+  commerce: deferred
+  search: deferred
+  payments: deferred
+  ai: deferred
+  solar-engine: deferred
+  cms: deferred
+  tenancy: disabled
+settings:
+  enabledScopes: [platform, project]
+  tenantScope: false
+governance:
+  baselineRisk: R2
+  trustRootRequired: true

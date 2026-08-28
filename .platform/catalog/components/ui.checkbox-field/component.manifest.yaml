@@ -1,0 +1,16 @@
+id: ui.checkbox-field
+name: CheckboxField
+category: primitive
+package: '@engineering-platform/ui'
+export: CheckboxField
+canonicalRoles:
+- form.checkbox
+status: beta
+thirdPartyPrimitive: react-aria-components
+requiredStates:
+- default
+- selected
+- focus
+- disabled
+- invalid
+stories: []

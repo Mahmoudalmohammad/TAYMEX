@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/repository-truth.schema.json",
+  "title": "Engineering Platform Repository Truth Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "generatedAt",
+    "repository",
+    "symbols",
+    "dataModels",
+    "contracts",
+    "permissions",
+    "events"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "dataModels": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "imports": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

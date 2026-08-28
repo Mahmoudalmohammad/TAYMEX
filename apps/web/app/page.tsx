@@ -1,0 +1,1 @@
+export default function Home(){return <main data-taymex-placeholder><h1>TAYMEX</h1><p><a href="/ar/admin/products">العربية</a> · <a href="/tr/admin/products">Türkçe</a> · <a href="/en/admin/products">English</a></p></main>}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/exception.schema.json",
+  "title": "Engineering Platform Governance Exception",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "ruleId", "scope", "reason", "owner", "approvedBy", "risk", "createdAt", "expiresAt"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^EXC-[A-Z0-9_-]+$"},
+    "ruleId": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "taskIds": {"type": "array", "items": {"type": "string"}},
+        "paths": {"type": "array", "items": {"type": "string"}},
+        "modules": {"type": "array", "items": {"type": "string"}}
+      },
+      "minProperties": 1
+    },
+    "reason": {"type": "string", "minLength": 20},
+    "owner": {"type": "string", "minLength": 1},
+    "approvedBy": {"type": "string", "minLength": 1},
+    "risk": {"enum": ["R1", "R2", "R3", "R4"]},
+    "compensatingControls": {"type": "array", "items": {"type": "string"}},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "expiresAt": {"type": "string", "format": "date-time"},
+    "ticket": {"type": "string"}
+  }
+}

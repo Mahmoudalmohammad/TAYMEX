@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/settings-registry.schema.json",
+  "title": "Engineering Platform Settings Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "settings"],
+  "properties": {
+    "version": {"type": "integer", "minimum": 1},
+    "settings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "owner", "kind", "valueType", "resolution", "scopes", "lifecycle", "runtimeBehavior", "description"],
+        "properties": {
+          "key": {"type": "string", "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-z][a-zA-Z0-9]*)+$"},
+          "owner": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["configuration", "preference", "feature-flag", "security-policy", "secret-reference", "invariant"]},
+          "valueType": {"enum": ["boolean", "integer", "number", "string", "enum", "duration", "money", "array", "object"]},
+          "resolution": {"enum": ["OVERRIDE", "REPLACE", "MERGE", "FLOOR", "CEILING", "STRONGEST", "FLAG_EVALUATION", "NO_OVERRIDE"]},
+          "scopes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"enum": ["platform", "project", "environment", "tenant", "user", "emergency"]}
+          },
+          "default": {},
+          "enumValues": {"type": "array", "items": {}},
+          "minimum": {"type": "number"},
+          "maximum": {"type": "number"},
+          "sensitive": {"type": "boolean", "default": false},
+          "description": {"type": "string", "minLength": 5},
+          "lifecycle": {"enum": ["experimental", "beta", "stable", "deprecated"]},
+          "runtimeBehavior": {"enum": ["hot", "reload", "restart", "deploy"]},
+          "deprecatedBy": {"type": "string"},
+          "aliases": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+        }
+      }
+    }
+  }
+}

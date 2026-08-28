@@ -1,0 +1,287 @@
+version: 1
+rules:
+- id: TASK-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Task contract must validate against the canonical schema.
+- id: ASM-001
+  severity: blocking
+  implementationStatus: implemented
+  description: No task may begin or pass verification with blocked assumptions.
+- id: BASE-001
+  severity: blocking
+  implementationStatus: implemented
+  description: CI verification base must match the trusted pull-request base, not
+    an agent-selected narrower revision.
+- id: SCP-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Every changed product path must be allowed by task scope and must not
+    match a forbidden path.
+- id: SCP-002
+  severity: blocking
+  implementationStatus: implemented
+  description: New files are denied unless explicitly allowed by the task contract.
+- id: SCP-003
+  severity: blocking
+  implementationStatus: planned
+  description: Changed files must remain within declared task modules and ownership
+    boundaries.
+- id: DEP-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Dependency changes are denied unless explicitly allowed by the task
+    contract.
+- id: MIG-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Database migration changes are denied unless explicitly allowed.
+- id: API-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Public contract changes are denied unless explicitly allowed.
+- id: PLT-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Shared platform changes are denied unless explicitly allowed.
+- id: ARCH-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Architecture-file changes are denied unless explicitly allowed.
+- id: ARCH-002
+  severity: blocking
+  implementationStatus: planned
+  description: Module dependency direction must satisfy the canonical architecture
+    graph.
+- id: ARCH-003
+  severity: blocking
+  implementationStatus: planned
+  description: Cross-domain data access must use approved contracts/ports.
+- id: FIX-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Fix tasks may not rename or move files as an incidental change.
+- id: FIX-002
+  severity: blocking
+  implementationStatus: planned
+  description: Fix tasks require regression evidence tied to the root cause.
+- id: RISK-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Declared task risk may not be lower than the minimum risk inferred
+    from mode and changed paths.
+- id: SET-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Every consumed setting key must exist exactly once in the canonical
+    settings registry.
+- id: SET-002
+  severity: blocking
+  implementationStatus: implemented
+  description: Canonical setting keys and aliases must not collide.
+- id: SET-003
+  severity: blocking
+  implementationStatus: planned
+  description: Runtime consumption must use generated typed settings accessors and
+    declared resolution policy.
+- id: MOD-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Module manifests must validate and consumed settings must resolve to
+    canonical settings.
+- id: GOV-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Required gate identifiers must exist and be implemented before a task
+    may rely on them.
+- id: PRE-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Repository preflight resolves declared modules, contracts, settings,
+    permissions, events, and symbols before coding.
+- id: PRE-002
+  severity: blocking
+  implementationStatus: planned
+  description: No unverified repository assumption may remain at implementation start.
+- id: MODEL-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Declared repository symbols resolve against the compiler-derived TypeScript
+    truth index rather than inferred names/signatures.
+- id: NAME-001
+  severity: blocking
+  implementationStatus: planned
+  description: Syntactic naming must comply with language/project conventions.
+- id: NAME-002
+  severity: blocking
+  implementationStatus: planned
+  description: Semantic names must comply with the canonical terminology registry.
+- id: SEC-001
+  severity: blocking
+  implementationStatus: planned
+  description: Security delta must be declared for attack-surface changes.
+- id: SEC-002
+  severity: blocking
+  implementationStatus: planned
+  description: Authorization-sensitive changes require negative authorization tests.
+- id: SEC-003
+  severity: blocking
+  implementationStatus: planned
+  description: Organization security static-analysis rules must pass.
+- id: SEC-004
+  severity: blocking
+  implementationStatus: planned
+  description: Secrets and dependency security scanning must pass.
+- id: PERF-001
+  severity: blocking
+  implementationStatus: planned
+  description: Governed queries must be bounded and avoid prohibited I/O/query patterns.
+- id: PERF-002
+  severity: blocking
+  implementationStatus: planned
+  description: Critical performance budgets must pass.
+- id: PERF-003
+  severity: blocking
+  implementationStatus: planned
+  description: Shared performance-sensitive changes require expanded consumer verification.
+- id: FUNC-001
+  severity: blocking
+  implementationStatus: planned
+  description: Complex functional tasks must define and test invariants and edge cases.
+- id: FUNC-002
+  severity: blocking
+  implementationStatus: planned
+  description: State transitions must be explicit and valid where workflow state exists.
+- id: FUNC-003
+  severity: blocking
+  implementationStatus: planned
+  description: Required concurrency/idempotency behavior must be tested.
+- id: DB-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Allowed database migrations are scanned for destructive operations;
+    destructive changes require explicit R4 intent.
+- id: INT-001
+  severity: blocking
+  implementationStatus: planned
+  description: External integration input/output must be validated at runtime boundaries.
+- id: UI-001
+  severity: blocking
+  implementationStatus: implemented
+  description: UI changes must reuse approved components/patterns when equivalent
+    capability exists.
+- id: UI-002
+  severity: blocking
+  implementationStatus: implemented
+  description: Raw design values and unauthorized UI imports are prohibited.
+- id: UI-003
+  severity: blocking
+  implementationStatus: implemented
+  description: Governed mobile-first responsive viewport checks must pass.
+- id: UI-004
+  severity: blocking
+  implementationStatus: implemented
+  description: RTL/LTR representative checks must pass.
+- id: UI-005
+  severity: blocking
+  implementationStatus: implemented
+  description: Accessibility checks must pass.
+- id: UI-006
+  severity: blocking
+  implementationStatus: implemented
+  description: Affected visual-regression checks must pass.
+- id: REL-001
+  severity: blocking
+  implementationStatus: planned
+  description: Release and migration compatibility checks must pass for platform releases.
+- id: UI-007
+  severity: blocking
+  implementationStatus: implemented
+  description: Shared UI component manifests must be valid, canonical roles unique,
+    and declared Storybook stories present.
+- id: UI-009
+  severity: blocking
+  implementationStatus: implemented
+  description: Design-token aliases and baseline accessibility contrast pairs must
+    validate before token changes can pass.
+- id: UI-008
+  severity: blocking
+  implementationStatus: implemented
+  description: UI tasks requiring rendered UI gates must be covered by at least one
+    affected UI verification manifest.
+- id: UI-012
+  severity: blocking
+  implementationStatus: implemented
+  description: Visual baseline changes are denied unless the task explicitly permits
+    baseline updates.
+- id: UI-011
+  severity: blocking
+  implementationStatus: implemented
+  description: Project theme profiles may override only approved design tokens and
+    must satisfy governed bounds and contrast policies.
+- id: API-002
+  severity: blocking
+  implementationStatus: implemented
+  description: Common breaking OpenAPI changes are denied unless explicitly allowed
+    by a high-risk contract task.
+- id: API-003
+  severity: blocking
+  implementationStatus: implemented
+  description: Generated OpenAPI must be stamped from the current TypeSpec source
+    and may not be hand-edited independently.
+- id: API-004
+  severity: blocking
+  implementationStatus: implemented
+  description: Module API contract references must resolve to a canonical contract
+    owned by the declared module.
+- id: PERM-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Permissions are canonical registry entries; module definitions/consumption
+    and task obligations must resolve.
+- id: EVT-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Events are canonical versioned registry entries; module definitions/consumption
+    and task obligations must resolve.
+- id: DATA-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Every indexed Drizzle table has exactly one matching module ownership
+    declaration.
+- id: MIG-002
+  severity: blocking
+  implementationStatus: implemented
+  description: Existing migration history is immutable; applied migration files may
+    not be deleted or renamed.
+- id: API-005
+  severity: blocking
+  implementationStatus: planned
+  description: Comprehensive OpenAPI compatibility is verified with a dedicated external
+    compatibility engine such as oasdiff once the CI runtime is installed.
+- id: API-006
+  severity: blocking
+  implementationStatus: planned
+  description: Generated consumer clients/types must be regenerated and match the
+    current OpenAPI contract.
+- id: TRUST-001
+  severity: blocking
+  implementationStatus: implemented
+  description: Control-plane changes require an R4 platform/security change with explicit
+    approved authority and external owner review.
+- id: TRUST-002
+  severity: blocking
+  implementationStatus: implemented
+  description: Trust-root bootstrap files may change only through an explicitly authorized
+    R4 trust-root change reviewed outside the implementing agent.
+- id: TRUST-003
+  severity: blocking
+  implementationStatus: implemented
+  description: Reviewed proof assets and visual baselines may not be changed merely
+    to make a failing check pass; updates require explicit scope and elevated risk.
+- id: AUTH-001
+  severity: blocking
+  implementationStatus: implemented
+  description: A pull request must carry a valid task contract bound to the trusted
+    pull-request base; ordinary implementation agents do not grant themselves control-plane
+    authority.

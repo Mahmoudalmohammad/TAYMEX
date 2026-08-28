@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/api-contract-manifest.schema.json",
+  "title": "Engineering Platform API Contract Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "owner",
+    "audience",
+    "stability",
+    "source",
+    "openapi",
+    "operationalOpenApi",
+    "version"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$"
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "audience": {
+      "enum": [
+        "internal",
+        "partner",
+        "public"
+      ]
+    },
+    "stability": {
+      "enum": [
+        "experimental",
+        "beta",
+        "stable",
+        "deprecated"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "openapi": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operationalOpenApi": {
+      "enum": [
+        "3.1.0"
+      ]
+    },
+    "generatedClientPackage": {
+      "type": "string"
+    },
+    "consumers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "securityProfile": {
+      "enum": [
+        "public",
+        "standard",
+        "sensitive",
+        "high-assurance"
+      ]
+    }
+  }
+}

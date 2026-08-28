@@ -1,0 +1,337 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/task-contract.schema.json",
+  "title": "Engineering Platform Task Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "mode",
+    "risk",
+    "objective",
+    "baseRevision",
+    "modules",
+    "scope",
+    "acceptance",
+    "assumptions"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]+-[0-9]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "mode": {
+      "enum": [
+        "feature",
+        "fix",
+        "refactor",
+        "migration",
+        "platform-change",
+        "security-change"
+      ]
+    },
+    "risk": {
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3",
+        "R4"
+      ]
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 10
+    },
+    "baseRevision": {
+      "type": "string",
+      "minLength": 7
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowedPaths",
+        "forbiddenPaths",
+        "allowNewFiles",
+        "allowDependencies",
+        "allowMigrations",
+        "allowPublicContractChanges",
+        "allowPlatformChanges",
+        "allowArchitectureChanges"
+      ],
+      "properties": {
+        "allowedPaths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbiddenPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowNewFiles": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowedNewFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowDependencies": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowedDependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowMigrations": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowPublicContractChanges": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowPlatformChanges": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowArchitectureChanges": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowVisualBaselineChanges": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowBreakingContractChanges": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowDestructiveMigrations": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowControlPlaneChanges": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowTrustRootChanges": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "statement"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^AC-[A-Z0-9_-]+$"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 5
+          },
+          "evidence": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "statement",
+          "status"
+        ],
+        "properties": {
+          "statement": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "verified",
+              "blocked"
+            ]
+          },
+          "evidence": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "obligations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "settings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "contracts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "securityDelta": {
+          "enum": [
+            "not-applicable",
+            "required",
+            "completed"
+          ]
+        },
+        "performance": {
+          "enum": [
+            "not-applicable",
+            "standard",
+            "critical-budget"
+          ]
+        },
+        "ui": {
+          "enum": [
+            "not-applicable",
+            "standard",
+            "shared-ui-change"
+          ]
+        },
+        "responsive": {
+          "enum": [
+            "not-applicable",
+            "required"
+          ]
+        },
+        "accessibility": {
+          "enum": [
+            "not-applicable",
+            "required"
+          ]
+        },
+        "concurrency": {
+          "enum": [
+            "not-applicable",
+            "considered",
+            "tested"
+          ]
+        },
+        "idempotency": {
+          "enum": [
+            "not-applicable",
+            "required",
+            "tested"
+          ]
+        },
+        "symbols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "functional": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "invariants": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "statesAndTransitions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "edgeCases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failureModes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sideEffects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "requiredGates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "exceptionRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    }
+  }
+}

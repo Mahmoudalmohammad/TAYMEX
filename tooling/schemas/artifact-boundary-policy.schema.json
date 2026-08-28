@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "boundary",
+    "bootstrap",
+    "registry",
+    "publish"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "consumerMustBeIndependentRepository",
+        "directSourceImportsAcrossRepositories",
+        "sourceCopying"
+      ],
+      "properties": {
+        "consumerMustBeIndependentRepository": {
+          "const": true
+        },
+        "directSourceImportsAcrossRepositories": {
+          "const": "forbidden"
+        },
+        "sourceCopying": {
+          "const": "forbidden"
+        }
+      }
+    },
+    "bootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "versionLine",
+        "pinExactVersionInFirstSlice",
+        "recordArtifactSha256"
+      ],
+      "properties": {
+        "transport": {
+          "const": "pnpm-pack-tarball"
+        },
+        "versionLine": {
+          "type": "string"
+        },
+        "pinExactVersionInFirstSlice": {
+          "const": true
+        },
+        "recordArtifactSha256": {
+          "const": true
+        }
+      }
+    },
+    "registry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preferredAfterOrganizationActivation",
+        "providerIsReplaceableTransport",
+        "finalScopeRequiresRealGithubNamespace"
+      ],
+      "properties": {
+        "preferredAfterOrganizationActivation": {
+          "const": "github-packages-npm"
+        },
+        "providerIsReplaceableTransport": {
+          "const": true
+        },
+        "finalScopeRequiresRealGithubNamespace": {
+          "const": true
+        }
+      }
+    },
+    "publish": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowLatestForGovernedPlatformPackages",
+        "stablePackagesMustUseDistExports"
+      ],
+      "properties": {
+        "allowLatestForGovernedPlatformPackages": {
+          "const": false
+        },
+        "stablePackagesMustUseDistExports": {
+          "const": true
+        }
+      }
+    }
+  }
+}

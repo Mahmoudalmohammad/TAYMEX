@@ -1,0 +1,18 @@
+id: pattern.page-state
+name: PageState
+category: pattern
+package: '@engineering-platform/ui-patterns'
+export: PageState
+canonicalRoles:
+- feedback.page-state
+status: stable
+requiredStates:
+- loading
+- empty
+- partial
+- error
+- success
+- offline
+- permission-denied
+- rate-limited
+stories: []

@@ -1,0 +1,3 @@
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--ep-semantic-color-surface-page, #fff); color: var(--ep-semantic-color-text-primary, #111); }
+[data-taymex-placeholder] { padding: var(--ep-core-space-6, 1.5rem); }

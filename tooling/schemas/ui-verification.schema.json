@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Engineering Platform UI Verification Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "sourcePatterns",
+    "target",
+    "scenarios",
+    "checks"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9.-]+$"
+    },
+    "sourcePatterns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "static",
+            "url"
+          ]
+        },
+        "html": {
+          "type": "string"
+        },
+        "css": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scripts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": "string"
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command",
+            "readyUrl"
+          ],
+          "properties": {
+            "command": {
+              "type": "string",
+              "minLength": 1
+            },
+            "cwd": {
+              "type": "string"
+            },
+            "readyUrl": {
+              "type": "string"
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 300
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "static"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "html"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "url"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "url"
+            ]
+          }
+        }
+      ]
+    },
+    "scenarios": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "locales",
+        "themes",
+        "viewports"
+      ],
+      "properties": {
+        "locales": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "locale",
+              "dir"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string"
+              },
+              "dir": {
+                "enum": [
+                  "ltr",
+                  "rtl"
+                ]
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "themes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "viewports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "width",
+              "height"
+            ],
+            "properties": {
+              "width": {
+                "type": "integer",
+                "minimum": 240,
+                "maximum": 4096
+              },
+              "height": {
+                "type": "integer",
+                "minimum": 320,
+                "maximum": 4096
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "matrix": {
+          "enum": [
+            "full",
+            "representative"
+          ]
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "responsive",
+        "direction",
+        "accessibilitySmoke",
+        "visual"
+      ],
+      "properties": {
+        "responsive": {
+          "type": "boolean"
+        },
+        "direction": {
+          "type": "boolean"
+        },
+        "accessibilitySmoke": {
+          "type": "boolean"
+        },
+        "axe": {
+          "type": "boolean"
+        },
+        "visual": {
+          "type": "boolean"
+        },
+        "visualThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "requireOneH1": {
+          "type": "boolean"
+        },
+        "requireMain": {
+          "type": "boolean"
+        },
+        "minTouchTarget": {
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 64
+        }
+      }
+    },
+    "interactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "action",
+          "selector"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "action": {
+            "enum": [
+              "click"
+            ]
+          },
+          "selector": {
+            "type": "string"
+          },
+          "expect": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "selector": {
+                "type": "string"
+              },
+              "attribute": {
+                "type": "string"
+              },
+              "notEqualBefore": {
+                "type": "boolean"
+              },
+              "classOnBody": {
+                "type": "string"
+              },
+              "visible": {
+                "type": "boolean"
+              }
+            }
+          },
+          "minWidth": {
+            "type": "integer",
+            "minimum": 240,
+            "maximum": 4096
+          },
+          "maxWidth": {
+            "type": "integer",
+            "minimum": 240,
+            "maximum": 4096
+          }
+        }
+      }
+    },
+    "baselineDirectory": {
+      "type": "string"
+    },
+    "artifactDirectory": {
+      "type": "string"
+    }
+  }
+}

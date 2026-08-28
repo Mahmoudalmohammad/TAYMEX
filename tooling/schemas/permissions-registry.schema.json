@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/permissions-registry.schema.json",
+  "title": "Engineering Platform Permission Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "permissions"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "owner",
+          "description",
+          "scope",
+          "lifecycle"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 3
+          },
+          "scope": {
+            "enum": [
+              "global",
+              "tenant",
+              "resource",
+              "self"
+            ]
+          },
+          "sensitivity": {
+            "enum": [
+              "normal",
+              "sensitive",
+              "privileged"
+            ],
+            "default": "normal"
+          },
+          "lifecycle": {
+            "enum": [
+              "experimental",
+              "stable",
+              "deprecated"
+            ]
+          },
+          "replacedBy": {
+            "type": "string"
+          }
+        }
+      },
+      "uniqueItems": true
+    }
+  }
+}

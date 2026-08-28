@@ -1,0 +1,73 @@
+version: 1
+scanExtensions:
+- .ts
+- .tsx
+- .js
+- .jsx
+- .css
+- .scss
+scanRoots:
+- apps
+- capabilities
+- packages
+- examples
+exemptPaths:
+- packages/design-tokens/**
+- packages/ui/**
+- packages/ui-patterns/**
+- packages/app-shell/**
+- examples/reference-ui/**
+approvedImports:
+- '@engineering-platform/ui'
+- '@engineering-platform/ui-patterns'
+- '@engineering-platform/app-shell'
+- '@engineering-platform/design-tokens'
+forbiddenThirdPartyUiImports:
+- react-aria-components
+- react-aria
+- '@base-ui/*'
+- '@radix-ui/*'
+- lucide-react
+- '@heroicons/*'
+- '@pandacss/*'
+- styled-system/*
+- '*/styled-system/*'
+forbiddenNativePrimitives:
+- button
+- input
+- textarea
+- select
+- dialog
+forbiddenSharedComponentNames:
+- Button
+- TextField
+- Input
+- Select
+- Textarea
+- Dialog
+- Modal
+- Card
+- DataTable
+- Table
+- IconButton
+- SelectField
+- CheckboxField
+- SwitchField
+- TextareaField
+- Badge
+- Pagination
+- SearchField
+- PageHeader
+- Tabs
+- ModalDialog
+- Alert
+- Skeleton
+- FormSection
+- SettingsGroup
+- FilterPanel
+- DataToolbar
+forbidInlineStyle: true
+forbidPhysicalDirectionProperties: true
+forbidRawColors: true
+forbidRawPandaEscapes: true
+forbidRawRadiusShadowTypography: true

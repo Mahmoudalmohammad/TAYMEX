@@ -1,0 +1,13 @@
+id: ui.page-header
+name: PageHeader
+category: component
+package: '@engineering-platform/ui'
+export: PageHeader
+canonicalRoles:
+- layout.page-header
+status: beta
+requiredStates:
+- default
+- with-actions
+- wrapped-mobile
+stories: []

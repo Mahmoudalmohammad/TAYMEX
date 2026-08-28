@@ -1,0 +1,14 @@
+id: ui.badge
+name: Badge
+category: component
+package: '@engineering-platform/ui'
+export: Badge
+canonicalRoles:
+- status.badge
+status: beta
+requiredStates:
+- default
+- success
+- warning
+- danger
+stories: []

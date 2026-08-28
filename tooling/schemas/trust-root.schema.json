@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-platform.local/schemas/trust-root.schema.json",
+  "title": "Engineering Platform Trust Root Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "taskPath", "controlPlanePaths", "trustRootPaths", "proofAssetPaths", "minimumRisk"],
+  "properties": {
+    "version": {"type": "integer", "minimum": 1},
+    "taskPath": {"type": "string", "minLength": 1},
+    "controlPlanePaths": {
+      "type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}
+    },
+    "trustRootPaths": {
+      "type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}
+    },
+    "proofAssetPaths": {
+      "type": "array", "items": {"type": "string"}, "uniqueItems": true
+    },
+    "minimumRisk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["controlPlane", "trustRoot", "proofAsset"],
+      "properties": {
+        "controlPlane": {"enum": ["R0", "R1", "R2", "R3", "R4"]},
+        "trustRoot": {"enum": ["R0", "R1", "R2", "R3", "R4"]},
+        "proofAsset": {"enum": ["R0", "R1", "R2", "R3", "R4"]}
+      }
+    },
+    "allowedControlPlaneModes": {
+      "type": "array", "items": {"enum": ["platform-change", "security-change"]}, "uniqueItems": true
+    },
+    "allowedTrustRootModes": {
+      "type": "array", "items": {"enum": ["platform-change", "security-change"]}, "uniqueItems": true
+    },
+    "requiredExternalControls": {
+      "type": "array", "items": {"type": "string"}
+    }
+  }
+}

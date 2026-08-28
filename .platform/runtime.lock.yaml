@@ -1,0 +1,30 @@
+schemaVersion: 1
+consumerMode: independent-repository
+transport: versioned-npm-tgz-bootstrap
+intendedReleaseTransport: pnpm-pack / private npm registry
+platformLine: 0.x
+artifacts:
+- name: '@engineering-platform/design-tokens'
+  version: 0.1.0
+  file: .platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz
+  sha256: 54458d1609d68c28a0c58286e1f05e7cf7471b16b0f2603c6d07d467ba9911e4
+  size: 5591
+  format: npm-tgz
+- name: '@engineering-platform/ui'
+  version: 0.1.0
+  file: .platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz
+  sha256: 97877d6fd56ba67d3f74d50b3e02948cb24eeac0a550b3f31561b6639a782db4
+  size: 7142
+  format: npm-tgz
+- name: '@engineering-platform/app-shell'
+  version: 0.1.0
+  file: .platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz
+  sha256: 33047a1a5a902dce98b9b195905442f2f3f258e06dd41e40749f8836f9b41637
+  size: 3330
+  format: npm-tgz
+- name: '@engineering-platform/ui-patterns'
+  version: 0.1.0
+  file: .platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz
+  sha256: 891c329f1f7e3d2287cffe005d2fcb73bf8c868d3e54d797d3f5cd5ba0a2f8da
+  size: 2094
+  format: npm-tgz

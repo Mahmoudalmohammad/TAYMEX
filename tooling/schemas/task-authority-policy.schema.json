@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "principle",
+    "risk",
+    "sensitiveAuthority",
+    "expansionBehavior",
+    "externalAuthority"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "principle": {
+      "const": "implementation-agent-may-request-but-not-self-approve-sensitive-authority"
+    },
+    "risk": {
+      "type": "object",
+      "required": [
+        "R0",
+        "R1",
+        "R2",
+        "R3",
+        "R4"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "R0": {
+          "type": "object",
+          "required": [
+            "preImplementationOwnerReview"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "preImplementationOwnerReview": {
+              "type": "string"
+            }
+          }
+        },
+        "R1": {
+          "type": "object",
+          "required": [
+            "preImplementationOwnerReview"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "preImplementationOwnerReview": {
+              "type": "string"
+            }
+          }
+        },
+        "R2": {
+          "type": "object",
+          "required": [
+            "preImplementationOwnerReview"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "preImplementationOwnerReview": {
+              "type": "string"
+            }
+          }
+        },
+        "R3": {
+          "type": "object",
+          "required": [
+            "preImplementationOwnerReview"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "preImplementationOwnerReview": {
+              "type": "string"
+            }
+          }
+        },
+        "R4": {
+          "type": "object",
+          "required": [
+            "preImplementationOwnerReview"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "preImplementationOwnerReview": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "sensitiveAuthority": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "expansionBehavior": {
+      "const": "BLOCK_AND_REQUEST_SCOPE_EXPANSION"
+    },
+    "externalAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "selfDeclaredApprovalFieldsTrusted"
+      ],
+      "properties": {
+        "source": {
+          "const": "repository-review-and-ruleset"
+        },
+        "selfDeclaredApprovalFieldsTrusted": {
+          "const": false
+        }
+      }
+    }
+  }
+}
