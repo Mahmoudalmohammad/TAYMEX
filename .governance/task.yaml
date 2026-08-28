@@ -1,77 +1,68 @@
-id: PRODUCT-005
-title: Build Products application use-cases and repository contract
+id: FOUNDATION-001
+title: Establish TAYMEX foundation blueprint and readiness gate
 mode: feature
-risk: R3
-objective: Compose the canonical Product domain, generated settings, and generated permissions into bounded Products application use-cases behind a repository port, including optimistic concurrency semantics that a future PostgreSQL adapter must satisfy, without adding database or HTTP dependencies yet.
-baseRevision: 0d1b44c5df062fc2c0d04b3c7cc0b9fa91cb6a46
+risk: R2
+objective: Define the complete cross-cutting application foundation that must be implemented and proven before expanding TAYMEX domain features, with one human blueprint and one machine-readable readiness manifest, without changing runtime product behavior.
+baseRevision: 41b8586c37ec8169dd62e61b387de0ded521b741
 modules:
   - catalog
 scope:
   allowedPaths:
-    - apps/api/src/modules/catalog/application/catalog-product-repository.ts
-    - apps/api/src/modules/catalog/application/catalog-products-service.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
+    - docs/FOUNDATION_BLUEPRINT.md
+    - blueprints/foundation/foundation.manifest.yaml
+    - scripts/foundation-status.py
     - .governance/task.yaml
   forbiddenPaths:
+    - apps/**
     - tooling/**
     - .github/**
     - .platform/**
-    - apps/web/**
   allowNewFiles: true
   allowedNewFiles:
-    - apps/api/src/modules/catalog/application/catalog-product-repository.ts
-    - apps/api/src/modules/catalog/application/catalog-products-service.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
-    - .governance/task.yaml
+    - docs/FOUNDATION_BLUEPRINT.md
+    - blueprints/foundation/foundation.manifest.yaml
+    - scripts/foundation-status.py
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
   allowArchitectureChanges: false
 acceptance:
-  - id: AC-APP-LIST
-    statement: Products listing requires catalog.products.read and always uses the canonical effective page size from Settings with page-based bounded pagination.
-  - id: AC-APP-WRITE
-    statement: Product create update and publication-status changes require catalog.products.manage and reuse the canonical Product domain functions.
-  - id: AC-REPO-CONTRACT
-    statement: The repository port explicitly models duplicate model code and compare-and-swap version conflicts so a PostgreSQL adapter cannot silently implement last-write-wins.
-  - id: AC-CONCURRENCY
-    statement: A stale write that loses the repository compare-and-swap is surfaced as PRODUCT_VERSION_CONFLICT even if the caller previously loaded a valid version.
-  - id: AC-NO-DB-CLAIM
-    statement: This task does not claim PostgreSQL persistence or DB-level concurrency proof; those remain pending until a real Postgres adapter can be executed.
+  - id: AC-FOUNDATION-SCOPE
+    statement: The blueprint defines the complete cross-cutting foundation required before broad domain feature construction, including architecture, identity, authorization, settings, data, API, errors, audit, observability, security, performance, UI/UX, localization, files/media, notifications/events, testing, and operations.
+  - id: AC-FOUNDATION-GATE
+    statement: The machine-readable manifest classifies every foundation capability by current maturity and required exit maturity and can report whether feature expansion is blocked.
+  - id: AC-CLEAN-SYSTEM
+    statement: The new blueprint is self-contained and contains no historical project references or migration narrative.
+  - id: AC-NO-RUNTIME-CHANGE
+    statement: No application runtime behavior, domain model, database schema, API contract, dependency, platform package, or protected governance policy changes in this task.
 assumptions:
-  - statement: Products v0 pagination uses a page number and the canonical configured page size; clients do not supply an arbitrary limit in this slice.
+  - statement: The existing Products implementation remains a validation slice and may be used later to prove foundation capabilities, but no new persistence/API/UI Product expansion occurs until the foundation gate is satisfied.
     status: verified
-    evidence: tooling/registry/settings.registry.yaml
-  - statement: Product deletion is out of scope for v0; archived Products are immutable.
+    evidence: Current project execution decision.
+  - statement: Optional domain capabilities such as commerce, payments, solar-engine, search, CMS, AI, and tenancy are not part of the mandatory application foundation unless a cross-cutting mechanism is required by multiple future modules.
     status: verified
-    evidence: apps/api/src/modules/catalog/domain/product.ts
+    evidence: blueprints/project-profiles/taymex.yaml
 obligations:
-  securityDelta: completed
-  performance: standard
+  securityDelta: not-applicable
+  performance: not-applicable
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: tested
+  concurrency: not-applicable
   idempotency: not-applicable
 functional:
   invariants:
-    - Read operations require catalog.products.read; write operations require catalog.products.manage.
-    - List queries are bounded by the canonical configured page size and a positive safe-integer page number.
-    - Model-code uniqueness is a repository invariant using the canonical comparison key.
-    - Mutations use compare-and-swap expectedVersion semantics; repository version conflicts never become last-write-wins.
+    - Domain feature expansion remains blocked while any mandatory foundation capability is below its exit maturity.
+    - Designed documentation alone is not sufficient evidence for a foundation capability to pass.
+    - Optional product capabilities do not become foundation requirements merely because they may be needed later.
   edgeCases:
-    - page is zero negative non-integer or would overflow offset arithmetic
-    - duplicate model code differs only by case or surrounding whitespace
-    - subject has read but not manage
-    - subject has manage but not read
-    - concurrent update occurs after a valid Product was loaded
-    - requested Product does not exist
+    - A capability is architecturally designed but not implemented.
+    - A capability is implemented in the platform but not integrated in TAYMEX.
+    - A capability is integrated locally but not proven on the real runtime or merge authority where required.
   failureModes:
-    - Invalid page input fails before repository access.
-    - Duplicate model code produces a stable application error.
-    - Missing Product produces a stable application error.
-    - Repository compare-and-swap conflict produces PRODUCT_VERSION_CONFLICT.
+    - Readiness checker reports READY while a mandatory capability is below required maturity.
+    - Foundation documentation becomes a second source of runtime settings or permissions instead of referencing machine registries.
 requiredGates:
   - TASK-001
   - BASE-001
@@ -79,4 +70,3 @@ requiredGates:
   - SCP-002
   - RISK-001
   - TRUST-001
-  - AUTH-001

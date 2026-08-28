@@ -1,0 +1,387 @@
+schemaVersion: 1
+foundation:
+  id: taymex-application-foundation-v1
+  featureExpansionPolicy: BLOCK_UNTIL_READY
+  maturityOrder:
+    - NOT_STARTED
+    - DESIGNED
+    - IMPLEMENTED
+    - INTEGRATED
+    - PROVEN
+    - PRODUCTION_PROVEN
+  readinessRule: Every capability with requiredBeforeFeatureExpansion=true must be at or above exitMaturity.
+  validationSlice:
+    module: catalog
+    status: FROZEN_FOR_FOUNDATION_PROOF
+    resumeCondition: FOUNDATION_READY
+
+capabilities:
+  - id: governance.trust-root
+    area: governance
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: INTEGRATED
+    exitMaturity: PROVEN
+    owner: engineering-foundation
+    purpose: Non-self-authorized verifier, protected control plane, trusted base, and merge authority.
+    evidence:
+      - docs/BOOTSTRAP_EVIDENCE.md
+    remaining:
+      - Activate and prove required merge rules/status checks on the real remote repository.
+
+  - id: architecture.runtime-boundaries
+    area: architecture
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: INTEGRATED
+    exitMaturity: PROVEN
+    owner: engineering-foundation
+    purpose: Next.js web plus NestJS/Fastify modular Core API with independent platform artifact boundary.
+    evidence:
+      - blueprints/project-profiles/taymex.yaml
+      - apps/api/src/app.module.ts
+      - apps/web/app/layout.tsx
+    remaining:
+      - Prove install/build/start under the approved Node and package runtime.
+
+  - id: architecture.repository-truth
+    area: architecture
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: INTEGRATED
+    exitMaturity: PROVEN
+    owner: engineering-foundation
+    purpose: Machine discovery of modules, symbols, settings, permissions, contracts, and persisted models used by tasks.
+    evidence:
+      - .governance/repository-truth.json
+    remaining:
+      - Prove API and PostgreSQL schema truth once those sources exist.
+
+  - id: core.errors-validation
+    area: application-kernel
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: engineering-foundation
+    purpose: Canonical machine errors, boundary mapping, validation, safe messages, and correlation IDs.
+    evidence: []
+    remaining:
+      - Implement and integrate canonical errors and validation contracts.
+
+  - id: core.clock-time
+    area: application-kernel
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: INTEGRATED
+    owner: engineering-foundation
+    purpose: Deterministic time abstraction and UTC/timezone conventions.
+    evidence: []
+    remaining:
+      - Implement clock/time primitives and persistence conventions.
+
+  - id: core.money-currency
+    area: application-kernel
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: engineering-foundation
+    purpose: Canonical monetary amount, currency, precision, and rounding behavior.
+    evidence: []
+    remaining:
+      - Replace ad-hoc monetary representation with the canonical contract and tests.
+
+  - id: core.quantities-units
+    area: application-kernel
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: INTEGRATED
+    owner: engineering-foundation
+    purpose: Typed/validated amount-plus-unit primitives before engineering-sensitive calculations.
+    evidence: []
+    remaining:
+      - Define canonical quantity/unit identifiers and conversion rules.
+
+  - id: identity.authentication-sessions
+    area: identity-security
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: identity
+    purpose: Identity, sign-in/out, credential lifecycle, secure sessions, recovery, abuse protection, and actor context.
+    evidence: []
+    remaining:
+      - Implement the selected authentication/session model and integration tests.
+
+  - id: authorization.permissions-policies
+    area: identity-security
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: INTEGRATED
+    exitMaturity: PROVEN
+    owner: authorization
+    purpose: Canonical typed permissions and policy-based positive/negative authorization.
+    evidence:
+      - tooling/registry/permissions.registry.yaml
+      - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
+    remaining:
+      - Integrate authenticated actor context and prove transport/application denial paths.
+      - Establish role-to-permission administration mechanism.
+
+  - id: settings.effective-runtime
+    area: settings
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: INTEGRATED
+    exitMaturity: PROVEN
+    owner: settings
+    purpose: Canonical settings, explicit precedence, typed consumption, explain/provenance, safe runtime administration.
+    evidence:
+      - tooling/registry/settings.registry.yaml
+      - apps/api/src/modules/catalog/tests/catalog-products-settings.test.ts
+    remaining:
+      - Implement safe write/history/concurrency path for mutable settings.
+      - Prove runtime application behavior and administration contract.
+
+  - id: audit.core
+    area: audit-observability
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: audit
+    purpose: Immutable structured audit events with actor, resource, changes, correlation, and redaction.
+    evidence: []
+    remaining:
+      - Implement audit store/contracts and prove mutation/security/settings events.
+
+  - id: observability.logging-tracing-health
+    area: audit-observability
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: observability
+    purpose: Structured logs, correlation, redaction, health/readiness, runtime metadata, and diagnostics.
+    evidence:
+      - apps/api/src/modules/health/health.controller.ts
+    remaining:
+      - Implement structured logging/correlation/redaction and readiness diagnostics.
+
+  - id: data.postgresql-runtime
+    area: data
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: data-platform
+    purpose: Real PostgreSQL runtime/test database, schema mapping, connection lifecycle, and integration evidence.
+    evidence: []
+    remaining:
+      - Select and execute the persistence adapter against a real PostgreSQL-compatible runtime.
+
+  - id: data.migrations-integrity
+    area: data
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: data-platform
+    purpose: Migration lifecycle, immutable applied migrations, integrity constraints, indexes, and rollback/roll-forward policy.
+    evidence: []
+    remaining:
+      - Implement migration path and integration tests.
+
+  - id: data.transactions-concurrency-idempotency
+    area: data
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: IMPLEMENTED
+    exitMaturity: PROVEN
+    owner: data-platform
+    purpose: Transaction boundaries, atomic optimistic concurrency, duplicate/replay-safe write primitives.
+    evidence:
+      - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
+    remaining:
+      - Prove database-level compare-and-swap and transaction behavior.
+      - Implement reusable idempotency primitive and test it on a representative write.
+
+  - id: api.contracts
+    area: api
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: api-foundation
+    purpose: TypeSpec/OpenAPI source, generated consumers, compatibility checks, pagination, errors, auth and correlation boundaries.
+    evidence: []
+    remaining:
+      - Implement first real API contract generation and consumer integration.
+
+  - id: security.application-baseline
+    area: security
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: security
+    purpose: Central web/API security controls, abuse limits, secure headers, secrets/dependency checks, and negative testing.
+    evidence: []
+    remaining:
+      - Implement and prove baseline controls on real routes.
+
+  - id: security.data-classification
+    area: security
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: INTEGRATED
+    owner: security
+    purpose: Data classification, redaction, access/audit expectations, encryption triggers, retention ownership.
+    evidence: []
+    remaining:
+      - Define machine-consumable classification convention and apply to first sensitive data model.
+
+  - id: performance.query-runtime
+    area: performance
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: performance
+    purpose: Bounded lists, N+1/query-loop prevention, query instrumentation, index review, timeout/retry rules.
+    evidence:
+      - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
+    remaining:
+      - Add real database query instrumentation and representative N+1/bounded-list evidence.
+
+  - id: localization.i18n-bidi-formatting
+    area: localization
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: INTEGRATED
+    exitMaturity: PROVEN
+    owner: experience
+    purpose: AR/TR/EN routing, RTL/LTR, translation policy, bidi, time/number/currency/unit formatting.
+    evidence:
+      - apps/web/src/i18n/locales.ts
+      - apps/web/src/i18n/messages.ts
+    remaining:
+      - Prove missing translation behavior, mixed-script cases, and locale-aware formatting in the real UI path.
+
+  - id: ui.design-tokens-theme-typography
+    area: experience
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: INTEGRATED
+    exitMaturity: PROVEN
+    owner: experience
+    purpose: Approved semantic theme, typography, spacing/density, radii/elevation, icons, and brand mapping.
+    evidence:
+      - .platform/runtime.lock.yaml
+    remaining:
+      - Finalize TAYMEX brand semantic mapping and typography profile.
+      - Prove actual production UI build against platform artifacts.
+
+  - id: ui.shell-navigation
+    area: experience
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: IMPLEMENTED
+    exitMaturity: PROVEN
+    owner: experience
+    purpose: Responsive accessible application shell mechanisms and product-specific navigation composition rules.
+    evidence:
+      - apps/web/src/components/admin-shell.tsx
+    remaining:
+      - Finalize admin/public/customer shell information architecture required for the first release.
+      - Prove mobile and RTL behavior in TAYMEX runtime.
+
+  - id: ui.components-patterns-states
+    area: experience
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: INTEGRATED
+    exitMaturity: PROVEN
+    owner: experience
+    purpose: Shared forms, tables, dialogs, feedback, page states, filters, and composable CRUD patterns.
+    evidence:
+      - .platform/runtime.lock.yaml
+    remaining:
+      - Prove the used component/pattern set in actual TAYMEX pages with Storybook/browser evidence.
+
+  - id: ui.responsive-rtl-accessibility-visual
+    area: experience
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: IMPLEMENTED
+    exitMaturity: PROVEN
+    owner: experience
+    purpose: Mobile-first, RTL/LTR, keyboard/touch accessibility, axe and governed visual regression.
+    evidence: []
+    remaining:
+      - Wire affected-page verification to actual TAYMEX routes and approved baselines.
+
+  - id: files.media-storage
+    area: application-services
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: media
+    purpose: One controlled file/media upload, storage, metadata, download, privacy, cleanup, and image-processing path.
+    evidence: []
+    remaining:
+      - Implement provider-neutral storage contract and secure upload/download proof.
+
+  - id: notifications.events-side-effects
+    area: application-services
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: application-services
+    purpose: Canonical events, notification templates/providers, retry/failure behavior, and durable side-effect pattern.
+    evidence:
+      - tooling/registry/events.registry.yaml
+    remaining:
+      - Implement event/notification runtime contract and one transactional side-effect proof.
+
+  - id: testing.integrated-harness
+    area: quality
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: IMPLEMENTED
+    exitMaturity: PROVEN
+    owner: quality
+    purpose: Reusable unit, integration, DB, API, E2E, UI, accessibility, security, concurrency, and performance test paths.
+    evidence:
+      - apps/api/src/modules/catalog/tests/product.domain.test.ts
+      - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
+    remaining:
+      - Add real DB/API/browser harnesses and prove affected test routing.
+
+  - id: operations.environment-secrets-delivery
+    area: operations
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: operations
+    purpose: Validated environment profiles, secrets, CI/merge gates, deployment, migration and rollback/roll-forward mechanics.
+    evidence:
+      - .github/workflows/governance.yml
+      - .github/workflows/trust-root.yml
+    remaining:
+      - Activate real remote merge authority.
+      - Prove build/deploy configuration and migration lifecycle in the selected environment profile.
+
+  - id: operations.backup-restore
+    area: operations
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: PROVEN
+    owner: operations
+    purpose: Backup policy plus tested database/file restore path appropriate to the selected deployment.
+    evidence: []
+    remaining:
+      - Select deployment storage/database profile, define RPO/RTO, and perform restore proof.
+
+  - id: public-web.seo-foundation
+    area: public-web
+    requiredBeforeFeatureExpansion: true
+    currentMaturity: DESIGNED
+    exitMaturity: INTEGRATED
+    owner: experience
+    purpose: Canonical metadata, URLs, sitemap, robots, locale alternates, structured-data extension, redirects and image optimization.
+    evidence: []
+    remaining:
+      - Implement shared public-web SEO mechanism before public page proliferation.
+
+# These are product/domain capabilities, not pre-feature foundation requirements.
+deferredDomainCapabilities:
+  - search
+  - commerce
+  - payments
+  - solar-engine
+  - cms
+  - ai
+  - tenancy
+  - advanced-reporting
+  - realtime-messaging
