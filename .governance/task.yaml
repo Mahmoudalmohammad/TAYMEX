@@ -1,75 +1,65 @@
-id: PLATFORM-202
-title: Adopt explicit settings precedence and settings runtime artifact
-mode: platform-change
-risk: R4
-objective: Upgrade the TAYMEX consumer governance contract to require explicit per-setting precedence and add the versioned platform settings runtime artifact needed by the Products slice, without changing unrelated product behavior.
-baseRevision: 078bcd98d7252b8a4c73c1a4842463139818b90d
+id: RUNTIME-001
+title: Make TAYMEX API module format explicit ESM
+mode: fix
+risk: R2
+objective: Align the NestJS API package with the ESM-only versioned platform runtime artifacts by declaring ESM explicitly and using NodeNext-compatible relative import specifiers, without changing domain behavior or platform artifacts.
+baseRevision: 31a1fdb331801af01cc68828db8fb92af0d58056
 modules:
   - catalog
 scope:
   allowedPaths:
-    - tooling/schemas/settings-registry.schema.json
-    - tooling/registry/settings.registry.yaml
-    - .platform/artifacts/governance/**
-    - .platform/governance.lock.yaml
-    - .platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz
-    - .platform/runtime.lock.yaml
     - apps/api/package.json
+    - apps/api/src/main.ts
+    - apps/api/src/app.module.ts
+    - apps/api/src/modules/health/health.module.ts
+    - apps/api/src/modules/catalog/tests/product.domain.test.ts
     - .governance/task.yaml
   forbiddenPaths:
+    - tooling/**
     - .github/**
-    - tooling/trust-root/**
-    - tooling/registry/rules.registry.yaml
+    - .platform/**
     - apps/web/**
-  allowNewFiles: true
-  allowedNewFiles:
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.1.tar.gz
-    - .platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz
-    - .governance/task.yaml
-  allowDependencies: true
+  allowNewFiles: false
+  allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
-  allowPlatformChanges: true
+  allowPlatformChanges: false
   allowArchitectureChanges: false
-  allowControlPlaneChanges: true
-  allowTrustRootChanges: true
 acceptance:
-  - id: AC-PRECEDENCE
-    statement: Every OVERRIDE or REPLACE setting must declare explicit precedence containing exactly its allowed scopes.
-  - id: AC-SETTINGS-ARTIFACT
-    statement: TAYMEX consumes @engineering-platform/settings 0.1.0 through a locked versioned artifact rather than platform source.
-  - id: AC-GOVERNANCE-UPGRADE
-    statement: The trusted governance verifier artifact is upgraded immutably from 0.1.0 to 0.1.1 and its hash is verified.
-  - id: AC-RUNTIME-HONESTY
-    statement: catalog.products.defaultPageSize is marked restart until a real hot-reload settings store exists.
+  - id: AC-ESM
+    statement: The API package explicitly declares ESM and TypeScript NodeNext emits ESM for API source files.
+  - id: AC-RELATIVE-IMPORTS
+    statement: Runtime relative imports in the API use NodeNext-compatible .js specifiers.
+  - id: AC-PLATFORM-RUNTIME
+    statement: Compiled ESM Catalog code can import the locked @engineering-platform/settings runtime artifact without require/export incompatibility.
+  - id: AC-NO-BEHAVIOR-CHANGE
+    statement: Existing Product domain behavior and tests remain unchanged apart from import specifier compatibility.
 assumptions:
-  - statement: The Products slice requires only platform and project setting scopes with OVERRIDE semantics.
+  - statement: The platform settings runtime artifact is intentionally ESM and is already locked in TAYMEX.
     status: verified
-    evidence: docs/slices/products/PRODUCTS_VERTICAL_SLICE_V0.md
+    evidence: .platform/runtime.lock.yaml and @engineering-platform/settings package metadata
 obligations:
-  securityDelta: required
+  securityDelta: not-applicable
   performance: not-applicable
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: considered
+  concurrency: not-applicable
   idempotency: not-applicable
 functional:
   invariants:
-    - Product feature tasks cannot modify governance schemas or governance artifacts after this upgrade.
-    - Explicit precedence is setting-specific and no universal precedence chain is invented.
+    - No Product domain behavior changes.
+    - No platform artifact or dependency version changes.
   edgeCases:
-    - precedence omits an allowed scope
-    - precedence includes a forbidden scope
-    - governance artifact hash mismatch
+    - NodeNext relative imports after ESM package declaration
+    - ESM-only platform artifact imported by compiled API code
   failureModes:
-    - Consumer validation fails closed if registry and schema disagree.
+    - Runtime module format mismatch must fail validation rather than be hidden by a test-only workaround.
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
-  - DEP-001
   - RISK-001
   - TRUST-001
   - AUTH-001

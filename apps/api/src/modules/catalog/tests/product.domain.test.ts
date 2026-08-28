@@ -7,7 +7,7 @@ import {
   createProduct,
   productModelCodeComparisonKey,
   updateProduct,
-} from '../domain/product.ts';
+} from '../domain/product.js';
 
 const PRODUCT_ID = '550e8400-e29b-41d4-a716-446655440000';
 const CREATED_AT = new Date('2026-08-28T10:00:00.000Z');
