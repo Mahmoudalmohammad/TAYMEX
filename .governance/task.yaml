@@ -1,44 +1,51 @@
-id: PLATFORM-203
-title: Adopt authorization runtime artifact for Products slice
-mode: platform-change
-risk: R4
-objective: Add the versioned @engineering-platform/authorization 0.1.0 runtime artifact required by the Products slice and declare it in the API package without source linking or changing unrelated behavior.
-baseRevision: 191e12a001d0dcc22ba17629716c90b9f3188ad6
+id: PRODUCT-004
+title: Enforce Products read and manage permissions
+mode: feature
+risk: R3
+objective: Generate typed Products permission bindings from the canonical permission registry and enforce catalog.products.read/manage through the versioned platform authorization primitive, with explicit positive and negative tests and no role-name hardcoding.
+baseRevision: ff3775c4a7b75c1c5619c9825d80961f93d8f2ee
 modules:
   - catalog
 scope:
   allowedPaths:
-    - .platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz
-    - .platform/runtime.lock.yaml
-    - apps/api/package.json
+    - scripts/generate-permission-bindings.py
+    - apps/api/src/generated/permissions.generated.ts
+    - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
+    - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
+    - package.json
     - .governance/task.yaml
   forbiddenPaths:
+    - tooling/**
     - .github/**
-    - tooling/trust-root/**
-    - tooling/registry/**
+    - .platform/**
     - apps/web/**
   allowNewFiles: true
   allowedNewFiles:
-    - .platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz
+    - scripts/generate-permission-bindings.py
+    - apps/api/src/generated/permissions.generated.ts
+    - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
+    - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
     - .governance/task.yaml
-  allowDependencies: true
+  allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
-  allowPlatformChanges: true
+  allowPlatformChanges: false
   allowArchitectureChanges: false
 acceptance:
-  - id: AC-AUTHZ-ARTIFACT
-    statement: TAYMEX consumes @engineering-platform/authorization 0.1.0 as a locked versioned artifact with SHA-256 verification.
-  - id: AC-NO-SOURCE-LINK
-    statement: The API dependency resolves only to the locked artifact and does not use workspace, link, or ENGINEERING_PLATFORM source paths.
-  - id: AC-BOUNDARY
-    statement: Consumer boundary verification passes with the new artifact.
+  - id: AC-PERMISSION-TRUTH
+    statement: Product permission constants are generated from tooling/registry/permissions.registry.yaml and stale output is detectable.
+  - id: AC-READ
+    statement: Product read behavior requires catalog.products.read and denies a subject without it.
+  - id: AC-MANAGE
+    statement: Product create/edit/status behavior requires catalog.products.manage and denies a subject without it.
+  - id: AC-NO-ROLE-HARDCODE
+    statement: Authorization does not infer privileges from role names or subject identifiers.
 assumptions:
-  - statement: Products uses global read/manage permissions and does not require tenant/resource authorization in this slice.
+  - statement: Products v0 permissions are global and resource/tenant authorization is out of scope for this slice.
     status: verified
-    evidence: tooling/registry/permissions.registry.yaml and catalog module manifest
+    evidence: tooling/registry/permissions.registry.yaml
 obligations:
-  securityDelta: required
+  securityDelta: completed
   performance: not-applicable
   ui: not-applicable
   responsive: not-applicable
@@ -47,19 +54,20 @@ obligations:
   idempotency: not-applicable
 functional:
   invariants:
-    - Platform artifact immutability and independent consumer boundary remain intact.
-    - No Product authorization behavior is implemented in this adoption task.
+    - Only canonical generated permission keys are used by Catalog authorization adapters.
+    - Missing permission always denies; role-like subject identifiers grant nothing.
   edgeCases:
-    - artifact hash mismatch
-    - source-link dependency attempt
+    - subject has read but not manage
+    - subject has manage but not read
+    - subject id equals admin but permissions are empty
+    - generated permission binding becomes stale
   failureModes:
-    - Consumer boundary fails closed on artifact tampering or dependency mismatch.
+    - Missing permission throws the canonical AuthorizationDeniedError from the platform runtime artifact.
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
-  - DEP-001
   - RISK-001
   - TRUST-001
   - AUTH-001

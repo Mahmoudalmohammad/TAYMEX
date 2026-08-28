@@ -15,7 +15,9 @@
     "governance:trust": "./scripts/verify-trust-local.sh",
     "platform:profile": "./scripts/platform project validate blueprints/project-profiles/taymex.yaml",
     "settings:generate": "python3 scripts/generate-settings-bindings.py",
-    "settings:check": "python3 scripts/generate-settings-bindings.py --check"
+    "settings:check": "python3 scripts/generate-settings-bindings.py --check",
+    "permissions:generate": "python3 scripts/generate-permission-bindings.py",
+    "permissions:check": "python3 scripts/generate-permission-bindings.py --check"
   },
   "devDependencies": {
     "nx": "23.1.2",
