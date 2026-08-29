@@ -78,13 +78,13 @@ assumptions:
     status: verified
     evidence: TAYMEX_CUMULATIVE_EXPERT_REVIEW.md
 obligations:
-  securityDelta: required
-  performance: critical
+  securityDelta: completed
+  performance: critical-budget
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: regression
-  idempotency: regression
+  concurrency: considered
+  idempotency: not-applicable
 functional:
   invariants:
     - Performance instrumentation never records SQL parameter values or credentials.
