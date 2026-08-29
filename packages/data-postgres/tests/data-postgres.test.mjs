@@ -263,8 +263,9 @@ test('query instrumentation records failures without leaking error or parameter 
   pool.query = async () => { throw new Error('database detail with credential-like value'); };
   const db = new PostgresDatabase(pool, { queryObserver: recorder });
   await assert.rejects(() => db.query('SELECT id FROM example WHERE secret = $1', ['hidden-value']));
-  const serialized = JSON.stringify(recorder.snapshot());
-  assert.match(serialized, /\"outcome\":\"error\"/u);
+  const events = recorder.snapshot();
+  const serialized = JSON.stringify(events);
+  assert.equal(events[0]?.outcome, 'error');
   assert.equal(serialized.includes('hidden-value'), false);
   assert.equal(serialized.includes('credential-like'), false);
 });
