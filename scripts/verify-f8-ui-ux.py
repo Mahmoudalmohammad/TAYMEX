@@ -43,7 +43,7 @@ for name,item in ui_versions.items():
 ok('no-copied-platform-catalog',not (ROOT/'.platform/catalog').exists())
 
 gov=y('.platform/governance.lock.yaml')['artifact']; gp=ROOT/gov['file']
-ok('governance-014',gov['version']=='0.1.4' and gp.is_file() and hashlib.sha256(gp.read_bytes()).hexdigest()==gov['sha256'])
+ok('governance-015',gov['version']=='0.1.5' and gp.is_file() and hashlib.sha256(gp.read_bytes()).hexdigest()==gov['sha256'])
 
 pkg=json.loads(read('apps/web/package.json'))
 for name in ('design-tokens','ui','app-shell','ui-patterns'):

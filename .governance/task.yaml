@@ -1,53 +1,45 @@
-id: FOUNDATION-F8-GOVERNANCE-TRANSPORT-003
-title: Adopt F8 governance consumer verification fix
-mode: platform-change
-risk: R4
+id: FOUNDATION-F8-VERIFIER-HYGIENE-004
+title: Align F8 verifier with adopted governance artifact
+mode: fix
+risk: R2
 objective: >-
-  Adopt the trust-verified governance 0.1.5 artifact that corrects generic UI consumer verification defects exposed by the committed F8 implementation, without changing application runtime, design-system artifacts, policies, schemas, or F8 capability maturity.
-baseRevision: 039f17e956e509a8d57846be7ce7d480b602f008
+  Align the F8 structural verifier with the trust-verified governance 0.1.5 artifact adopted immediately after the F8 UI implementation, without changing application runtime, UI behavior, platform artifacts, or capability maturity.
+baseRevision: 7d3ee8d2a643675e25421107d01d949dbf3fe9fc
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - .platform/governance.lock.yaml
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.5.tar.gz
+    - scripts/verify-f8-ui-ux.py
   forbiddenPaths:
     - .github/**
-    - tooling/trust-root/**
-    - tooling/governance.config.yaml
-    - tooling/policies/**
-    - tooling/schemas/**
-    - tooling/registry/**
+    - .platform/**
+    - tooling/**
     - apps/**
     - packages/**
     - contracts/**
     - blueprints/**
     - pnpm-lock.yaml
-  allowNewFiles: true
-  allowedNewFiles:
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.5.tar.gz
+  allowNewFiles: false
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
-  allowPlatformChanges: true
+  allowPlatformChanges: false
   allowArchitectureChanges: false
   allowVisualBaselineChanges: false
   allowBreakingContractChanges: false
   allowDestructiveMigrations: false
-  allowControlPlaneChanges: true
-  allowTrustRootChanges: true
+  allowControlPlaneChanges: false
+  allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-GOV-ARTIFACT
-    statement: The adopted governance artifact is the deterministic byte-identical output of the trust-verified ENGINEERING_PLATFORM 0.1.5 source commit.
-  - id: AC-F8-GOV-SEGMENT
-    statement: The transport commit contains only the governance artifact, governance lock, and its task authority metadata; no F8 runtime or maturity file changes are included.
+  - id: AC-F8-GOV-VERSION
+    statement: The F8 verifier requires the exact trust-verified governance 0.1.5 artifact now locked by the repository and changes no runtime behavior or maturity.
 assumptions:
-  - statement: ENGINEERING_PLATFORM governance 0.1.5 was verified from trusted base e149f794d08eb24718227e4f9eb46cf2034cb1ef before artifact packaging.
+  - statement: Governance 0.1.5 transport is trust-verified on the immediately preceding commit.
     status: verified
-    evidence: ENGINEERING_PLATFORM trust-root verification for 8636e1ff9dfc5caf13723950dd5e441dffb541e7.
+    evidence: trust-root verification for 039f17e956e509a8d57846be7ce7d480b602f008 to 7d3ee8d2a643675e25421107d01d949dbf3fe9fc.
 obligations:
-  securityDelta: completed
+  securityDelta: not-applicable
   performance: standard
   ui: standard
   responsive: not-applicable
@@ -57,5 +49,4 @@ obligations:
 requiredGates:
   - TASK-001
   - SCP-001
-  - TRUST-001
   - RISK-001
