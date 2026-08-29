@@ -5,10 +5,10 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@engineering-platform/ui': file:.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz
-  '@engineering-platform/design-tokens': file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz
-  '@engineering-platform/app-shell': file:.platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz
-  '@engineering-platform/ui-patterns': file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz
+  '@engineering-platform/ui': file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
+  '@engineering-platform/design-tokens': file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz
+  '@engineering-platform/app-shell': file:.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
+  '@engineering-platform/ui-patterns': file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz
   '@engineering-platform/settings': file:.platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz
   '@engineering-platform/authorization': file:.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz
 
@@ -81,17 +81,17 @@ importers:
   apps/web:
     dependencies:
       '@engineering-platform/app-shell':
-        specifier: file:../../.platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz
-        version: file:.platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: file:../../.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
+        version: file:.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@engineering-platform/design-tokens':
-        specifier: file:../../.platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz
-        version: file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz
+        specifier: file:../../.platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz
+        version: file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz
       '@engineering-platform/ui':
-        specifier: file:../../.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz
-        version: file:.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: file:../../.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
+        version: file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@engineering-platform/ui-patterns':
-        specifier: file:../../.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz
-        version: file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: file:../../.platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz
+        version: file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@taymex/foundation':
         specifier: workspace:*
         version: link:../../packages/foundation
@@ -237,9 +237,9 @@ packages:
   '@emnapi/wasi-threads@1.0.4':
     resolution: {integrity: sha512-PJR+bOmMOPH8AtcTGAyYNiuJ3/Fcoj2XN/gBEWzDIKh254XO+mM9XoXHk5GNEhodxeMznbg7BlRojVbKN+gC6g==}
 
-  '@engineering-platform/app-shell@file:.platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz':
-    resolution: {integrity: sha512-kKZW3eKClJYl6lHUp4lxCurZMCHyMsWthIC4ATrOGoe1F58ThdxmlX8KIpdMLpawFxPu0NB5f4WAYwAs+KTc2A==, tarball: file:.platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz}
-    version: 0.1.0
+  '@engineering-platform/app-shell@file:.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz':
+    resolution: {integrity: sha512-mRHcEAeA2NWhepvd84R0OZy6z2XMq3DeCSEYhrE8qaPe0+dTyaSHqY9rZ5tiv0CinHqAhzuowhAByRYjfV07Bw==, tarball: file:.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz}
+    version: 0.2.0
     peerDependencies:
       react: ^19.2.0
 
@@ -247,23 +247,23 @@ packages:
     resolution: {integrity: sha512-EMLL1xEBL2ZlGHxZlheanlTUQgwzfBq9k4NX1m7+uqqslQa6LwVRGuCrxauaFYllWl9zERjeV6ZeynUc0ZYI1g==, tarball: file:.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz}
     version: 0.1.0
 
-  '@engineering-platform/design-tokens@file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz':
-    resolution: {integrity: sha512-FV4kA1OY0HIwvIciYEOrxv26QjZ1oNsEYHRgoadFHXwoi+Z6d3dVPJu6C9vLyRcZNrT+PEdoobtR9U/hCjBASg==, tarball: file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz}
-    version: 0.1.0
+  '@engineering-platform/design-tokens@file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz':
+    resolution: {integrity: sha512-Za+911TcDBTaMSGFTlPs23/g1IJpAsBOa/84XNsNigURhNCYFiV643b6/5cZkzChJ2xO/mcDsR4bgoInza+SKA==, tarball: file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz}
+    version: 0.2.0
 
   '@engineering-platform/settings@file:.platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz':
     resolution: {integrity: sha512-eJWi+zwv+WwGLe5+WhpFOzt/OlH3vka6iWFou2/9JAJKcFkr6rEjiSnRxj+V+LUqlJtFFHvRy0XusJeIGBbpMQ==, tarball: file:.platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz}
     version: 0.1.0
 
-  '@engineering-platform/ui-patterns@file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz':
-    resolution: {integrity: sha512-/l1x1dAj10EkSe9bnRNb6tjwXAlMU7bu+7boM2yPiHmYE9LSvzIIdulAvhCqdbuveHV1vw9NhR828G26Q4rDWQ==, tarball: file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz}
-    version: 0.1.0
+  '@engineering-platform/ui-patterns@file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz':
+    resolution: {integrity: sha512-Hj9qaML3B34WioALb6iR8y+ATkPSdBsR4JjyMuCKSyl9qpV3JqcNTuKaWxqHy44LWkfBlJ3uzf1ttyj6uhYB0w==, tarball: file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz}
+    version: 0.2.0
     peerDependencies:
       react: ^19.2.0
 
-  '@engineering-platform/ui@file:.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz':
-    resolution: {integrity: sha512-OekLxV8zP4u0roQqQlMSDTB9NGAdml274lVPGx6BfzsBJu7c6+UkIXvV6ie6X2qfkxumhm8bnQdt49P09rCwJw==, tarball: file:.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz}
-    version: 0.1.0
+  '@engineering-platform/ui@file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz':
+    resolution: {integrity: sha512-cDOPaY7tFfWekiv3azaokiknbRcqo9Y5lwuE1bv8IqZp+BzRpURPnYCiAj8h+NDJsRBrgyabbgYI+gXrU52nxw==, tarball: file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz}
+    version: 0.2.0
     peerDependencies:
       react: ^19.2.0
       react-dom: ^19.2.0
@@ -1780,27 +1780,28 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@engineering-platform/app-shell@file:.platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@engineering-platform/app-shell@file:.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
-      '@engineering-platform/ui': file:.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@engineering-platform/ui': file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      react-aria-components: 1.20.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react: 19.2.0
     transitivePeerDependencies:
       - react-dom
 
   '@engineering-platform/authorization@file:.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz': {}
 
-  '@engineering-platform/design-tokens@file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz': {}
+  '@engineering-platform/design-tokens@file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz': {}
 
   '@engineering-platform/settings@file:.platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz': {}
 
-  '@engineering-platform/ui-patterns@file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@engineering-platform/ui-patterns@file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
-      '@engineering-platform/ui': file:.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@engineering-platform/ui': file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react: 19.2.0
     transitivePeerDependencies:
       - react-dom
 
-  '@engineering-platform/ui@file:.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@engineering-platform/ui@file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
       react: 19.2.0
       react-aria-components: 1.20.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)

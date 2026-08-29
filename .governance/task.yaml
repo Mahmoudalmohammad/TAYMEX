@@ -1,101 +1,92 @@
-id: FOUNDATION-F7-CLOSURE-002
-title: Close F7 from exact-SHA real filesystem and PostgreSQL 18 side-effect proof
-mode: fix
-risk: R3
+id: FOUNDATION-F8-PLATFORM-001
+title: Adopt governed F8 design-system artifacts
+mode: platform-change
+risk: R4
 objective: >-
-  Close F7 from the externally executed exact-SHA validation proof at TAYMEX revision 9affa751b5a5e3be9820aa1ff530be63fd571a33, record the real Node 24/pnpm 11.24/private-filesystem/PostgreSQL 18.6 media and encrypted transactional outbox proof, preserve the deliberately narrow provider-neutral media and side-effect boundaries without adding broker, worker, scheduler, public-media, or multi-provider storage frameworks, promote only files.media-storage and notifications.events-side-effects to PROVEN, preserve all later foundation obligations, make earlier-stage verifiers accept lawful progression, and advance the foundation sequence to F8 readiness without modifying the proven runtime implementation.
-baseRevision: 9affa751b5a5e3be9820aa1ff530be63fd571a33
+  Adopt the independently built and hash-locked ENGINEERING_PLATFORM F8 design-system and governance artifacts, remove the duplicated consumer-side component catalog so component and theme truth resolve only from verified runtime artifacts, and update only the web package transport metadata needed to consume the 0.2.0 UI line before implementing TAYMEX-specific F8 UI behavior.
+baseRevision: 844d264506ad4793bf1d61c455334f45ba714a47
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - blueprints/foundation/foundation.manifest.yaml
-    - docs/FOUNDATION_F7_FILES_SIDE_EFFECTS_REPORT.md
-    - docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md
-    - scripts/verify-f6-performance.py
-    - scripts/verify-f7-files-side-effects.py
+    - .platform/artifacts/governance/engineering-platform-governance-0.1.4.tar.gz
+    - .platform/governance.lock.yaml
+    - .platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz
+    - .platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
+    - .platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
+    - .platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz
+    - .platform/runtime.lock.yaml
+    - .platform/catalog/**
+    - apps/web/package.json
+    - pnpm-lock.yaml
   forbiddenPaths:
     - .github/**
-    - tooling/governance.config.yaml
-    - tooling/policies/**
-    - tooling/schemas/**
     - tooling/trust-root/**
     - tooling/registry/**
-    - .platform/**
-    - apps/**
+    - tooling/policies/**
+    - tooling/schemas/**
+    - apps/api/**
     - packages/**
     - contracts/**
-    - package.json
-    - pnpm-lock.yaml
+    - blueprints/foundation/**
   allowNewFiles: true
   allowedNewFiles:
-    - docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md
-  allowDependencies: false
+    - .platform/artifacts/governance/engineering-platform-governance-0.1.4.tar.gz
+    - .platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz
+    - .platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
+    - .platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
+    - .platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz
+  allowDependencies: true
   allowMigrations: false
   allowPublicContractChanges: false
-  allowPlatformChanges: false
+  allowPlatformChanges: true
   allowArchitectureChanges: false
   allowVisualBaselineChanges: false
   allowBreakingContractChanges: false
   allowDestructiveMigrations: false
-  allowControlPlaneChanges: false
-  allowTrustRootChanges: false
+  allowControlPlaneChanges: true
+  allowTrustRootChanges: true
 acceptance:
-  - id: AC-F7-CLOSURE-EXACT-SHA
-    statement: F7 closure evidence is tied to exact TAYMEX revision 9affa751b5a5e3be9820aa1ff530be63fd571a33 and ENGINEERING_PLATFORM revision c3d865ee97f33c7d0247e00fdd02e0c771ea6f98, with Node 24.14.0, pnpm 11.24.0, and PostgreSQL 18.6 / 180006 recorded.
-  - id: AC-F7-CLOSURE-MEDIA
-    statement: Real temporary-filesystem proof demonstrates the narrow JPEG/PNG media boundary, opaque storage keys, decode/re-encode normalization, integrity verification, authorization and audit behavior, upload/delete compensation, metadata validation, private permissions, and rejection of traversal, extension/MIME/content drift, malformed content, polyglot bytes, and unsupported content.
-  - id: AC-F7-CLOSURE-OUTBOX
-    statement: Real PostgreSQL 18 proof demonstrates encrypted transactional outbox atomicity, absence of plaintext secret and recipient persistence, SKIP LOCKED claim concurrency, stable provider idempotency, bounded retry/dead-letter behavior, and the declared claim index.
-  - id: AC-F7-CLOSURE-NO-FRAMEWORK-EXPANSION
-    statement: F7 remains a narrow used-path foundation and does not introduce a generalized broker, queue, worker, scheduler, public-media, CDN, or multi-provider storage framework.
-  - id: AC-F7-CLOSURE-RUNTIME
-    statement: The exact proven revision passes frozen clean install, build, typecheck, package tests, PostgreSQL 18 migrations and F4/F6 regressions, real F5 HTTP integration, actual API health/readiness smoke, generated checks, and F0-F7 structural verifiers.
-  - id: AC-F7-CLOSURE-GOVERNANCE
-    statement: Governance, Trust, Consumer Boundary, Handoff, and exact-SHA Git integrity pass on the proven F7 revision.
-  - id: AC-F7-CLOSURE-MATURITY
-    statement: Only files.media-storage and notifications.events-side-effects are promoted by F7 proof, F7 is closed, the foundation advances only to F8 readiness, and unrelated later capabilities retain their prior maturity and remaining obligations.
-  - id: AC-F7-CLOSURE-NONRUNTIME
-    statement: The closure diff contains only task metadata, maturity/evidence documentation, and structural verifier updates; no runtime, SQL, dependency, migration, contract, registry, platform, or trust-root implementation changes are introduced after the exact-SHA proof.
+  - id: AC-F8-ARTIFACT-IDENTITY
+    statement: The four F8 UI artifacts and governance 0.1.4 are immutable local artifacts with exact SHA-256 and size entries in their canonical locks.
+  - id: AC-F8-NO-DUPLICATE-CATALOG
+    statement: The copied .platform/catalog component tree is removed and component discovery resolves from verified component-catalog.json payloads inside locked runtime artifacts.
+  - id: AC-F8-INDEPENDENT-CONSUMER
+    statement: TAYMEX consumes platform UI artifacts only through local versioned tarballs and does not link ENGINEERING_PLATFORM source directories.
+  - id: AC-F8-TRANSPORT-ONLY
+    statement: This commit changes artifact transport and dependency metadata only; no TAYMEX page, runtime behavior, foundation maturity, API, database, or domain behavior is changed.
+  - id: AC-F8-TRUST-AUTHORITY
+    statement: Trust-root change authority is limited to adopting the explicitly versioned governance 0.1.4 artifact and its lock entry; no trust-root policy, verifier rule, branch control, registry, or proof baseline is changed.
 assumptions:
-  - statement: The operator executed the full F7 validation harness on TAYMEX 9affa751b5a5e3be9820aa1ff530be63fd571a33 with all fourteen sections passing and returned the raw validation ZIP without modifying the tested repository.
+  - statement: ENGINEERING_PLATFORM revision e149f794d08eb24718227e4f9eb46cf2034cb1ef produced the declared deterministic 0.2.0 UI artifacts after Platform Governance and Trust passed.
     status: verified
-    evidence: docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md
-  - statement: The returned proof package has SHA-256 d3fe0b65c9361df341248578b9fd5354818af997eb0d755049ea7f0c60f53f72 and records PostgreSQL server_version_num 180006.
+    evidence: .platform/runtime.lock.yaml
+  - statement: Governance 0.1.4 was trust-verified from its previous trusted Platform base before TAYMEX adoption.
     status: verified
-    evidence: docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md
-  - statement: The accompanying ENGINEERING_PLATFORM revision remains c3d865ee97f33c7d0247e00fdd02e0c771ea6f98.
-    status: verified
-    evidence: docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md
+    evidence: .platform/governance.lock.yaml
 obligations:
-  securityDelta: not-applicable
-  performance: standard
-  ui: not-applicable
+  securityDelta: completed
+  performance: not-applicable
+  ui: shared-ui-change
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: tested
-  idempotency: tested
+  concurrency: not-applicable
+  idempotency: not-applicable
 functional:
   invariants:
-    - Stage closure is based on real exact-SHA filesystem, PostgreSQL, HTTP, process, governance, trust, and handoff evidence rather than documentation or structural checks alone.
-    - The F7 closure commit must not modify the runtime implementation proven at 9affa751b5a5e3be9820aa1ff530be63fd571a33.
-    - PASS belongs to the tested SHA and is reusable by the closure commit only because the closure diff is non-runtime and cannot affect proven filesystem, SQL, transaction, encryption, concurrency, HTTP, migration, or provider-boundary behavior.
-    - F7 proof does not imply a generalized storage platform, public-media serving, arbitrary-document sanitization, broker/worker runtime, production notification provider, production capacity, remote merge authority, UI/browser proof, or later delivery/recovery proof.
-    - Product feature expansion remains blocked until the complete Foundation Readiness Gate passes.
-  statesAndTransitions:
-    - F7 implemented with exact-SHA real proof pending -> F7 PROVEN and CLOSED only after returned raw evidence is independently reviewed.
-    - F7 CLOSED -> currentStage F8 means F8 READY only; it does not mean F8 implementation has started or any F8 capability has been promoted.
+    - Platform source directories never become a runtime dependency of TAYMEX.
+    - Artifact SHA mismatch fails closed before governance, theme, or component metadata is trusted.
+    - Consumer-side copied component manifests are not maintained as a second source of truth.
+    - F8 maturity remains unchanged by this transport commit.
   edgeCases:
-    - real filesystem proof can expose path, permission, metadata, cleanup, or compensation defects not visible to structural verification
-    - PostgreSQL concurrency proof can expose transaction or leasing defects not visible to unit tests
-    - provider success followed by acknowledgement failure remains at-least-once and relies on stable provider idempotency rather than pretending exactly-once delivery
-    - closure metadata must not be mistaken for a new runtime revision requiring fabricated proof
+    - a runtime artifact is tampered after lock creation
+    - a removed copied catalog would otherwise shadow artifact metadata
+    - pnpm package metadata points at an older tarball than runtime.lock.yaml
   failureModes:
-    - using proof from an older runtime SHA after a runtime-affecting change
-    - promoting unrelated later-stage capabilities because F7 passed
-    - broadening the narrow F7 boundaries into generalized broker, worker, storage, or public-media infrastructure
-    - weakening encryption, authorization, audit, concurrency, idempotency, governance, trust, or verifiers to transform a failed proof into PASS
+    - accepting an artifact without matching SHA-256
+    - keeping both copied manifests and artifact catalogs as competing component truth
+    - using workspace/link/source dependencies to ENGINEERING_PLATFORM
 requiredGates:
   - TASK-001
   - BASE-001
@@ -105,5 +96,3 @@ requiredGates:
   - PLT-001
   - RISK-001
   - TRUST-001
-  - MODEL-001
-  - DATA-001
