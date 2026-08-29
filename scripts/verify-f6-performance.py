@@ -121,18 +121,42 @@ manifest = yaml.safe_load(text("blueprints/foundation/foundation.manifest.yaml")
 foundation = mapping(mapping(manifest).get("foundation"))
 capabilities = {item.get("id"): item for item in list_value(mapping(manifest).get("capabilities")) if isinstance(item, dict)}
 performance = mapping(capabilities.get("performance.query-runtime"))
-check("Foundation remains at F6 before PostgreSQL proof", foundation.get("currentStage") == "F6", str(foundation.get("currentStage")))
-check("Performance capability is implemented but not prematurely PROVEN", performance.get("currentMaturity") == "IMPLEMENTED", str(performance.get("currentMaturity")))
-check("Performance capability still records real PostgreSQL proof as remaining", any("PostgreSQL 18" in str(item) for item in list_value(performance.get("remaining"))))
+check("F6 closure advances foundation to F7 readiness", foundation.get("currentStage") == "F7", str(foundation.get("currentStage")))
+check("Performance capability is PROVEN from real PostgreSQL evidence", performance.get("currentMaturity") == "PROVEN", str(performance.get("currentMaturity")))
+check("Performance capability has no unresolved F6 work after proof", not list_value(performance.get("remaining")), str(performance.get("remaining")))
+proof_path = "docs/evidence/F6_POSTGRESQL18_PERFORMANCE_PROOF.md"
+check("Performance capability cites the accepted F6 proof", proof_path in list_value(performance.get("evidence")))
 
 root_package = json.loads(text("package.json"))
 scripts = mapping(root_package.get("scripts"))
 check("Root exposes deterministic F6 verifier", scripts.get("f6:verify") == "python3 scripts/verify-f6-performance.py")
 check("Root exposes explicit PostgreSQL 18 F6 proof command", scripts.get("f6:test:postgres") == "node --test apps/api/tests/f6-performance.integration.test.mjs")
 
+proof = text(proof_path)
+for phrase in [
+    "**PROVEN**",
+    "c98a084a86a751acd8fe68e49769e9dd4e4c8b7e",
+    "c3d865ee97f33c7d0247e00fdd02e0c771ea6f98",
+    "v24.14.0",
+    "11.24.0",
+    "18.6 (Debian 18.6-1.pgdg13+2)",
+    "server_version_num:           180006",
+    "4aabd7f64c290def141055ccc33acc86aa52637b21731927395fd5b13f893b2a",
+    "audit.total_queries=1",
+    "audit.max_repeated_fingerprint=1",
+    "audit.plan_index=audit_records_action_idx",
+    "audit.invalid_limit_database_queries=0",
+    "pass 1",
+    "fail 0",
+    "Consumer Boundary — PASS",
+    "Handoff create/verify — PASS",
+]:
+    check(f"F6 closure proof records {phrase}", phrase in proof)
+
 report = text("docs/FOUNDATION_F6_PERFORMANCE_REPORT.md")
-check("F6 report explicitly keeps the stage open before real DB proof", "F6 remains open" in report)
-check("F6 report rejects synthetic PR latency SLOs", "p95/p99" in report and "not PR blocking" in report)
+check("F6 report records the stage as CLOSED", "**Final stage decision:** **CLOSED**" in report and "F6 is closed" in report)
+check("F6 report advances only to F7 readiness", "**Next foundation stage:** `F7`" in report and "implementation not started" in report)
+check("F6 report rejects generalized synthetic latency gating", "p95/p99" in report and "Generalized load framework     NOT INTRODUCED" in report)
 
 for name, detail in PASS:
     print(f"PASS: {name}" + (f" — {detail}" if detail else ""))

@@ -117,7 +117,7 @@ check('Sensitive API module classification is declared', manifest.get('data',{})
 foundation_manifest=yaml.safe_load(text('blueprints/foundation/foundation.manifest.yaml'))
 foundation=foundation_manifest.get('foundation') or {}
 capability_by_id={c.get('id'): c for c in foundation_manifest.get('capabilities') or []}
-check('F5 closure advances foundation stage to F6', foundation.get('currentStage')=='F6', f"currentStage={foundation.get('currentStage')!r}")
+check('F5 closure remains valid through lawful later-stage progression', foundation.get('currentStage') in {'F6','F7','F8','F9','F10'}, f"currentStage={foundation.get('currentStage')!r}")
 check('Products validation slice remains frozen after F5', (foundation.get('validationSlice') or {}).get('status')=='FROZEN_FOR_FOUNDATION_PROOF')
 proven_by_f5={
     'architecture.runtime-boundaries',

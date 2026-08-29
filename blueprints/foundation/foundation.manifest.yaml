@@ -10,7 +10,7 @@ foundation:
     - PROVEN
     - PRODUCTION_PROVEN
   readinessRule: Every capability with requiredBeforeFeatureExpansion=true must be at or above exitMaturity.
-  currentStage: F6
+  currentStage: F7
   validationSlice:
     module: catalog
     status: FROZEN_FOR_FOUNDATION_PROOF
@@ -342,7 +342,7 @@ capabilities:
   - id: performance.query-runtime
     area: performance
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: performance
     purpose: Bounded lists, N+1/query-loop prevention, deterministic query instrumentation, and representative query-plan/index review.
@@ -353,8 +353,8 @@ capabilities:
       - scripts/verify-f6-performance.py
       - apps/api/tests/f6-performance.integration.test.mjs
       - docs/FOUNDATION_F6_PERFORMANCE_REPORT.md
-    remaining:
-      - Run the F6 database proof on the exact committed revision with Node 24, pnpm 11.24, and PostgreSQL 18; capture query-count, bounded-list, N+1 resistance, and EXPLAIN/index evidence before promoting to PROVEN.
+      - docs/evidence/F6_POSTGRESQL18_PERFORMANCE_PROOF.md
+    remaining: []
 
   - id: localization.i18n-bidi-formatting
     area: localization
