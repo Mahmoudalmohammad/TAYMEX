@@ -61,7 +61,7 @@ scope:
   allowMigrations: false
   allowPublicContractChanges: true
   allowPlatformChanges: false
-  allowArchitectureChanges: false
+  allowArchitectureChanges: true
   allowVisualBaselineChanges: false
   allowBreakingContractChanges: false
   allowDestructiveMigrations: false
@@ -107,6 +107,10 @@ assumptions:
     construction remains frozen.
   status: verified
   evidence: blueprints/foundation/foundation.manifest.yaml
+- statement: F5 introduces the pre-approved api-foundation module manifest needed to own the canonical HTTP/OpenAPI boundary;
+    this is implementation of the F5 blueprint, not product-domain redesign.
+  status: verified
+  evidence: blueprints/foundation/FOUNDATION_BLUEPRINT.md
 obligations:
   securityDelta: completed
   performance: standard

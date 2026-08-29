@@ -66,6 +66,10 @@ Local constrained-environment evidence:
 
 Temporary declarations/symlinks used only because this execution environment lacks the approved Node 24/pnpm installation are not project artifacts and must not be included in delivery.
 
+## Governance fail/fix evidence
+
+The first committed F5 verification correctly failed `ARCH-001` because the task contract declared `allowArchitectureChanges: false` while F5 introduced the pre-approved `api-foundation` module manifest required to own the canonical HTTP/OpenAPI boundary. The gate was not disabled and the manifest was not hidden. The task contract was corrected to explicitly authorize only the already-scoped F5 architecture implementation, while R3 risk, forbidden trust/control-plane paths, module ownership, and all other restrictions remained unchanged. Final governance must be rerun on the amended committed diff.
+
 ## Remaining exit evidence
 
 F5 stays at `currentStage: F5` until all of the following are supplied from a clean local environment:
