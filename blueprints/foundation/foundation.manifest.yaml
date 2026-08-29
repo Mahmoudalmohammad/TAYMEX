@@ -342,14 +342,19 @@ capabilities:
   - id: performance.query-runtime
     area: performance
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: IMPLEMENTED
     exitMaturity: PROVEN
     owner: performance
-    purpose: Bounded lists, N+1/query-loop prevention, query instrumentation, index review, timeout/retry rules.
+    purpose: Bounded lists, N+1/query-loop prevention, deterministic query instrumentation, and representative query-plan/index review.
     evidence:
       - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
+      - blueprints/foundation/performance.policy.yaml
+      - packages/data-postgres/src/performance.ts
+      - scripts/verify-f6-performance.py
+      - apps/api/tests/f6-performance.integration.test.mjs
+      - docs/FOUNDATION_F6_PERFORMANCE_REPORT.md
     remaining:
-      - Add real database query instrumentation and representative N+1/bounded-list evidence.
+      - Run the F6 database proof on the exact committed revision with Node 24, pnpm 11.24, and PostgreSQL 18; capture query-count, bounded-list, N+1 resistance, and EXPLAIN/index evidence before promoting to PROVEN.
 
   - id: localization.i18n-bidi-formatting
     area: localization

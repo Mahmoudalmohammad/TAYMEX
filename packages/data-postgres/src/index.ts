@@ -5,3 +5,4 @@ export * from './idempotency.js';
 export * from './migrations.js';
 export * from './node-pg.js';
 export * from './readiness.js';
+export * from './performance.js';

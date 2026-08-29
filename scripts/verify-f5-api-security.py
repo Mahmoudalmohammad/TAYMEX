@@ -137,7 +137,7 @@ for cid in sorted(proven_by_f5):
 classification=capability_by_id.get('security.data-classification') or {}
 check('Data classification stays at its declared satisfied INTEGRATED maturity', classification.get('currentMaturity')=='INTEGRATED' and classification.get('exitMaturity')=='INTEGRATED')
 performance=capability_by_id.get('performance.query-runtime') or {}
-check('F6 performance capability is not prematurely promoted by F5', performance.get('currentMaturity')=='DESIGNED')
+check('F6 performance capability has not regressed below its F5 design baseline', performance.get('currentMaturity') in {'DESIGNED','IMPLEMENTED','INTEGRATED','PROVEN'}, str(performance.get('currentMaturity')))
 proof=text('docs/evidence/F5_HTTP_SECURITY_PROOF.md')
 for phrase in [
     '**PROVEN**',

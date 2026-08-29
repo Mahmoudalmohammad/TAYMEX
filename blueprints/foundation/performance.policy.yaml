@@ -1,0 +1,47 @@
+schemaVersion: 1
+policy:
+  id: taymex-performance-foundation-v1
+  prGating:
+    deterministic:
+      - bounded-list-inputs
+      - query-count
+      - repeated-query-fingerprint
+      - no-database-io-in-reviewed-loops
+      - representative-query-plan-shape
+    explicitlyNonBlockingInPr:
+      - p95-latency
+      - p99-latency
+      - saturation
+      - realistic-load-throughput
+  database:
+    applicationQueryInstrumentation:
+      recordParameterValues: false
+      recordStatementFingerprint: true
+      recordOperation: true
+      recordParameterCount: true
+      recordRowCount: true
+      recordOutcome: true
+    reviewedPaths:
+      - id: audit-records-by-action
+        source: packages/audit/src/postgres-store.ts
+        maxLimit: 100
+        maxQueries: 1
+        maxRepeatedFingerprint: 1
+        existingIndex: audit_records_action_idx
+      - id: settings-history
+        source: packages/settings-runtime/src/postgres-store.ts
+        maxLimit: 100
+      - id: identity-sessions
+        source: packages/identity/src/persistence/postgres-identity-repository.ts
+        maxLimit: 100
+      - id: identity-roles-by-ids
+        source: packages/identity/src/persistence/postgres-role-access-store.ts
+        setBasedRead: true
+      - id: identity-permission-write
+        source: packages/identity/src/persistence/postgres-role-access-store.ts
+        setBasedWrite: true
+    planEvidence:
+      format: json
+      representativePath: audit-records-by-action
+      requireExistingIndexUsability: true
+      prohibitIndexCreationOnlyForTestPass: true

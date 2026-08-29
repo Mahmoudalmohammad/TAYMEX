@@ -231,3 +231,40 @@ function fakeTransactionalExecutor(handler) {
 function hashText(value) {
   return createHash('sha256').update(value).digest('hex');
 }
+
+test('query instrumentation records safe fingerprints and deterministic budgets without parameter values', async () => {
+  const { SqlQueryRecorder, requireSqlQueryBudget } = await import('../dist/index.js');
+  const recorder = new SqlQueryRecorder();
+  const pool = new FakePool(new FakeConnection());
+  pool.query = async (text, params = []) => {
+    pool.queries.push({ text, params });
+    return { rows: [{ id: 'row-1' }], rowCount: 1 };
+  };
+  const db = new PostgresDatabase(pool, { queryObserver: recorder });
+  await db.query('SELECT id FROM example WHERE secret = $1', ['do-not-record']);
+
+  const events = recorder.snapshot();
+  assert.equal(events.length, 1);
+  assert.equal(events[0].operation, 'SELECT');
+  assert.equal(events[0].parameterCount, 1);
+  assert.equal(events[0].rowCount, 1);
+  assert.equal(events[0].outcome, 'success');
+  assert.match(events[0].fingerprint, /^[a-f0-9]{64}$/);
+  assert.equal(JSON.stringify(events).includes('do-not-record'), false);
+  assert.deepEqual(requireSqlQueryBudget(events, { maxQueries: 1, maxRepeatedFingerprint: 1 }).totalQueries, 1);
+  assert.throws(() => requireSqlQueryBudget([...events, ...events], { maxQueries: 1 }), /query budget exceeded/i);
+  assert.throws(() => requireSqlQueryBudget([...events, ...events], { maxQueries: 2, maxRepeatedFingerprint: 1 }), /fingerprint budget exceeded/i);
+});
+
+test('query instrumentation records failures without leaking error or parameter contents', async () => {
+  const { SqlQueryRecorder } = await import('../dist/index.js');
+  const recorder = new SqlQueryRecorder();
+  const pool = new FakePool(new FakeConnection());
+  pool.query = async () => { throw new Error('database detail with credential-like value'); };
+  const db = new PostgresDatabase(pool, { queryObserver: recorder });
+  await assert.rejects(() => db.query('SELECT id FROM example WHERE secret = $1', ['hidden-value']));
+  const serialized = JSON.stringify(recorder.snapshot());
+  assert.match(serialized, /\"outcome\":\"error\"/u);
+  assert.equal(serialized.includes('hidden-value'), false);
+  assert.equal(serialized.includes('credential-like'), false);
+});

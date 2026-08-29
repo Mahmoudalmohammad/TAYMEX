@@ -8,6 +8,7 @@ import type {
   TransactionOptions,
   TransactionalSqlExecutor,
 } from './contracts.js';
+import { classifySqlOperation, fingerprintSqlStatement, type SqlQueryObserver } from './performance.js';
 
 const TRANSACTION_SQL = Object.freeze({
   'READ COMMITTED': 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
@@ -15,17 +16,48 @@ const TRANSACTION_SQL = Object.freeze({
   SERIALIZABLE: 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE',
 });
 
+export type PostgresDatabaseOptions = Readonly<{
+  queryObserver?: SqlQueryObserver;
+}>;
+
 export class PostgresDatabase implements TransactionalSqlExecutor {
   readonly #transactionContext = new AsyncLocalStorage<SqlConnection>();
+  readonly #queryObserver?: SqlQueryObserver;
 
-  constructor(private readonly pool: SqlPool) {}
+  constructor(private readonly pool: SqlPool, options: PostgresDatabaseOptions = {}) {
+    this.#queryObserver = options.queryObserver;
+  }
 
-  query<Row extends Record<string, unknown> = Record<string, unknown>>(
+  async query<Row extends Record<string, unknown> = Record<string, unknown>>(
     text: string,
     params: readonly SqlParameter[] = [],
   ): Promise<SqlQueryResult<Row>> {
     const active = this.#transactionContext.getStore();
-    return (active ?? this.pool).query<Row>(text, params);
+    const executor = active ?? this.pool;
+    if (!this.#queryObserver) return executor.query<Row>(text, params);
+
+    const observationBase = Object.freeze({
+      operation: classifySqlOperation(text),
+      fingerprint: fingerprintSqlStatement(text),
+      parameterCount: params.length,
+    });
+    let result: SqlQueryResult<Row>;
+    try {
+      result = await executor.query<Row>(text, params);
+    } catch (error) {
+      this.#queryObserver.observe(Object.freeze({
+        ...observationBase,
+        rowCount: null,
+        outcome: 'error' as const,
+      }));
+      throw error;
+    }
+    this.#queryObserver.observe(Object.freeze({
+      ...observationBase,
+      rowCount: result.rowCount,
+      outcome: 'success' as const,
+    }));
+    return result;
   }
 
   async transaction<T>(work: (executor: SqlExecutor) => Promise<T>, options: TransactionOptions = {}): Promise<T> {

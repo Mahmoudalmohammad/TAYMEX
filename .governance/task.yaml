@@ -1,25 +1,30 @@
-id: FOUNDATION-F5-CLOSURE-002
-title: Close F5 from real Node 24, PostgreSQL 18, and HTTP security proof
-mode: fix
+id: FOUNDATION-F6-001
+title: Implement F6 deterministic performance foundation
+mode: feature
 risk: R3
 objective: >-
-  Close F5 from the externally executed canonical runtime proof at TAYMEX revision 36602be3b40314f2b7aee8265b5fce13663a3d90, record the real Node 24/pnpm 11/PostgreSQL 18 HTTP evidence, promote only the architecture/API/identity/authorization/settings/audit/observability/security capabilities actually proven by that evidence, keep later performance/UI/operations/remote-merge obligations visible, make stage-regression verifiers compatible with lawful progression beyond F5, and advance the foundation sequence to F6 without modifying the proven runtime implementation or weakening trust-root controls.
-baseRevision: 36602be3b40314f2b7aee8265b5fce13663a3d90
+  Implement F6 as a deterministic performance-correctness foundation without expanding Catalog functionality: establish reusable SQL query instrumentation and query-budget evidence, prove bounded list behavior and a representative N+1-resistant database path, add explicit PostgreSQL query-plan/index evidence for that actual path, and keep F6 open until the same committed revision is proven on Node 24, pnpm 11.24, and PostgreSQL 18.
+baseRevision: d89d7dfd144acbd56ffd8a7ed26b6733b217b0ce
 modules:
-  - application-foundation
-  - api-foundation
+  - data-postgres
   - identity
-  - settings-runtime
   - audit
-  - observability
+  - api-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
+    - .governance/repository-truth.json
+    - blueprints/foundation/performance.policy.yaml
     - blueprints/foundation/foundation.manifest.yaml
-    - docs/FOUNDATION_F5_API_SECURITY_REPORT.md
-    - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    - packages/data-postgres/src/database.ts
+    - packages/data-postgres/src/index.ts
+    - packages/data-postgres/src/performance.ts
+    - packages/data-postgres/tests/data-postgres.test.mjs
+    - apps/api/tests/f6-performance.integration.test.mjs
     - scripts/verify-f5-api-security.py
-    - scripts/verify-f0-f4-foundation.py
+    - scripts/verify-f6-performance.py
+    - package.json
+    - docs/FOUNDATION_F6_PERFORMANCE_REPORT.md
   forbiddenPaths:
     - .github/**
     - tooling/governance.config.yaml
@@ -28,10 +33,17 @@ scope:
     - tooling/trust-root/**
     - tooling/registry/**
     - .platform/**
-    - apps/**
-    - packages/**
+    - packages/data-postgres/migrations/**
+    - apps/web/**
+    - apps/api/src/modules/catalog/**
     - contracts/**
-  allowNewFiles: false
+  allowNewFiles: true
+  allowedNewFiles:
+    - packages/data-postgres/src/performance.ts
+    - apps/api/tests/f6-performance.integration.test.mjs
+    - blueprints/foundation/performance.policy.yaml
+    - scripts/verify-f6-performance.py
+    - docs/FOUNDATION_F6_PERFORMANCE_REPORT.md
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
@@ -43,55 +55,57 @@ scope:
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F5-CLOSURE-RUNTIME
-    statement: The evidence records a clean Node 24/pnpm 11 build and actual NestJS/Fastify process smoke on the exact proven runtime revision.
-  - id: AC-F5-CLOSURE-HTTP
-    statement: A PostgreSQL 18.6-backed HTTP integration run proves real authentication/session handling, permission denial, AAL1 denial, AAL2 success, settings, audit, errors, security controls, rate limiting, correlation, and readiness with zero skipped tests.
-  - id: AC-F5-CLOSURE-CONTRACT
-    statement: Canonical OpenAPI authoring, generated operational OpenAPI/TypeScript bindings, and Nest route placeholder generation remain structurally verified and are not replaced by controller-local contract truth.
-  - id: AC-F5-CLOSURE-SECURITY
-    statement: The real dependency advisory run has no high-or-higher known vulnerability findings, safe error transport does not leak internal messages/stacks, and F5 does not claim distributed edge protection or production delivery concerns owned by F9.
-  - id: AC-F5-CLOSURE-MATURITY
-    statement: Only F5 capabilities supported by real consumer proof are promoted to PROVEN; security.data-classification remains at its satisfied INTEGRATED exit maturity and F6-F10 capabilities are not promoted by implication.
-  - id: AC-F5-CLOSURE-REGRESSION
-    statement: F0-F4 regression verification remains valid after lawful stage progression to F6 and requires F5 proof before accepting F5-dependent PROVEN maturity.
-  - id: AC-F5-CLOSURE-GOVERNANCE
-    statement: The closure-only final diff contains no runtime code, dependency, migration, platform, trust-root, or public-contract change and passes task governance, trust-root, consumer-boundary, handoff, and structural verification.
+  - id: AC-F6-QUERY-INSTRUMENTATION
+    statement: PostgreSQL application queries can be observed through one reusable instrumentation hook that records operation, stable statement fingerprint, parameter count, result count and outcome without recording parameter values or wall-clock latency.
+  - id: AC-F6-DETERMINISTIC-GATE
+    statement: Routine F6 verification blocks on deterministic query-count, repeated-fingerprint, bounded-list and source/configuration checks rather than environment-sensitive p95/p99 latency thresholds.
+  - id: AC-F6-NPLUS1
+    statement: A PostgreSQL 18 integration proof demonstrates that representative multi-row list access stays within its declared query budget and does not amplify queries per returned row.
+  - id: AC-F6-QUERY-PLAN
+    statement: The PostgreSQL 18 proof includes EXPLAIN JSON evidence for a representative selective ordered query and verifies that the intended existing index is usable; no new index is added merely to force the test to pass.
+  - id: AC-F6-MATURITY
+    statement: F6 remains current and performance.query-runtime is not promoted to PROVEN until real Node 24/pnpm 11.24/PostgreSQL 18 evidence is captured against the exact committed F6 revision.
+  - id: AC-F6-GOVERNANCE
+    statement: The committed F6 diff passes F0-F5 regressions, the F6 verifier, task governance, trust-root verification, consumer boundary verification and handoff verification without modifying protected platform/control-plane sources.
 assumptions:
-  - statement: The operator executed the F5 HTTP integration harness against PostgreSQL 18.6 on canonical TAYMEX revision 36602be3b40314f2b7aee8265b5fce13663a3d90 with one pass, zero fail, and zero skip.
+  - statement: PostgreSQL 18 remains the only database version that can satisfy the real F6 database proof; mocks or an older PostgreSQL version do not satisfy AC-F6-NPLUS1 or AC-F6-QUERY-PLAN.
     status: verified
-    evidence: docs/evidence/F5_HTTP_SECURITY_PROOF.md
-  - statement: The operator executed frozen-lockfile install/build/tests, dependency audit, actual API start smoke, task governance, trust-root verification, and handoff verification on the same runtime revision.
+    evidence: blueprints/project-profiles/taymex.yaml
+  - statement: Product/Catalog feature expansion remains frozen during F6; representative performance proof uses already-established foundation persistence paths rather than creating Product persistence early.
     status: verified
-    evidence: docs/evidence/F5_HTTP_SECURITY_PROOF.md
-  - statement: The accompanying ENGINEERING_PLATFORM source revision remains c3d865ee97f33c7d0247e00fdd02e0c771ea6f98.
+    evidence: blueprints/foundation/foundation.manifest.yaml
+  - statement: No universal response-time SLO is invented for ordinary PR CI; latency percentiles belong to stable runtime/staging evidence when a critical journey is declared.
     status: verified
-    evidence: docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    evidence: TAYMEX_CUMULATIVE_EXPERT_REVIEW.md
 obligations:
-  securityDelta: completed
-  performance: standard
+  securityDelta: required
+  performance: critical
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: tested
-  idempotency: tested
+  concurrency: regression
+  idempotency: regression
 functional:
   invariants:
-    - Stage closure is based on real runtime evidence tied to an exact committed implementation revision, not on documentation or structural checks alone.
-    - The F5 closure commit does not modify the runtime implementation proven at 36602be3b40314f2b7aee8265b5fce13663a3d90.
-    - F5 proof does not imply production merge authority, distributed edge abuse protection, production observability delivery, UI/browser proof, performance proof, or side-effect delivery proof.
-    - Products remain frozen until the complete Foundation Readiness Gate passes.
+    - Performance instrumentation never records SQL parameter values or credentials.
+    - Query-count budgets are deterministic and attached to representative access paths rather than arbitrary global latency numbers.
+    - Lists exposed by foundation/application paths remain bounded before database access.
+    - No F6 repair introduces a Product persistence adapter, migration, dependency, cache layer, queue, or unrelated architecture expansion.
+    - Real PostgreSQL proof is tied to the exact committed F6 implementation revision.
   statesAndTransitions:
-    - F5 current and runtime proof pending -> F5 closed and currentStage F6 only after the exact runtime evidence is recorded and closure governance passes.
+    - F6 implementation pending -> F6 locally verified only after deterministic structural/unit-capable checks and governance pass.
+    - F6 locally verified -> F6 PROVEN/F7 only after exact-revision Node 24/pnpm 11.24/PostgreSQL 18 proof is recorded in a separate closure task.
   edgeCases:
-    - a platform authorization error does not inherit the application error hierarchy
-    - OpenAPI path parameters use braces while Nest route parameters use colon syntax
-    - PostgreSQL joined scope columns are ambiguous unless qualified
-    - a later-stage verifier reinterprets lawful maturity progression as an F4 regression
+    - query fails after instrumentation start
+    - observer sees repeated identical statement fingerprints
+    - list contains many rows but must not issue per-row queries
+    - PostgreSQL planner chooses a different physical node while the intended index remains a valid plan path
   failureModes:
-    - promoting capabilities not exercised by the F5 runtime proof
-    - claiming runtime tests ran on the closure metadata commit rather than the exact tested implementation revision
-    - weakening governance or tests to transform a runtime failure into PASS
+    - using wall-clock p95/p99 timing as an ordinary blocking PR gate in an unstable runner
+    - logging SQL parameter values through performance telemetry
+    - weakening query budgets or forcing a fake index solely to obtain PASS
+    - adding Product persistence before the foundation freeze is lifted
+    - promoting F6 maturity from structural evidence alone
 requiredGates:
   - TASK-001
   - BASE-001
