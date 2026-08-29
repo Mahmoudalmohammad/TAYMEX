@@ -35,7 +35,7 @@ export interface IdentityRepository {
   createSession(session: SessionRecord): Promise<void>;
   findSessionByTokenHash(tokenHash: string): Promise<SessionRecord | null>;
   replaceSessionIfVersionMatches(session: SessionRecord, expectedVersion: number): Promise<'updated' | 'version-conflict'>;
-  listSessionsForAccount(accountId: string): Promise<readonly SessionRecord[]>;
+  listSessionsForAccount(accountId: string, limit?: number): Promise<readonly SessionRecord[]>;
   revokeAllSessionsForAccount(accountId: string, revokedAt: Date, exceptSessionId?: string): Promise<number>;
 
   createChallenge(challenge: IdentityChallenge): Promise<void>;

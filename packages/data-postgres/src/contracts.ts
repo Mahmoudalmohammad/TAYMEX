@@ -13,7 +13,7 @@ export interface SqlExecutor {
 }
 
 export interface SqlConnection extends SqlExecutor {
-  release(): void;
+  release(destroy?: boolean): void;
 }
 
 export interface SqlPool extends SqlExecutor {

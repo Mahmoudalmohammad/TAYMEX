@@ -1,4 +1,5 @@
-import { index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { check, index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const auditRecords = pgTable('audit_records', {
   id: uuid('id').primaryKey(),
@@ -17,9 +18,19 @@ export const auditRecords = pgTable('audit_records', {
   correlationId: text('correlation_id'),
   metadataJson: jsonb('metadata_json').notNull(),
 }, (table) => [
-  index('audit_records_occurred_idx').on(table.occurredAt, table.id),
-  index('audit_records_action_idx').on(table.actionCode, table.occurredAt),
-  index('audit_records_actor_idx').on(table.actorId, table.occurredAt),
-  index('audit_records_resource_idx').on(table.resourceType, table.resourceId, table.occurredAt),
-  index('audit_records_correlation_idx').on(table.correlationId),
+  check('audit_records_category', sql`${table.category} IN ('security','settings','administration','domain','data-access','system')`),
+  check('audit_records_severity', sql`${table.severity} IN ('info','warning','critical')`),
+  check('audit_records_actor_kind', sql`${table.actorKind} IN ('account','system')`),
+  check('audit_records_action_nonblank', sql`btrim(${table.actionCode}) <> ''`),
+  check('audit_records_action_format', sql`${table.actionCode} ~ '^[a-z][a-z0-9.-]+$'`),
+  check('audit_records_actor_nonblank', sql`btrim(${table.actorId}) <> ''`),
+  check('audit_records_actor_session_consistency', sql`${table.actorSessionId} IS NULL OR ${table.actorKind} = 'account'`),
+  check('audit_records_subject_pair', sql`(${table.subjectType} IS NULL) = (${table.subjectId} IS NULL)`),
+  check('audit_records_resource_pair', sql`(${table.resourceType} IS NULL) = (${table.resourceId} IS NULL)`),
+  check('audit_records_correlation_nonblank', sql`${table.correlationId} IS NULL OR btrim(${table.correlationId}) <> ''`),
+  index('audit_records_occurred_idx').on(table.occurredAt.desc(), table.id.desc()),
+  index('audit_records_action_idx').on(table.actionCode, table.occurredAt.desc()),
+  index('audit_records_actor_idx').on(table.actorId, table.occurredAt.desc()),
+  index('audit_records_resource_idx').on(table.resourceType, table.resourceId, table.occurredAt.desc()),
+  index('audit_records_correlation_idx').on(table.correlationId).where(sql`${table.correlationId} IS NOT NULL`),
 ]);

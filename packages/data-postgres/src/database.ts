@@ -34,6 +34,7 @@ export class PostgresDatabase implements TransactionalSqlExecutor {
 
     const connection = await this.pool.connect();
     let began = false;
+    let destroyConnection = false;
     try {
       await connection.query('BEGIN');
       began = true;
@@ -47,12 +48,13 @@ export class PostgresDatabase implements TransactionalSqlExecutor {
         try {
           await connection.query('ROLLBACK');
         } catch {
-          // Preserve the original failure. Connection disposal prevents reuse of unknown state.
+          // Preserve the original failure and destroy the connection because its transaction state is unknown.
+          destroyConnection = true;
         }
       }
       throw error;
     } finally {
-      connection.release();
+      connection.release(destroyConnection);
     }
   }
 

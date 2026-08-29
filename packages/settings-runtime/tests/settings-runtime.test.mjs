@@ -2,16 +2,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { AuthorizationDeniedError } from '@engineering-platform/authorization';
 import { SettingsResolutionError } from '@engineering-platform/settings';
-import { AuditService, MemoryAuditStore, REDACTED_VALUE } from '@taymex/audit';
-import { FixedClock } from '@taymex/foundation';
+import { AuditService, REDACTED_VALUE } from '@taymex/audit';
+import { MemoryAuditStore } from '@taymex/audit/testing';
+import { FixedClock, ValidationError } from '@taymex/foundation';
 import { createActorContext, IDENTITY_ERROR_CODES, IdentityError } from '@taymex/identity';
 import {
-  MemorySettingsValueStore,
   SETTINGS_RUNTIME_ERROR_CODES,
   SettingsRuntimeError,
   SettingsRuntimeService,
   settingsValuesManagePermission,
 } from '../dist/index.js';
+import { MemorySettingsValueStore } from '../dist/testing.js';
+
+const PASS_THROUGH_TRANSACTION = Object.freeze({ run: async (work) => work() });
 
 const T0 = new Date('2026-08-29T10:00:00.000Z');
 
@@ -48,7 +51,7 @@ const sensitivePolicy = Object.freeze({
 
 class SequenceIds {
   value = 1;
-  next() { return `audit-setting-${String(this.value++).padStart(4, '0')}`; }
+  next() { return `550e8400-e29b-41d4-a716-${String(2000 + this.value++).padStart(12, '0')}`; }
 }
 
 function actor(permissions = [settingsValuesManagePermission], assurance = 'AAL2') {
@@ -66,7 +69,7 @@ function harness() {
   const store = new MemorySettingsValueStore();
   const auditStore = new MemoryAuditStore();
   const audit = new AuditService(auditStore, new FixedClock(T0), new SequenceIds());
-  const runtime = new SettingsRuntimeService(store, audit, new FixedClock(T0));
+  const runtime = new SettingsRuntimeService(store, audit, new FixedClock(T0), PASS_THROUGH_TRANSACTION);
   return { store, auditStore, runtime };
 }
 
@@ -99,6 +102,17 @@ test('runtime settings writes require canonical permission and AAL2 before any s
   assert.equal((await auditStore.query({ limit: 10 })).length, 0);
 });
 
+
+
+test('blank setting source is rejected before persistence so memory and PostgreSQL contracts agree', async () => {
+  const { runtime, auditStore } = harness();
+  await assert.rejects(
+    () => runtime.write({ definition: pageSize, scope: 'project', value: 30, expectedVersion: 0, actor: actor(), source: '   ' }),
+    (error) => error instanceof ValidationError && error.issues.some((issue) => issue.field === 'source' && issue.code === 'REQUIRED'),
+  );
+  assert.equal((await runtime.history(actor(), { key: pageSize.key, scope: 'project' })).length, 0);
+  assert.equal((await auditStore.query({ limit: 10 })).length, 0);
+});
 test('invalid canonical setting values are rejected by the platform resolver before persistence', async () => {
   const { runtime } = harness();
   await assert.rejects(

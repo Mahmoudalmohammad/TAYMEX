@@ -22,6 +22,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
   }
 
   async createAccount(account: Account): Promise<'created' | 'duplicate-email'> {
+    requireInitialVersion(account.version, 'account');
     const result = await this.db.query(
       `INSERT INTO identity_accounts
         (id, email, normalized_email, status, email_verified_at, version, created_at, updated_at)
@@ -34,6 +35,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
   }
 
   async replaceAccountIfVersionMatches(account: Account, expectedVersion: number): Promise<'updated' | 'version-conflict'> {
+    requireNextVersion(account.version, expectedVersion, 'account');
     const result = await this.db.query(
       `UPDATE identity_accounts
           SET email=$2, normalized_email=$3, status=$4, email_verified_at=$5, version=$6, updated_at=$7
@@ -76,6 +78,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
   }
 
   async createSession(session: SessionRecord): Promise<void> {
+    requireInitialVersion(session.version, 'session');
     await this.db.query(
       `INSERT INTO identity_sessions
         (id, account_id, token_hash, assurance, client_label, created_at, expires_at, rotated_at, revoked_at, version)
@@ -90,6 +93,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
   }
 
   async replaceSessionIfVersionMatches(session: SessionRecord, expectedVersion: number): Promise<'updated' | 'version-conflict'> {
+    requireNextVersion(session.version, expectedVersion, 'session');
     const result = await this.db.query(
       `UPDATE identity_sessions
           SET token_hash=$2, assurance=$3, client_label=$4, expires_at=$5, rotated_at=$6, revoked_at=$7, version=$8
@@ -100,8 +104,9 @@ export class PostgresIdentityRepository implements IdentityRepository {
     return result.rowCount === 1 ? 'updated' : 'version-conflict';
   }
 
-  async listSessionsForAccount(accountId: string): Promise<readonly SessionRecord[]> {
-    const result = await this.db.query<SessionRow>(`${SESSION_SELECT} WHERE account_id=$1 ORDER BY created_at DESC, id`, [accountId]);
+  async listSessionsForAccount(accountId: string, limit = 100): Promise<readonly SessionRecord[]> {
+    const boundedLimit = requireLimit(limit, 1, 100);
+    const result = await this.db.query<SessionRow>(`${SESSION_SELECT} WHERE account_id=$1 ORDER BY created_at DESC, id LIMIT $2`, [accountId, boundedLimit]);
     return Object.freeze(result.rows.map(sessionFromRow));
   }
 
@@ -116,6 +121,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
   }
 
   async createChallenge(challenge: IdentityChallenge): Promise<void> {
+    requireInitialVersion(challenge.version, 'challenge');
     await this.db.query(
       `INSERT INTO identity_challenges
         (id, kind, account_id, token_hash, created_at, expires_at, consumed_at, version)
@@ -139,6 +145,27 @@ export class PostgresIdentityRepository implements IdentityRepository {
     );
     return result.rowCount === 1 ? 'consumed' : 'unavailable';
   }
+}
+
+
+function requireInitialVersion(version: number, resource: string): void {
+  if (version !== 1) throw new RangeError(`${resource} initial persisted version must be 1.`);
+}
+
+function requireNextVersion(nextVersion: number, expectedVersion: number, resource: string): void {
+  if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1) {
+    throw new RangeError(`${resource} expectedVersion must be a positive safe integer.`);
+  }
+  if (nextVersion !== expectedVersion + 1) {
+    throw new RangeError(`${resource} next version must equal expectedVersion + 1.`);
+  }
+}
+
+function requireLimit(limit: number, min: number, max: number): number {
+  if (!Number.isSafeInteger(limit) || limit < min || limit > max) {
+    throw new RangeError(`Session list limit must be between ${min} and ${max}.`);
+  }
+  return limit;
 }
 
 const ACCOUNT_SELECT = `SELECT id, email, normalized_email, status, email_verified_at, version, created_at, updated_at FROM identity_accounts`;

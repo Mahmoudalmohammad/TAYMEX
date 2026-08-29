@@ -7,7 +7,7 @@ import {
 import { requirePermission } from '@engineering-platform/authorization';
 import type { AtomicTransactionBoundary } from '@taymex/data-postgres';
 import { REDACTED_VALUE, sanitizeAuditValue, type AuditRecorder } from '@taymex/audit';
-import { requireNonBlank, type Clock } from '@taymex/foundation';
+import { requireNonBlank, requireUuid, type Clock } from '@taymex/foundation';
 import { requireAssurance, type ActorContext } from '@taymex/identity';
 import { settingsValuesManagePermission } from './generated/permissions.generated.js';
 import {
@@ -31,7 +31,7 @@ export class SettingsRuntimeService {
     private readonly store: SettingsValueStore,
     private readonly audit: AuditRecorder,
     private readonly clock: Clock,
-    private readonly transactions?: AtomicTransactionBoundary,
+    private readonly transactions: AtomicTransactionBoundary,
   ) {}
 
   async resolveEffective<T>(
@@ -39,11 +39,10 @@ export class SettingsRuntimeService {
     scopeRefs: SettingScopeRefs = {},
   ): Promise<EffectiveSettingResult<T>> {
     const sources: SettingValues<T> = {};
-    for (const scope of definition.scopes) {
-      const coordinate = coordinateFor(definition.key, scope, scopeRefs[scope]);
-      const record = await this.store.findCurrent<T>(coordinate);
-      if (!record) continue;
-      sources[scope] = Object.freeze({
+    const coordinates = definition.scopes.map((scope) => coordinateFor(definition.key, scope, scopeRefs[scope]));
+    const records = await this.store.findCurrentMany<T>(coordinates);
+    for (const record of records) {
+      sources[record.scope] = Object.freeze({
         value: record.value,
         version: record.version,
         source: record.source,
@@ -161,7 +160,7 @@ export class SettingsRuntimeService {
 
 
   private atomic<T>(work: () => Promise<T>): Promise<T> {
-    return this.transactions ? this.transactions.run(work) : work();
+    return this.transactions.run(work);
   }
 
   private async mutate<T>(input: Readonly<{
@@ -181,6 +180,8 @@ export class SettingsRuntimeService {
     if (!Number.isSafeInteger(input.expectedVersion) || input.expectedVersion < 0) {
       throw new TypeError('expectedVersion must be a non-negative safe integer.');
     }
+    const accountId = requireUuid(input.actor.accountId, 'actor.accountId');
+    const source = requireNonBlank(input.source ?? 'runtime-admin', 'source', 128);
     const coordinate = coordinateFor(input.definition.key, input.scope, input.scopeRef);
     validateCandidate(input.definition, input.scope, input.value);
     const before = await this.store.findCurrent<T>(coordinate);
@@ -189,8 +190,8 @@ export class SettingsRuntimeService {
       value: input.value,
       expectedVersion: input.expectedVersion,
       savedAt: this.clock.now(),
-      savedByAccountId: input.actor.accountId,
-      source: input.source ?? 'runtime-admin',
+      savedByAccountId: accountId,
+      source,
       operation: input.operation,
       ...(input.rolledBackFromVersion === undefined ? {} : { rolledBackFromVersion: input.rolledBackFromVersion }),
     });

@@ -19,6 +19,15 @@ export class MemorySettingsValueStore implements SettingsValueStore {
     return record ? cloneRecord(record as StoredSettingValue<T>) : null;
   }
 
+  async findCurrentMany<T>(coordinates: readonly SettingCoordinate[]): Promise<readonly StoredSettingValue<T>[]> {
+    const records: StoredSettingValue<T>[] = [];
+    for (const coordinate of coordinates) {
+      const record = this.#current.get(keyOf(coordinate));
+      if (record) records.push(cloneRecord(record as StoredSettingValue<T>));
+    }
+    return Object.freeze(records);
+  }
+
   async findHistoryVersion<T>(coordinate: SettingCoordinate, version: number): Promise<SettingHistoryEntry<T> | null> {
     const record = this.#history.get(keyOf(coordinate))?.find((item) => item.version === version);
     return record ? cloneHistory(record as SettingHistoryEntry<T>) : null;

@@ -9,6 +9,6 @@ export * from './password.js';
 export * from './privileged.js';
 export * from './roles.js';
 export * from './session.js';
-export * from './throttle.js';
+export { DEFAULT_AUTHENTICATION_THROTTLE_POLICY, type AuthenticationThrottle, type AuthenticationThrottlePolicy } from './throttle.js';
 export * from './persistence/postgres-identity-repository.js';
 export * from './persistence/postgres-role-access-store.js';

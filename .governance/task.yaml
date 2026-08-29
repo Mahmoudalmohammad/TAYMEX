@@ -1,10 +1,10 @@
-id: FOUNDATION-F4-001
-title: Implement PostgreSQL data and transaction foundation
+id: FOUNDATION-F4-REVIEW-002
+title: Deep-audit and harden F0-F4 before F4 closure
 mode: migration
 risk: R3
 objective: >-
-  Implement F4 as the single PostgreSQL 18 persistence foundation for TAYMEX: define governed Drizzle PostgreSQL schema truth and immutable additive SQL migration history, provide a node-postgres pool/transaction boundary with nested transaction reuse, implement PostgreSQL persistence adapters for identity roles settings and audit, enforce database-level optimistic compare-and-swap and append-only audit integrity, add reusable persisted idempotency semantics, and wire PostgreSQL readiness without advancing to F5 unless real PostgreSQL execution evidence exists.
-baseRevision: ea58e0e08dd2b4b8d0af84eefc9974fe4dab6948
+  Preserve the complete project problem and expert-review context inside the TAYMEX repository, audit F0-F4 against the historical failure classes and authoritative foundation contracts, fix only verified defects at their owning shared layer, harden PostgreSQL migration/transaction/concurrency/idempotency/data-truth behavior, remove accidental production fallback paths, and produce explicit evidence without advancing F4 unless actual PostgreSQL 18 proof is obtained.
+baseRevision: 726d4e491eecca1e97912c444f1196fc8d7b465b
 modules:
   - data-postgres
   - identity
@@ -14,25 +14,21 @@ modules:
 scope:
   allowedPaths:
     - .governance/task.yaml
+    - .governance/repository-truth.json
+    - Problem_Context.md
+    - TAYMEX_CUMULATIVE_EXPERT_REVIEW.md
     - packages/data-postgres/**
     - packages/identity/**
     - packages/settings-runtime/**
     - packages/audit/**
     - packages/observability/**
-    - apps/api/package.json
-    - apps/api/src/modules/health/**
-    - package.json
-    - pnpm-workspace.yaml
     - blueprints/foundation/foundation.manifest.yaml
     - docs/FOUNDATION_F4_DATA_TRANSACTION_REPORT.md
-    - .governance/repository-truth.json
+    - docs/FOUNDATION_F0_F4_DEEP_REVIEW.md
+    - scripts/verify-f0-f4-foundation.py
   forbiddenPaths:
-    - packages/foundation/**
-    - apps/api/src/modules/catalog/domain/**
-    - apps/api/src/modules/catalog/application/catalog-product-repository.ts
-    - apps/api/src/modules/catalog/application/catalog-products-service.ts
-    - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
     - apps/web/**
+    - apps/api/src/modules/catalog/domain/**
     - tooling/governance.config.yaml
     - tooling/policies/**
     - tooling/schemas/**
@@ -42,55 +38,48 @@ scope:
     - .github/**
   allowNewFiles: true
   allowedNewFiles:
-    - packages/data-postgres/**
-    - packages/identity/src/persistence/**
-    - packages/identity/tests/postgres-*.test.mjs
-    - packages/settings-runtime/src/postgres-store.ts
-    - packages/settings-runtime/src/schema.ts
-    - packages/settings-runtime/tests/postgres-*.test.mjs
-    - packages/audit/src/postgres-store.ts
-    - packages/audit/src/schema.ts
-    - packages/audit/tests/postgres-*.test.mjs
-    - docs/FOUNDATION_F4_DATA_TRANSACTION_REPORT.md
-  allowDependencies: true
-  allowedDependencies:
-    - '@taymex/data-postgres'
-    - drizzle-orm
-    - pg
+    - Problem_Context.md
+    - TAYMEX_CUMULATIVE_EXPERT_REVIEW.md
+    - docs/FOUNDATION_F0_F4_DEEP_REVIEW.md
+    - scripts/verify-f0-f4-foundation.py
+    - packages/*/src/testing.ts
+    - packages/data-postgres/migrations/0002_f4_integrity_hardening.sql
+  allowDependencies: false
+  allowedDependencies: []
   allowMigrations: true
   allowPublicContractChanges: true
   allowPlatformChanges: false
   allowArchitectureChanges: true
   allowDestructiveMigrations: false
 acceptance:
-  - id: AC-F4-SCHEMA-TRUTH
-    statement: Persisted foundation tables are declared as PostgreSQL Drizzle schema truth under exactly one owning module and match the additive migration schema; database ownership is discoverable by repository truth rather than inferred from prose.
-  - id: AC-F4-MIGRATIONS
-    statement: Migration execution is ordered checksummed immutable advisory-lock protected and transactional; checksum drift of an already applied migration blocks execution and F4 introduces no destructive migration.
-  - id: AC-F4-TRANSACTIONS
-    statement: One PostgreSQL transaction boundary owns BEGIN COMMIT ROLLBACK and nested foundation calls reuse the active connection so a settings or identity write and its durable audit record can participate in the same transaction.
-  - id: AC-F4-CONCURRENCY
-    statement: Account role session challenge and setting mutable records use database-side expected-version predicates or equivalent atomic PostgreSQL semantics; stale writes never silently overwrite accepted state.
-  - id: AC-F4-IDEMPOTENCY
-    statement: A reusable persisted idempotency primitive atomically claims an operation key binds it to a request hash and replays only the completed matching result while rejecting key reuse with different input.
-  - id: AC-F4-INTEGRITY
-    statement: PostgreSQL constraints enforce normalized-email uniqueness status and assurance enums positive versions setting coordinate uniqueness history uniqueness role relationships and append-only audit protection; representative query paths have intentional indexes.
-  - id: AC-F4-READINESS
-    statement: API readiness includes a PostgreSQL dependency check while liveness remains process-only; missing or failed database connectivity makes readiness NOT_READY without making liveness DOWN.
-  - id: AC-F4-REAL-PROOF
-    statement: F4 is not marked PROVEN and currentStage is not advanced to F5 unless migrations adapters concurrency rollback idempotency and readiness execute against an actual PostgreSQL 18 runtime.
-  - id: AC-F4-REGRESSION
-    statement: Existing F1 F2 F3 and Catalog regression tests continue to pass and memory adapters remain test/reference implementations rather than production persistence authority.
+  - id: AC-REVIEW-CONTEXT
+    statement: The supplied problem context and cumulative expert review are preserved verbatim in the repository root and are classified as non-authoritative evidence/context rather than executable policy.
+  - id: AC-REVIEW-TRUTH
+    statement: SQL migration applied-state truth, Drizzle model truth, module ownership, and repository truth have an explicit conflict policy and automated parity evidence; disagreement blocks review closure.
+  - id: AC-REVIEW-TRANSACTION
+    statement: Failed rollback never returns an unknown PostgreSQL connection to the pool as reusable and the migration runner applies the same safety rule.
+  - id: AC-REVIEW-MIGRATION
+    statement: Invalid migration filenames, deleted applied migrations, filename drift, and checksum drift are all rejected rather than silently ignored.
+  - id: AC-REVIEW-IDEMPOTENCY
+    statement: Idempotency claims use a fencing token so an expired/stale worker cannot complete a later reclaimed claim for the same operation and key.
+  - id: AC-REVIEW-IDENTITY
+    statement: Identity and role optimistic writes enforce exact N-to-N+1 transitions, initial persisted version rules, bounded session listing, snapshot-consistent role reads, and no query-per-role loops.
+  - id: AC-REVIEW-NO-FALLBACK
+    statement: Test-only memory persistence/logging implementations are not exported through normal production package entry points.
+  - id: AC-REVIEW-REGRESSION
+    statement: F1-F4 unit/integration-independent regression suites, registry generation checks, project profile validation, consumer boundary, repository truth, task governance, and trust-root local verification pass after fixes.
+  - id: AC-REVIEW-HONEST-MATURITY
+    statement: No maturity is promoted to PROVEN and F4 is not advanced unless evidence meets the declared exit rule; environment limitations are reported as blockers rather than hidden or replaced with mocks.
 assumptions:
-  - statement: PostgreSQL 18 remains the approved TAYMEX database from the governed project profile.
+  - statement: The two supplied root context files are evidence sources and do not override ADRs, machine registries, task contracts, runtime/build truth, or executable governance.
+    status: verified
+    evidence: TAYMEX_CUMULATIVE_EXPERT_REVIEW.md
+  - statement: PostgreSQL 18 remains the required runtime and no SQLite or in-memory substitute can satisfy AC-F4-REAL-PROOF.
     status: verified
     evidence: blueprints/project-profiles/taymex.yaml
-  - statement: Drizzle PostgreSQL schema declarations are the machine-indexable persistence model truth supported by the current governance verifier; SQL migrations remain the applied database-state history.
+  - statement: The additive 0002 F4 hardening migration is within the user-authorized F4 repair scope and the predeclared packages/data-postgres/** plus allowMigrations=true authority; enumerating the exact new filename does not authorize destructive migration or any new path class.
     status: verified
-    evidence: tooling/schemas/module-manifest.schema.json
-  - statement: The current execution environment may lack a runnable PostgreSQL server; absence of runtime evidence is a blocker to PROVEN rather than permission to substitute SQLite or an in-memory database.
-    status: verified
-    evidence: docs/FOUNDATION_BLUEPRINT.md
+    evidence: packages/data-postgres/migrations/0002_f4_integrity_hardening.sql
 obligations:
   securityDelta: required
   performance: standard
@@ -101,37 +90,31 @@ obligations:
   idempotency: tested
 functional:
   invariants:
-    - Applied migration content is immutable and checksum mismatch blocks startup migration execution.
-    - Every transaction commits exactly once on success and rolls back on failure; nested foundation transaction calls never open an independent connection.
-    - Optimistic writes modify a row only when its stored version equals expectedVersion and increment exactly once.
-    - Audit records are insert-only at both application contract and database trigger levels.
-    - Setting current value history row and hot applied-version update can be executed atomically with the corresponding audit append under one outer transaction.
-    - Idempotency key reuse with a different request hash is always a conflict and never returns another request result.
-    - Database readiness is not inferred from process liveness.
+    - Repairs occur at the lowest shared owning layer and do not create parallel local implementations.
+    - Runtime/build/database evidence outranks descriptive prose, but any disagreement is reported and fixed.
+    - Unknown rollback connection state is destroyed rather than recycled.
+    - Persisted optimistic versions advance exactly one step.
+    - Idempotency completion is fenced to the exact claim generation.
+    - Query loops are replaced by bounded set-based access where the existing foundation rule already requires it.
   statesAndTransitions:
-    - Idempotency operation transitions ABSENT to IN_PROGRESS to COMPLETED; a completed matching request is replayable and a conflicting payload is rejected.
-    - Mutable setting/account/role/session/challenge records transition from version N to N+1 only through an expected-version predicate.
-    - Migration state transitions from unapplied to applied exactly once with immutable checksum evidence.
+    - F4 remains current until real PostgreSQL 18 proof satisfies the existing stage gate.
   edgeCases:
-    - Two concurrent writers use the same expected version.
-    - Duplicate normalized email is inserted concurrently.
-    - Challenge is consumed after expiry or after another consumer won the race.
-    - Audit append fails after a mutable state write inside an outer transaction.
-    - Idempotency claim races for the same key and request hash.
-    - Applied migration filename exists with changed contents.
-    - Database readiness query throws or exceeds the configured check timeout.
+    - rollback itself fails after a transaction error
+    - applied migration file is removed or renamed
+    - malformed SQL file exists in the migration directory
+    - stale idempotency worker completes after claim expiry and reclamation
+    - role assignment changes while access is resolved
+    - more sessions exist than the default device/session visibility limit
   failureModes:
-    - Local code performs read-then-write concurrency checks without a database predicate.
-    - Migration runner edits or silently reapplies an existing migration.
-    - Audit append is outside the transaction of the privileged write it records.
-    - Production persistence falls back to memory when PostgreSQL is unavailable.
-    - F4 is marked PROVEN based only on mock SQL executor tests.
+    - weakening a gate or maturity rule merely to close the phase
+    - keeping two competing sources of database truth without conflict detection
+    - exposing memory stores as accidental production persistence choices
+    - fixing a shared defect with a feature-local workaround
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
-  - DEP-001
   - MIG-001
   - DB-001
   - ARCH-001

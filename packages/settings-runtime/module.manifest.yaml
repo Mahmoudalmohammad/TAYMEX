@@ -28,8 +28,7 @@ data:
   - packages/settings-runtime/src/schema.ts
 settings:
   defines: []
-  consumes:
-  - catalog.products.defaultPageSize
+  consumes: []
 permissions:
   defines:
   - settings.values.manage

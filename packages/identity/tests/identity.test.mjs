@@ -6,7 +6,6 @@ import {
   IDENTITY_ERROR_CODES,
   IdentityError,
   IdentityService,
-  MemoryAuthenticationThrottle,
   RoleAccessService,
   ScryptPasswordHasher,
   SecretTokenService,
@@ -17,10 +16,12 @@ import {
   normalizeEmail,
   requireAssurance,
 } from '../dist/index.js';
+import { MemoryAuthenticationThrottle } from '../dist/testing.js';
 
 const T0 = new Date('2026-08-29T06:00:00.000Z');
 const PASSWORD = 'Correct-Horse-2026';
 const NEW_PASSWORD = 'Changed-Horse-2026';
+const PASS_THROUGH_TRANSACTION = Object.freeze({ run: async (work) => work() });
 const TEST_SCRYPT = Object.freeze({ N: 1024, r: 8, p: 1, keyLength: 32, saltLength: 16, maxmem: 16 * 1024 * 1024 });
 
 class SequenceIds {
@@ -62,8 +63,9 @@ class InMemoryIdentityRepository {
     if (!current || current.version !== expectedVersion) return 'version-conflict';
     this.sessions.set(session.id, session); return 'updated';
   }
-  async listSessionsForAccount(accountId) {
-    return [...this.sessions.values()].filter((session) => session.accountId === accountId);
+  async listSessionsForAccount(accountId, limit = 100) {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new RangeError('Session list limit must be between 1 and 100.');
+    return [...this.sessions.values()].filter((session) => session.accountId === accountId).slice(0, limit);
   }
   async revokeAllSessionsForAccount(accountId, revokedAt, exceptSessionId) {
     let count = 0;
@@ -128,6 +130,7 @@ function makeHarness(options = {}) {
     delivery,
     clock,
     ids,
+    options.transactions ?? PASS_THROUGH_TRANSACTION,
     {
       sessionTtlMs: options.sessionTtlMs ?? 60 * 60_000,
       passwordResetTtlMs: options.passwordResetTtlMs ?? 5 * 60_000,
@@ -262,6 +265,27 @@ test('expired/revoked sessions and sessions for suspended accounts never authent
   await assert.rejects(() => h.service.signIn({ email: account.email, password: PASSWORD }), (error) => error instanceof IdentityError && error.code === IDENTITY_ERROR_CODES.authenticationFailed);
 });
 
+
+
+test('sign-out is idempotent and does not emit or version-bump a revoked session twice', async () => {
+  const h = makeHarness();
+  const account = await h.service.provisionPasswordAccount({ email: 'logout@taymex.example', password: PASSWORD });
+  const signedIn = await h.service.signIn({ email: account.email, password: PASSWORD });
+  const tokenService = new SecretTokenService(32);
+  const before = await h.repository.findSessionByTokenHash(tokenService.hash(signedIn.sessionSecret));
+  assert.ok(before);
+
+  await h.service.signOut(signedIn.sessionSecret, 'corr-first-logout');
+  const first = await h.repository.findSessionByTokenHash(tokenService.hash(signedIn.sessionSecret));
+  assert.ok(first?.revokedAt);
+  assert.equal(first.version, before.version + 1);
+  const eventCountAfterFirst = h.events.events.filter((event) => event.code === 'identity.session.revoked').length;
+
+  await h.service.signOut(signedIn.sessionSecret, 'corr-second-logout');
+  const second = await h.repository.findSessionByTokenHash(tokenService.hash(signedIn.sessionSecret));
+  assert.equal(second.version, first.version);
+  assert.equal(h.events.events.filter((event) => event.code === 'identity.session.revoked').length, eventCountAfterFirst);
+});
 test('self logout-all revokes all sessions and session views never expose token hashes', async () => {
   const h = makeHarness();
   const account = await h.service.provisionPasswordAccount({ email: 'admin@taymex.example', password: PASSWORD });
@@ -287,6 +311,35 @@ test('password change verifies current password, changes hash and revokes all ex
   assert.equal((await h.service.signIn({ email: account.email, password: NEW_PASSWORD })).actor.accountId, account.id);
 });
 
+
+
+test('password-reset challenge and security event execute inside the atomic boundary while external delivery is after commit', async () => {
+  let inTransaction = false;
+  const transaction = {
+    async run(work) {
+      assert.equal(inTransaction, false);
+      inTransaction = true;
+      try { return await work(); }
+      finally { inTransaction = false; }
+    },
+  };
+  const h = makeHarness({ transactions: transaction });
+  const account = await h.service.provisionPasswordAccount({ email: 'atomic-reset@taymex.example', password: PASSWORD });
+  const originalEmit = h.events.emit.bind(h.events);
+  h.events.emit = async (event) => {
+    if (event.code === 'identity.password-reset.requested') assert.equal(inTransaction, true);
+    return originalEmit(event);
+  };
+  const originalDeliver = h.delivery.deliver.bind(h.delivery);
+  h.delivery.deliver = async (delivery) => {
+    assert.equal(inTransaction, false);
+    return originalDeliver(delivery);
+  };
+
+  await h.service.requestPasswordReset(account.email, 'corr-reset-atomic');
+  assert.equal(h.repository.challenges.size, 1);
+  assert.equal(h.delivery.deliveries.length, 1);
+});
 test('password reset request is enumeration-safe; token is one-time and successful reset revokes sessions', async () => {
   const h = makeHarness();
   const account = await h.service.provisionPasswordAccount({ email: 'admin@taymex.example', password: PASSWORD });
@@ -329,14 +382,14 @@ test('role permissions resolve explicitly, unknown permissions fail, and role na
   const events = new CapturingEvents();
   const store = new InMemoryRoleStore();
   const known = new Set(['catalog.products.read', identityRolesManagePermission]);
-  const roles = new RoleAccessService(store, { has: (permission) => known.has(permission) }, events);
+  const roles = new RoleAccessService(store, { has: (permission) => known.has(permission) }, events, PASS_THROUGH_TRANSACTION);
   const manager = privilegedActor(identityRolesManagePermission);
   const role = await roles.createRole({ actor: manager, id: 'role-reader', name: 'Reader', permissions: ['catalog.products.read'], now: T0 });
-  assert.equal(await roles.assignRoles({ actor: manager, accountId: 'account-1', roleIds: [role.id], expectedVersion: 0, now: T0 }), 1);
-  const resolved = await roles.resolve('account-1');
+  assert.equal(await roles.assignRoles({ actor: manager, accountId: '550e8400-e29b-41d4-a716-446655440099', roleIds: [role.id], expectedVersion: 0, now: T0 }), 1);
+  const resolved = await roles.resolve('550e8400-e29b-41d4-a716-446655440099');
   assert.equal(resolved.permissions.has('catalog.products.read'), true);
   await assert.rejects(
-    () => roles.assignRoles({ actor: manager, accountId: 'account-1', roleIds: [], expectedVersion: 0, now: T0 }),
+    () => roles.assignRoles({ actor: manager, accountId: '550e8400-e29b-41d4-a716-446655440099', roleIds: [], expectedVersion: 0, now: T0 }),
     (error) => error instanceof IdentityError && error.code === IDENTITY_ERROR_CODES.roleVersionConflict,
   );
   await assert.rejects(
@@ -398,6 +451,7 @@ class InMemoryRoleStore {
   accountRoles = new Map();
   accountRoleVersions = new Map();
   async findRoleById(id) { return this.roles.get(id) ?? null; }
+  async findRolesByIds(ids) { return ids.flatMap((id) => this.roles.has(id) ? [this.roles.get(id)] : []); }
   async createRole(role) {
     if ([...this.roles.values()].some((current) => current.name.toLowerCase() === role.name.toLowerCase())) return 'duplicate-name';
     this.roles.set(role.id, role); return 'created';
@@ -409,6 +463,10 @@ class InMemoryRoleStore {
     this.roles.set(role.id, role); return 'updated';
   }
   async getAccountRoleSet(accountId) { return { roleIds: this.accountRoles.get(accountId) ?? [], version: this.accountRoleVersions.get(accountId) ?? 0 }; }
+  async resolveAccountRoles(accountId) {
+    const roleSet = await this.getAccountRoleSet(accountId);
+    return { roleSet, roles: await this.findRolesByIds(roleSet.roleIds) };
+  }
   async replaceAccountRolesIfVersionMatches(accountId, roleIds, expectedVersion) {
     const current = this.accountRoleVersions.get(accountId) ?? 0;
     if (current !== expectedVersion) return 'version-conflict';

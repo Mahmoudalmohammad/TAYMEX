@@ -1,4 +1,4 @@
-import { requireNonBlank, type Clock } from '@taymex/foundation';
+import { requireNonBlank, requireUuid, type Clock } from '@taymex/foundation';
 import { requirePermission } from '@engineering-platform/authorization';
 import { requireAssurance, type ActorContext, type IdentitySecurityEvent, type IdentitySecurityEventSink } from '@taymex/identity';
 import { auditRecordsReadPermission } from './generated/permissions.generated.js';
@@ -29,7 +29,7 @@ export class AuditService implements AuditRecorder {
     const occurredAt = this.clock.now();
     const record = freezeRecord({
       ...input,
-      id: requireNonBlank(this.ids.next(), 'auditId', 128),
+      id: requireUuid(this.ids.next(), 'auditId'),
       occurredAt,
       actionCode,
       actor: normalizeActor(input.actor),

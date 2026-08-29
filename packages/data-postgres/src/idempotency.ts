@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto';
-import type { SqlExecutor, TransactionalSqlExecutor } from './contracts.js';
+import type { TransactionalSqlExecutor } from './contracts.js';
 
 const MAX_OPERATION = 128;
 const MAX_KEY = 256;
 
 export type IdempotencyClaim = Readonly<
-  | { status: 'started' }
+  | { status: 'started'; claimGeneration: number }
   | { status: 'in-progress' }
   | { status: 'replay'; response: unknown }
   | { status: 'conflict' }
@@ -29,23 +29,27 @@ export class PostgresIdempotencyStore {
     if (expiresAt.getTime() <= now.getTime()) throw new RangeError('expiresAt must be after now.');
 
     return this.database.transaction(async (tx) => {
-      const inserted = await tx.query(
+      const inserted = await tx.query<{ claim_generation: number }>(
         `INSERT INTO foundation_idempotency_keys
-           (operation, idempotency_key, request_hash, status, response_json, created_at, updated_at, expires_at)
-         VALUES ($1, $2, $3, 'IN_PROGRESS', NULL, $4, $4, $5)
+           (operation, idempotency_key, request_hash, claim_generation, status, response_json, created_at, updated_at, expires_at)
+         VALUES ($1, $2, $3, 1, 'IN_PROGRESS', NULL, $4, $4, $5)
          ON CONFLICT (operation, idempotency_key) DO NOTHING
-         RETURNING operation`,
+         RETURNING claim_generation`,
         [operation, key, requestHash, now, expiresAt],
       );
-      if (inserted.rowCount === 1) return Object.freeze({ status: 'started' as const });
+      const insertedGeneration = inserted.rows[0]?.claim_generation;
+      if (insertedGeneration !== undefined) {
+        return Object.freeze({ status: 'started' as const, claimGeneration: insertedGeneration });
+      }
 
       const existing = await tx.query<{
         request_hash: string;
+        claim_generation: number;
         status: string;
         response_json: unknown;
         expires_at: Date;
       }>(
-        `SELECT request_hash, status, response_json, expires_at
+        `SELECT request_hash, claim_generation, status, response_json, expires_at
            FROM foundation_idempotency_keys
           WHERE operation = $1 AND idempotency_key = $2
           FOR UPDATE`,
@@ -54,15 +58,19 @@ export class PostgresIdempotencyStore {
       const row = existing.rows[0];
       if (!row) throw new Error('Idempotency claim disappeared during conflict resolution.');
       if (new Date(row.expires_at).getTime() <= now.getTime()) {
-        const replaced = await tx.query(
+        const replaced = await tx.query<{ claim_generation: number }>(
           `UPDATE foundation_idempotency_keys
-              SET request_hash = $3, status = 'IN_PROGRESS', response_json = NULL,
+              SET request_hash = $3, claim_generation = claim_generation + 1,
+                  status = 'IN_PROGRESS', response_json = NULL,
                   created_at = $4, updated_at = $4, expires_at = $5
             WHERE operation = $1 AND idempotency_key = $2 AND expires_at <= $4
-            RETURNING operation`,
+            RETURNING claim_generation`,
           [operation, key, requestHash, now, expiresAt],
         );
-        if (replaced.rowCount === 1) return Object.freeze({ status: 'started' as const });
+        const replacedGeneration = replaced.rows[0]?.claim_generation;
+        if (replacedGeneration !== undefined) {
+          return Object.freeze({ status: 'started' as const, claimGeneration: replacedGeneration });
+        }
       }
       if (row.request_hash !== requestHash) return Object.freeze({ status: 'conflict' as const });
       if (row.status === 'COMPLETED') return Object.freeze({ status: 'replay' as const, response: row.response_json });
@@ -74,24 +82,31 @@ export class PostgresIdempotencyStore {
     operation: string;
     key: string;
     requestHash: string;
+    claimGeneration: number;
     response: unknown;
     now: Date;
   }>): Promise<void> {
+    const claimGeneration = positiveInteger(input.claimGeneration, 'claimGeneration');
+    const now = validDate(input.now, 'now');
     const result = await this.database.query(
       `UPDATE foundation_idempotency_keys
-          SET status = 'COMPLETED', response_json = $4::jsonb, updated_at = $5
+          SET status = 'COMPLETED', response_json = $5::jsonb, updated_at = $6
         WHERE operation = $1 AND idempotency_key = $2
-          AND request_hash = $3 AND status = 'IN_PROGRESS'
+          AND request_hash = $3 AND claim_generation = $4
+          AND status = 'IN_PROGRESS' AND expires_at > $6
         RETURNING operation`,
       [
         boundedText(input.operation, 'operation', MAX_OPERATION),
         boundedText(input.key, 'key', MAX_KEY),
         requireSha256(input.requestHash),
+        claimGeneration,
         JSON.stringify(input.response ?? null),
-        validDate(input.now, 'now'),
+        now,
       ],
     );
-    if (result.rowCount !== 1) throw new Error('Idempotency completion requires one matching IN_PROGRESS claim.');
+    if (result.rowCount !== 1) {
+      throw new Error('Idempotency completion requires the active matching IN_PROGRESS claim generation.');
+    }
   }
 }
 
@@ -126,6 +141,11 @@ function stableJson(value: unknown, seen: WeakSet<object>): string {
 
 function requireSha256(value: string): string {
   if (!/^[a-f0-9]{64}$/u.test(value)) throw new TypeError('requestHash must be a lowercase SHA-256 hex digest.');
+  return value;
+}
+
+function positiveInteger(value: number, field: string): number {
+  if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`${field} must be a positive safe integer.`);
   return value;
 }
 

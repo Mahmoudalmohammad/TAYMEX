@@ -63,6 +63,7 @@ export type SettingWriteStoreResult<T> = Readonly<
 
 export interface SettingsValueStore {
   findCurrent<T>(coordinate: SettingCoordinate): Promise<StoredSettingValue<T> | null>;
+  findCurrentMany<T>(coordinates: readonly SettingCoordinate[]): Promise<readonly StoredSettingValue<T>[]>;
   findHistoryVersion<T>(coordinate: SettingCoordinate, version: number): Promise<SettingHistoryEntry<T> | null>;
   listHistory<T>(coordinate: SettingCoordinate, limit?: number): Promise<readonly SettingHistoryEntry<T>[]>;
   compareAndWrite<T>(candidate: SettingWriteCandidate<T>): Promise<SettingWriteStoreResult<T>>;

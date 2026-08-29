@@ -6,10 +6,10 @@ import {
   CompositeIdentitySecurityEventSink,
   CorrelationIdService,
   IdentitySecurityLogSink,
-  MemoryLogSink,
   RuntimeHealthReporter,
   StructuredLogger,
 } from '../dist/index.js';
+import { MemoryLogSink } from '../dist/testing.js';
 
 const T0 = new Date('2026-08-29T11:00:00.000Z');
 const RUNTIME = Object.freeze({ service: 'taymex-api', version: '0.1.0', environment: 'test', buildRevision: 'abc123' });

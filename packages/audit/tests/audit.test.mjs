@@ -1,22 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { AuthorizationDeniedError } from '@engineering-platform/authorization';
-import { FixedClock } from '@taymex/foundation';
+import { FixedClock, ValidationError } from '@taymex/foundation';
 import { createActorContext, IDENTITY_ERROR_CODES, IdentityError } from '@taymex/identity';
 import {
   AuditQueryService,
   AuditService,
   IdentitySecurityAuditSink,
-  MemoryAuditStore,
   REDACTED_VALUE,
   auditRecordsReadPermission,
 } from '../dist/index.js';
+import { MemoryAuditStore } from '../dist/testing.js';
 
 const T0 = new Date('2026-08-29T09:00:00.000Z');
 
 class SequenceIds {
   value = 1;
-  next() { return `audit-${String(this.value++).padStart(4, '0')}`; }
+  next() { return `550e8400-e29b-41d4-a716-${String(1000 + this.value++).padStart(12, '0')}`; }
 }
 
 function actor(permissions = [], assurance = 'AAL2') {
@@ -56,7 +56,7 @@ test('audit records are immutable append-only structured records with recursive 
     },
   });
 
-  assert.equal(record.id, 'audit-0001');
+  assert.equal(record.id, '550e8400-e29b-41d4-a716-000000001001');
   assert.equal(record.occurredAt.toISOString(), T0.toISOString());
   assert.equal(record.changes[0].before, REDACTED_VALUE);
   assert.equal(record.changes[0].after, REDACTED_VALUE);
@@ -72,6 +72,16 @@ test('audit records are immutable append-only structured records with recursive 
   assert.equal(rows.length, 1);
   assert.notEqual(rows[0], record);
   assert.equal(rows[0].changes[0].after, REDACTED_VALUE);
+});
+
+test('audit rejects non-UUID record identifiers before reaching persistence', async () => {
+  const store = new MemoryAuditStore();
+  const audit = new AuditService(store, new FixedClock(T0), { next: () => 'not-a-uuid' });
+  await assert.rejects(
+    () => audit.record({ actionCode: 'system.started', category: 'system', severity: 'info', actor: { kind: 'system', systemId: 'api' }, changes: [], metadata: {} }),
+    (error) => error instanceof ValidationError && error.issues.some((issue) => issue.field === 'auditId' && issue.code === 'UUID'),
+  );
+  assert.equal((await store.query({ limit: 10 })).length, 0);
 });
 
 test('audit store rejects duplicate IDs and bounds query size', async () => {

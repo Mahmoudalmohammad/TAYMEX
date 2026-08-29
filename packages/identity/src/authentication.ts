@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { Clock } from '@taymex/foundation';
+import { requireUuid, type Clock } from '@taymex/foundation';
 import type { AtomicTransactionBoundary } from '@taymex/data-postgres';
 import { createAccount, assertAccountCanAuthenticate, changeAccountStatus, markEmailVerified, normalizeEmail, type Account, type AccountStatus } from './account.js';
 import { createActorContext, type ActorContext } from './actor.js';
@@ -66,8 +66,8 @@ export class IdentityService {
     private readonly secretDelivery: SecretDeliverySink,
     private readonly clock: Clock,
     private readonly ids: IdGenerator,
+    private readonly transactions: AtomicTransactionBoundary,
     private readonly policy: IdentityPolicy = DEFAULT_IDENTITY_POLICY,
-    private readonly transactions?: AtomicTransactionBoundary,
   ) {
     validatePolicy(policy);
   }
@@ -189,7 +189,7 @@ export class IdentityService {
   async signOut(sessionSecret: string, correlationId?: string): Promise<void> {
     const now = this.clock.now();
     const current = await this.repository.findSessionByTokenHash(this.tokenService.hash(sessionSecret));
-    if (!current) return;
+    if (!current || current.revokedAt) return;
     const revoked = revokeSession(current, now);
     await this.atomic(async () => {
       const result = await this.repository.replaceSessionIfVersionMatches(revoked, current.version);
@@ -210,10 +210,11 @@ export class IdentityService {
 
   async revokeAllAccountSessions(input: Readonly<{ actor: ActorContext; accountId: string; correlationId?: string }>): Promise<number> {
     requirePrivilegedIdentityOperation(input.actor, 'manage-sessions');
+    const accountId = requireUuid(input.accountId, 'accountId');
     const now = this.clock.now();
     return this.atomic(async () => {
-      const count = await this.repository.revokeAllSessionsForAccount(input.accountId, now);
-      await this.emit(identitySessionRevokedAllEvent, now, { actorAccountId: input.actor.accountId, subjectAccountId: input.accountId, correlationId: input.correlationId });
+      const count = await this.repository.revokeAllSessionsForAccount(accountId, now);
+      await this.emit(identitySessionRevokedAllEvent, now, { actorAccountId: input.actor.accountId, subjectAccountId: accountId, correlationId: input.correlationId });
       return count;
     });
   }
@@ -260,9 +261,12 @@ export class IdentityService {
     const normalized = normalizeEmail(email);
     const account = await this.repository.findAccountByNormalizedEmail(normalized);
     if (account && account.status === 'ACTIVE') {
-      const challenge = await this.createChallenge('PASSWORD_RESET', account.id, this.policy.passwordResetTtlMs, now);
+      const challenge = await this.atomic(async () => {
+        const created = await this.createChallenge('PASSWORD_RESET', account.id, this.policy.passwordResetTtlMs, now);
+        await this.emit(identityPasswordResetRequestedEvent, now, { subjectAccountId: account.id, correlationId });
+        return created;
+      });
       await this.secretDelivery.deliver({ purpose: 'password-reset', accountId: account.id, secret: challenge.secret, expiresAt: challenge.record.expiresAt });
-      await this.emit(identityPasswordResetRequestedEvent, now, { subjectAccountId: account.id, correlationId });
     }
     return Object.freeze({ accepted: true });
   }
@@ -291,12 +295,16 @@ export class IdentityService {
 
   async requestEmailVerification(accountId: string, correlationId?: string): Promise<void> {
     const now = this.clock.now();
-    const account = await this.repository.findAccountById(accountId);
+    const normalizedAccountId = requireUuid(accountId, 'accountId');
+    const account = await this.repository.findAccountById(normalizedAccountId);
     if (!account) throw accountNotFound();
     if (account.emailVerifiedAt) return;
-    const challenge = await this.createChallenge('EMAIL_VERIFICATION', account.id, this.policy.emailVerificationTtlMs, now);
+    const challenge = await this.atomic(async () => {
+      const created = await this.createChallenge('EMAIL_VERIFICATION', account.id, this.policy.emailVerificationTtlMs, now);
+      await this.emit(identityEmailVerificationRequestedEvent, now, { subjectAccountId: account.id, correlationId });
+      return created;
+    });
     await this.secretDelivery.deliver({ purpose: 'email-verification', accountId: account.id, secret: challenge.secret, expiresAt: challenge.record.expiresAt });
-    await this.emit(identityEmailVerificationRequestedEvent, now, { subjectAccountId: account.id, correlationId });
   }
 
   async completeEmailVerification(token: string, correlationId?: string): Promise<Account> {
@@ -317,8 +325,9 @@ export class IdentityService {
 
   async setAccountStatus(input: Readonly<{ actor: ActorContext; accountId: string; expectedVersion: number; status: AccountStatus; correlationId?: string }>): Promise<Account> {
     requirePrivilegedIdentityOperation(input.actor, 'manage-accounts');
+    const accountId = requireUuid(input.accountId, 'accountId');
     const now = this.clock.now();
-    const account = await this.repository.findAccountById(input.accountId);
+    const account = await this.repository.findAccountById(accountId);
     if (!account) throw accountNotFound();
     const changed = changeAccountStatus(account, { expectedVersion: input.expectedVersion, status: input.status, now });
     return this.atomic(async () => {
@@ -342,7 +351,7 @@ export class IdentityService {
 
 
   private atomic<T>(work: () => Promise<T>): Promise<T> {
-    return this.transactions ? this.transactions.run(work) : work();
+    return this.transactions.run(work);
   }
 
   private async actorFor(account: Account, sessionId: string, assurance: 'AAL1' | 'AAL2', now: Date): Promise<ActorContext> {
@@ -360,9 +369,9 @@ export class IdentityService {
   private async createChallenge(kind: IdentityChallengeKind, accountId: string, ttlMs: number, now: Date): Promise<Readonly<{ record: IdentityChallenge; secret: string }>> {
     const issued = this.tokenService.issue();
     const record: IdentityChallenge = Object.freeze({
-      id: this.ids.next(),
+      id: requireUuid(this.ids.next(), 'challengeId'),
       kind,
-      accountId,
+      accountId: requireUuid(accountId, 'accountId'),
       tokenHash: issued.hash,
       createdAt: new Date(now.getTime()),
       expiresAt: new Date(now.getTime() + ttlMs),

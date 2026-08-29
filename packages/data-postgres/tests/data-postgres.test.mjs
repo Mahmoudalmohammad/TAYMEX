@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import {
   PostgresDatabase,
   PostgresMigrationRunner,
@@ -10,12 +11,13 @@ import {
   createAtomicTransactionBoundary,
   hashIdempotencyRequest,
   loadMigrations,
+  PostgresIdempotencyStore,
 } from '../dist/index.js';
 
 class FakeConnection {
-  constructor(handler = async () => ({ rows: [], rowCount: 0 })) { this.handler = handler; this.queries = []; this.releaseCount = 0; }
+  constructor(handler = async () => ({ rows: [], rowCount: 0 })) { this.handler = handler; this.queries = []; this.releaseCount = 0; this.releaseArgs = []; }
   async query(text, params = []) { this.queries.push({ text, params }); return this.handler(text, params, this); }
-  release() { this.releaseCount += 1; }
+  release(destroy = false) { this.releaseCount += 1; this.releaseArgs.push(destroy); }
 }
 class FakePool {
   constructor(connection) { this.connection = connection; this.queries = []; this.connectCount = 0; this.endCount = 0; }
@@ -52,6 +54,18 @@ test('transaction rolls back and preserves original error', async () => {
   await assert.rejects(() => db.transaction(async () => { throw expected; }), (error) => error === expected);
   assert.deepEqual(connection.queries.map((q) => q.text), ['BEGIN', 'ROLLBACK']);
   assert.equal(connection.releaseCount, 1);
+  assert.deepEqual(connection.releaseArgs, [false]);
+});
+
+test('transaction destroys the connection if rollback itself fails', async () => {
+  const expected = new Error('work-failed');
+  const connection = new FakeConnection(async (text) => {
+    if (text === 'ROLLBACK') throw new Error('rollback-failed');
+    return { rows: [], rowCount: 0 };
+  });
+  const db = new PostgresDatabase(new FakePool(connection));
+  await assert.rejects(() => db.transaction(async () => { throw expected; }), (error) => error === expected);
+  assert.deepEqual(connection.releaseArgs, [true]);
 });
 
 test('atomic boundary delegates to the database transaction', async () => {
@@ -112,7 +126,7 @@ test('migration runner uses an advisory lock and commits an unapplied migration'
   try {
     await writeFile(join(root, '0001_first.sql'), 'CREATE TABLE example(id integer);\n');
     const connection = new FakeConnection(async (text) => {
-      if (text.startsWith('SELECT version, checksum')) return { rows: [], rowCount: 0 };
+      if (text.startsWith('SELECT version, file_name, checksum')) return { rows: [], rowCount: 0 };
       return { rows: [], rowCount: 0 };
     });
     const executed = await new PostgresMigrationRunner(new FakePool(connection)).migrate(root);
@@ -125,3 +139,95 @@ test('migration runner uses an advisory lock and commits an unapplied migration'
     assert.match(sql.at(-1), /pg_advisory_unlock/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+
+test('migration loader rejects malformed SQL filenames instead of silently ignoring them', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'taymex-invalid-migrations-'));
+  try {
+    await writeFile(join(root, 'migration.sql'), 'SELECT 1;\n');
+    await assert.rejects(() => loadMigrations(root), /Invalid migration filename/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('migration runner rejects missing applied migration, filename drift, and checksum drift', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'taymex-history-migrations-'));
+  try {
+    await writeFile(join(root, '0001_first.sql'), 'SELECT 1;\n');
+    const scenarios = [
+      [{ version: '0000', file_name: '0000_missing.sql', checksum: 'a'.repeat(64) }, /missing from repository/],
+      [{ version: '0001', file_name: '0001_renamed.sql', checksum: hashText('SELECT 1;\n') }, /filename mismatch/],
+      [{ version: '0001', file_name: '0001_first.sql', checksum: 'b'.repeat(64) }, /checksum mismatch/],
+    ];
+    for (const [applied, pattern] of scenarios) {
+      const connection = new FakeConnection(async (text) => {
+        if (text.startsWith('SELECT version, file_name, checksum')) return { rows: [applied], rowCount: 1 };
+        return { rows: [], rowCount: 0 };
+      });
+      await assert.rejects(() => new PostgresMigrationRunner(new FakePool(connection)).migrate(root), pattern);
+      assert.deepEqual(connection.releaseArgs, [false]);
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('migration runner destroys connection when migration rollback fails', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'taymex-rollback-migrations-'));
+  try {
+    await writeFile(join(root, '0001_first.sql'), 'BROKEN SQL;\n');
+    const expected = new Error('migration-failed');
+    const connection = new FakeConnection(async (text) => {
+      if (text.startsWith('SELECT version, file_name, checksum')) return { rows: [], rowCount: 0 };
+      if (text === 'BROKEN SQL;\n') throw expected;
+      if (text === 'ROLLBACK') throw new Error('rollback-failed');
+      return { rows: [], rowCount: 0 };
+    });
+    await assert.rejects(() => new PostgresMigrationRunner(new FakePool(connection)).migrate(root), (error) => error === expected);
+    assert.deepEqual(connection.releaseArgs, [true]);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('idempotency claim generation fences a stale worker after expiry and reclaim', async () => {
+  const state = new Map();
+  const db = fakeTransactionalExecutor(async (text, params) => {
+    const operation = params[0]; const key = params[1]; const mapKey = `${operation}:${key}`;
+    if (text.startsWith('INSERT INTO foundation_idempotency_keys')) {
+      if (state.has(mapKey)) return { rows: [], rowCount: 0 };
+      const row = { request_hash: params[2], claim_generation: 1, status: 'IN_PROGRESS', response_json: null, expires_at: params[4] };
+      state.set(mapKey, row); return { rows: [{ claim_generation: 1 }], rowCount: 1 };
+    }
+    if (text.includes('FROM foundation_idempotency_keys') && text.includes('FOR UPDATE')) {
+      const row = state.get(mapKey); return { rows: row ? [row] : [], rowCount: row ? 1 : 0 };
+    }
+    if (text.startsWith('UPDATE foundation_idempotency_keys') && text.includes('claim_generation = claim_generation + 1')) {
+      const row = state.get(mapKey);
+      if (!row || new Date(row.expires_at).getTime() > new Date(params[3]).getTime()) return { rows: [], rowCount: 0 };
+      Object.assign(row, { request_hash: params[2], claim_generation: row.claim_generation + 1, status: 'IN_PROGRESS', response_json: null, expires_at: params[4] });
+      return { rows: [{ claim_generation: row.claim_generation }], rowCount: 1 };
+    }
+    if (text.startsWith('UPDATE foundation_idempotency_keys') && text.includes("status = 'COMPLETED'")) {
+      const row = state.get(mapKey);
+      const active = row && row.request_hash === params[2] && row.claim_generation === params[3] && row.status === 'IN_PROGRESS' && new Date(row.expires_at).getTime() > new Date(params[5]).getTime();
+      if (!active) return { rows: [], rowCount: 0 };
+      row.status = 'COMPLETED'; row.response_json = JSON.parse(params[4]); return { rows: [{ operation }], rowCount: 1 };
+    }
+    throw new Error(`Unexpected SQL in fake idempotency executor: ${text}`);
+  });
+  const store = new PostgresIdempotencyStore(db);
+  const hash = hashIdempotencyRequest({ a: 1 });
+  const t0 = new Date('2026-08-29T00:00:00Z');
+  const first = await store.claim({ operation: 'op', key: 'key', requestHash: hash, now: t0, expiresAt: new Date(t0.getTime() + 1000) });
+  assert.deepEqual(first, { status: 'started', claimGeneration: 1 });
+  const t1 = new Date(t0.getTime() + 2000);
+  const second = await store.claim({ operation: 'op', key: 'key', requestHash: hash, now: t1, expiresAt: new Date(t1.getTime() + 1000) });
+  assert.deepEqual(second, { status: 'started', claimGeneration: 2 });
+  await assert.rejects(() => store.complete({ operation: 'op', key: 'key', requestHash: hash, claimGeneration: 1, response: { stale: true }, now: t1 }), /active matching/);
+  await store.complete({ operation: 'op', key: 'key', requestHash: hash, claimGeneration: 2, response: { ok: true }, now: t1 });
+});
+
+function fakeTransactionalExecutor(handler) {
+  const executor = { query: handler, transaction: async (work) => work(executor) };
+  return executor;
+}
+
+function hashText(value) {
+  return createHash('sha256').update(value).digest('hex');
+}

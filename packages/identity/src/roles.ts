@@ -1,4 +1,4 @@
-import { ValidationError, requireNonBlank } from '@taymex/foundation';
+import { ValidationError, requireNonBlank, requireUuid } from '@taymex/foundation';
 import type { AtomicTransactionBoundary } from '@taymex/data-postgres';
 import type { ActorContext } from './actor.js';
 import type { IdentitySecurityEventSink } from './contracts.js';
@@ -23,9 +23,11 @@ export type AccountRoleSet = Readonly<{ roleIds: readonly string[]; version: num
 
 export interface RoleAccessStore {
   findRoleById(id: string): Promise<RoleDefinition | null>;
+  findRolesByIds(ids: readonly string[]): Promise<readonly RoleDefinition[]>;
   createRole(role: RoleDefinition): Promise<'created' | 'duplicate-name'>;
   replaceRoleIfVersionMatches(role: RoleDefinition, expectedVersion: number): Promise<'updated' | 'version-conflict' | 'duplicate-name'>;
   getAccountRoleSet(accountId: string): Promise<AccountRoleSet>;
+  resolveAccountRoles(accountId: string): Promise<Readonly<{ roleSet: AccountRoleSet; roles: readonly RoleDefinition[] }>>;
   replaceAccountRolesIfVersionMatches(
     accountId: string,
     roleIds: readonly string[],
@@ -44,7 +46,7 @@ export class RoleAccessService {
     private readonly store: RoleAccessStore,
     private readonly permissionCatalog: PermissionCatalog,
     private readonly events: IdentitySecurityEventSink,
-    private readonly transactions?: AtomicTransactionBoundary,
+    private readonly transactions: AtomicTransactionBoundary,
   ) {}
 
   async createRole(input: Readonly<{
@@ -101,19 +103,21 @@ export class RoleAccessService {
     correlationId?: string;
   }>): Promise<number> {
     requirePrivilegedIdentityOperation(input.actor, 'manage-roles');
+    const accountId = requireUuid(input.accountId, 'accountId');
     const normalized = [...new Set(input.roleIds)].sort();
-    for (const roleId of normalized) {
-      if (!(await this.store.findRoleById(roleId))) throw roleNotFound(roleId);
-    }
+    const existingRoles = await this.store.findRolesByIds(normalized);
+    const existingIds = new Set(existingRoles.map((role) => role.id));
+    const missingRoleId = normalized.find((roleId) => !existingIds.has(roleId));
+    if (missingRoleId) throw roleNotFound(missingRoleId);
     if (!Number.isSafeInteger(input.expectedVersion) || input.expectedVersion < 0) throw new TypeError('expectedVersion must be a non-negative safe integer.');
     return this.atomic(async () => {
-      const replaced = await this.store.replaceAccountRolesIfVersionMatches(input.accountId, normalized, input.expectedVersion, input.now);
+      const replaced = await this.store.replaceAccountRolesIfVersionMatches(accountId, normalized, input.expectedVersion, input.now);
       if (replaced !== 'updated') throw roleVersionConflict();
       await this.events.emit(Object.freeze({
         eventId: identityRolesChangedEvent,
         occurredAt: new Date(input.now.getTime()),
         actorAccountId: input.actor.accountId,
-        subjectAccountId: input.accountId,
+        subjectAccountId: accountId,
         correlationId: input.correlationId,
       }));
       return input.expectedVersion + 1;
@@ -121,19 +125,18 @@ export class RoleAccessService {
   }
 
   async resolve(accountId: string): Promise<ResolvedAccountAccess> {
-    const roleSet = await this.store.getAccountRoleSet(accountId);
-    const roleIds = [...new Set(roleSet.roleIds)].sort();
+    const normalizedAccountId = requireUuid(accountId, 'accountId');
+    const access = await this.store.resolveAccountRoles(normalizedAccountId);
+    const roleIds = [...new Set(access.roleSet.roleIds)].sort();
     const permissions = new Set<string>();
-    for (const roleId of roleIds) {
-      const role = await this.store.findRoleById(roleId);
-      if (!role) continue;
+    for (const role of access.roles) {
       for (const permission of role.permissions) permissions.add(permission);
     }
     return Object.freeze({ roleIds: Object.freeze(roleIds), permissions });
   }
 
   private atomic<T>(work: () => Promise<T>): Promise<T> {
-    return this.transactions ? this.transactions.run(work) : work();
+    return this.transactions.run(work);
   }
 
   private async emitRoleChange(actorAccountId: string, roleId: string, now: Date, correlationId?: string): Promise<void> {
@@ -153,6 +156,7 @@ function roleDefinition(
   }>,
   catalog: PermissionCatalog,
 ): RoleDefinition {
+  const id = requireNonBlank(input.id, 'id', 128);
   const name = requireNonBlank(input.name, 'name', 120);
   if (!Number.isSafeInteger(input.version) || input.version < 1) throw new TypeError('Role version must be positive.');
   const permissions = [...new Set(input.permissions)].sort();
@@ -168,7 +172,7 @@ function roleDefinition(
     }
   }
   return Object.freeze({
-    id: input.id,
+    id,
     name,
     permissions: Object.freeze(permissions),
     version: input.version,

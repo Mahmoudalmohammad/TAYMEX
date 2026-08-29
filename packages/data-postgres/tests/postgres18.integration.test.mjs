@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,12 +10,14 @@ import {
   PostgresIdempotencyStore,
   PostgresMigrationRunner,
   checkPostgresReadiness,
+  createAtomicTransactionBoundary,
   createNodePgPool,
   hashIdempotencyRequest,
 } from '../dist/index.js';
-import { PostgresIdentityRepository, PostgresRoleAccessStore } from '../../identity/dist/index.js';
-import { PostgresSettingsValueStore } from '../../settings-runtime/dist/index.js';
-import { PostgresAuditStore } from '../../audit/dist/index.js';
+import { FixedClock } from '../../foundation/dist/index.js';
+import { PostgresIdentityRepository, PostgresRoleAccessStore, createActorContext } from '../../identity/dist/index.js';
+import { PostgresSettingsValueStore, SettingsRuntimeService, settingsValuesManagePermission } from '../../settings-runtime/dist/index.js';
+import { AuditService, PostgresAuditStore } from '../../audit/dist/index.js';
 
 const url = process.env.TEST_DATABASE_URL?.trim();
 const mutationAllowed = process.env.F4_DATABASE_TESTS === '1';
@@ -36,7 +38,9 @@ test('PostgreSQL 18 proves F4 migration, CAS, rollback, audit, idempotency, and 
 
     const tampered = await mkdtemp(join(tmpdir(), 'taymex-tampered-migration-'));
     try {
-      await writeFile(join(tampered, '0001_tampered.sql'), 'SELECT 1;\n');
+      const source0002 = await readFile(join(migrations, '0002_f4_integrity_hardening.sql'), 'utf8');
+      await writeFile(join(tampered, '0001_foundation.sql'), '-- tampered applied migration\nSELECT 1;\n');
+      await writeFile(join(tampered, '0002_f4_integrity_hardening.sql'), source0002);
       await assert.rejects(() => new PostgresMigrationRunner(pool).migrate(tampered), /checksum mismatch/);
     } finally { await rm(tampered, { recursive: true, force: true }); }
 
@@ -105,6 +109,26 @@ test('PostgreSQL 18 proves F4 migration, CAS, rollback, audit, idempotency, and 
     assert.equal((await audit.query({ correlationId: `f4-${accountId}` })).length, 1);
     await assert.rejects(() => db.query('UPDATE audit_records SET severity=$2 WHERE id=$1', [auditId, 'warning']), /audit_records is append-only/);
 
+    // Prove the service-level transaction boundary, not only manual database.transaction usage.
+    // The setting write must roll back if its audit append fails inside the same outer transaction.
+    const serviceAtomicCoordinate = Object.freeze({ key: `f4.atomic.${randomUUID()}`, scope: 'project' });
+    const serviceDefinition = Object.freeze({
+      key: serviceAtomicCoordinate.key, owner: 'f4-integration', kind: 'configuration', lifecycle: 'experimental', runtimeBehavior: 'restart',
+      valueType: 'integer', resolution: 'OVERRIDE', scopes: ['project'], precedence: ['project'], default: 1, minimum: 1, maximum: 10, sensitive: false,
+    });
+    const atomicActor = createActorContext({
+      accountId, sessionId, roleIds: [], permissions: [settingsValuesManagePermission], assurance: 'AAL2', authenticatedAt: now,
+    });
+    const duplicateAudit = new AuditService(new PostgresAuditStore(db), new FixedClock(now), { next: () => auditId });
+    const atomicSettings = new SettingsRuntimeService(
+      settings, duplicateAudit, new FixedClock(now), createAtomicTransactionBoundary(db),
+    );
+    await assert.rejects(() => atomicSettings.write({
+      definition: serviceDefinition, scope: 'project', value: 2, expectedVersion: 0, actor: atomicActor, correlationId: `f4-atomic-${randomUUID()}`,
+    }));
+    assert.equal(await settings.findCurrent(serviceAtomicCoordinate), null, 'failed audit append must roll back the setting state write');
+    assert.equal((await settings.listHistory(serviceAtomicCoordinate)).length, 0, 'failed audit append must roll back setting history');
+
     const rollbackCoordinate = Object.freeze({ key: `f4.rollback.${randomUUID()}`, scope: 'project' });
     const rollbackCorrelation = `f4-rollback-${randomUUID()}`;
     await assert.rejects(() => db.transaction(async () => {
@@ -125,11 +149,29 @@ test('PostgreSQL 18 proves F4 migration, CAS, rollback, audit, idempotency, and 
     const hash = hashIdempotencyRequest({ operation: 'f4-proof', amount: 1 });
     const otherHash = hashIdempotencyRequest({ operation: 'f4-proof', amount: 2 });
     const expiresAt = new Date(now.getTime() + 60_000);
-    assert.deepEqual(await idempotency.claim({ operation: 'integration-proof', key, requestHash: hash, now, expiresAt }), { status: 'started' });
+    const firstClaim = await idempotency.claim({ operation: 'integration-proof', key, requestHash: hash, now, expiresAt });
+    assert.deepEqual(firstClaim, { status: 'started', claimGeneration: 1 });
     assert.deepEqual(await idempotency.claim({ operation: 'integration-proof', key, requestHash: hash, now, expiresAt }), { status: 'in-progress' });
     assert.deepEqual(await idempotency.claim({ operation: 'integration-proof', key, requestHash: otherHash, now, expiresAt }), { status: 'conflict' });
-    await idempotency.complete({ operation: 'integration-proof', key, requestHash: hash, response: { ok: true }, now });
+    await idempotency.complete({ operation: 'integration-proof', key, requestHash: hash, claimGeneration: firstClaim.claimGeneration, response: { ok: true }, now });
     assert.deepEqual(await idempotency.claim({ operation: 'integration-proof', key, requestHash: hash, now, expiresAt }), { status: 'replay', response: { ok: true } });
+
+    const fencedKey = `f4-fenced-${randomUUID()}`;
+    const firstNow = new Date(now.getTime() + 10_000);
+    const firstExpiry = new Date(firstNow.getTime() + 1_000);
+    const staleClaim = await idempotency.claim({ operation: 'integration-fencing', key: fencedKey, requestHash: hash, now: firstNow, expiresAt: firstExpiry });
+    assert.equal(staleClaim.status, 'started');
+    const reclaimNow = new Date(firstExpiry.getTime() + 1);
+    const activeClaim = await idempotency.claim({ operation: 'integration-fencing', key: fencedKey, requestHash: hash, now: reclaimNow, expiresAt: new Date(reclaimNow.getTime() + 60_000) });
+    assert.deepEqual(activeClaim, { status: 'started', claimGeneration: staleClaim.claimGeneration + 1 });
+    await assert.rejects(() => idempotency.complete({
+      operation: 'integration-fencing', key: fencedKey, requestHash: hash, claimGeneration: staleClaim.claimGeneration,
+      response: { stale: true }, now: reclaimNow,
+    }), /active matching IN_PROGRESS claim generation/);
+    await idempotency.complete({
+      operation: 'integration-fencing', key: fencedKey, requestHash: hash, claimGeneration: activeClaim.claimGeneration,
+      response: { ok: true }, now: reclaimNow,
+    });
   } finally {
     await db.close();
   }

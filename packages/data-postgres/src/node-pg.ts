@@ -69,10 +69,10 @@ class NodePgConnectionAdapter implements SqlConnection {
     return normalizeResult<Row>(await this.client.query(text, params));
   }
 
-  release(): void {
+  release(destroy = false): void {
     if (this.#released) return;
     this.#released = true;
-    this.client.release();
+    this.client.release(destroy);
   }
 }
 

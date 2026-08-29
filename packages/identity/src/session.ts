@@ -1,3 +1,4 @@
+import { requireUuid } from '@taymex/foundation';
 import { createHash, randomBytes } from 'node:crypto';
 
 export const AUTH_ASSURANCE_LEVELS = ['AAL1', 'AAL2'] as const;
@@ -54,8 +55,8 @@ export function createSession(input: Readonly<{
   if (!Number.isSafeInteger(input.ttlMs) || input.ttlMs < 60_000) throw new TypeError('Session TTL must be at least one minute.');
   const now = cloneDate(input.now);
   return freezeSession({
-    id: input.id,
-    accountId: input.accountId,
+    id: requireUuid(input.id, 'sessionId'),
+    accountId: requireUuid(input.accountId, 'accountId'),
     tokenHash: input.tokenHash,
     assurance: input.assurance,
     clientLabel: normalizeClientLabel(input.clientLabel),
