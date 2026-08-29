@@ -1,6 +1,6 @@
 import type { AuditJsonValue } from './contracts.js';
 
-export const REDACTED_VALUE = '[REDACTED]' as const;
+export const REDACTED_VALUE = 'REDACTED' as const;
 
 const SENSITIVE_KEY = /(?:password|passwd|pwd|secret|token|authorization|cookie|credential|api[-_]?key)/iu;
 
