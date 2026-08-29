@@ -332,9 +332,13 @@ test('role permissions resolve explicitly, unknown permissions fail, and role na
   const roles = new RoleAccessService(store, { has: (permission) => known.has(permission) }, events);
   const manager = privilegedActor(identityRolesManagePermission);
   const role = await roles.createRole({ actor: manager, id: 'role-reader', name: 'Reader', permissions: ['catalog.products.read'], now: T0 });
-  await roles.assignRoles({ actor: manager, accountId: 'account-1', roleIds: [role.id], now: T0 });
+  assert.equal(await roles.assignRoles({ actor: manager, accountId: 'account-1', roleIds: [role.id], expectedVersion: 0, now: T0 }), 1);
   const resolved = await roles.resolve('account-1');
   assert.equal(resolved.permissions.has('catalog.products.read'), true);
+  await assert.rejects(
+    () => roles.assignRoles({ actor: manager, accountId: 'account-1', roleIds: [], expectedVersion: 0, now: T0 }),
+    (error) => error instanceof IdentityError && error.code === IDENTITY_ERROR_CODES.roleVersionConflict,
+  );
   await assert.rejects(
     () => roles.createRole({ actor: manager, id: 'role-bad', name: 'Bad', permissions: ['unknown.permission'], now: T0 }),
     (error) => error instanceof IdentityError && error.code === IDENTITY_ERROR_CODES.roleInvalidPermission,
@@ -392,6 +396,7 @@ test('security events and safe views never contain password, raw session secret,
 class InMemoryRoleStore {
   roles = new Map();
   accountRoles = new Map();
+  accountRoleVersions = new Map();
   async findRoleById(id) { return this.roles.get(id) ?? null; }
   async createRole(role) {
     if ([...this.roles.values()].some((current) => current.name.toLowerCase() === role.name.toLowerCase())) return 'duplicate-name';
@@ -403,6 +408,12 @@ class InMemoryRoleStore {
     if ([...this.roles.values()].some((other) => other.id !== role.id && other.name.toLowerCase() === role.name.toLowerCase())) return 'duplicate-name';
     this.roles.set(role.id, role); return 'updated';
   }
-  async listRoleIdsForAccount(accountId) { return this.accountRoles.get(accountId) ?? []; }
-  async replaceAccountRoles(accountId, roleIds) { this.accountRoles.set(accountId, [...roleIds]); }
+  async getAccountRoleSet(accountId) { return { roleIds: this.accountRoles.get(accountId) ?? [], version: this.accountRoleVersions.get(accountId) ?? 0 }; }
+  async replaceAccountRolesIfVersionMatches(accountId, roleIds, expectedVersion) {
+    const current = this.accountRoleVersions.get(accountId) ?? 0;
+    if (current !== expectedVersion) return 'version-conflict';
+    this.accountRoles.set(accountId, [...roleIds]);
+    this.accountRoleVersions.set(accountId, current + 1);
+    return 'updated';
+  }
 }

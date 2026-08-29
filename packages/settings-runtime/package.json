@@ -18,6 +18,8 @@
     "@taymex/identity": "workspace:*",
     "@taymex/audit": "workspace:*",
     "@engineering-platform/settings": "file:../../.platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz",
-    "@engineering-platform/authorization": "file:../../.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz"
+    "@engineering-platform/authorization": "file:../../.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz",
+    "@taymex/data-postgres": "workspace:*",
+    "drizzle-orm": "0.45.2"
   }
 }

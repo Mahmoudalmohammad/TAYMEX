@@ -2,48 +2,58 @@ id: identity
 layer: foundation
 owner: identity
 sourceRoots:
-  - packages/identity/src
+- packages/identity/src
 tags:
-  - layer:foundation
-  - foundation:identity
-  - security:authentication
-  - security:authorization-context
+- layer:foundation
+- foundation:identity
+- security:authentication
+- security:authorization-context
 dependencies:
   allowedModules:
-    - application-foundation
+  - application-foundation
+  - data-postgres
   allowedTags:
-    - layer:foundation
+  - layer:foundation
 data:
-  owns: []
+  owns:
+  - db.table.identity_accounts
+  - db.table.identity_password_credentials
+  - db.table.identity_sessions
+  - db.table.identity_challenges
+  - db.table.identity_roles
+  - db.table.identity_role_permissions
+  - db.table.identity_account_role_sets
+  - db.table.identity_account_roles
   readsViaContracts: []
   classification: sensitive
-  adapter: none
-  schemaRoots: []
+  adapter: drizzle-postgres
+  schemaRoots:
+  - packages/identity/src/persistence/schema.ts
 settings:
   defines: []
   consumes: []
 permissions:
   defines:
-    - identity.accounts.manage
-    - identity.roles.manage
-    - identity.sessions.manage
+  - identity.accounts.manage
+  - identity.roles.manage
+  - identity.sessions.manage
   consumes: []
 events:
   emits:
-    - identity.account.provisioned
-    - identity.account.status-changed
-    - identity.sign-in.succeeded
-    - identity.sign-in.failed
-    - identity.session.issued
-    - identity.session.rotated
-    - identity.session.revoked
-    - identity.session.revoked-all
-    - identity.password.changed
-    - identity.password-reset.requested
-    - identity.password-reset.completed
-    - identity.email-verification.requested
-    - identity.email-verification.completed
-    - identity.roles.changed
+  - identity.account.provisioned
+  - identity.account.status-changed
+  - identity.sign-in.succeeded
+  - identity.sign-in.failed
+  - identity.session.issued
+  - identity.session.rotated
+  - identity.session.revoked
+  - identity.session.revoked-all
+  - identity.password.changed
+  - identity.password-reset.requested
+  - identity.password-reset.completed
+  - identity.email-verification.requested
+  - identity.email-verification.completed
+  - identity.roles.changed
   consumes: []
 contracts:
   owns: []
@@ -51,11 +61,11 @@ contracts:
 api:
   internalOnly: true
 securityTags:
-  - credentials
-  - sessions
-  - brute-force-protection
-  - actor-context
+- credentials
+- sessions
+- brute-force-protection
+- actor-context
 performanceTags: []
 extensionModes:
-  - USE
-  - EXTEND
+- USE
+- EXTEND

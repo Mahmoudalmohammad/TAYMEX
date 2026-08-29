@@ -17,7 +17,8 @@
     "settings:generate": "python3 scripts/generate-settings-bindings.py",
     "settings:check": "python3 scripts/generate-settings-bindings.py --check",
     "permissions:generate": "python3 scripts/generate-permission-bindings.py",
-    "permissions:check": "python3 scripts/generate-permission-bindings.py --check"
+    "permissions:check": "python3 scripts/generate-permission-bindings.py --check",
+    "db:migrate": "pnpm --filter @taymex/data-postgres migrate"
   },
   "devDependencies": {
     "nx": "23.1.2",

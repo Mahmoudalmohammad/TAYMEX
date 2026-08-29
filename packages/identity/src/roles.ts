@@ -1,4 +1,5 @@
 import { ValidationError, requireNonBlank } from '@taymex/foundation';
+import type { AtomicTransactionBoundary } from '@taymex/data-postgres';
 import type { ActorContext } from './actor.js';
 import type { IdentitySecurityEventSink } from './contracts.js';
 import { IDENTITY_ERROR_CODES, IdentityError } from './errors.js';
@@ -18,12 +19,19 @@ export type RoleDefinition = Readonly<{
   updatedAt: Date;
 }>;
 
+export type AccountRoleSet = Readonly<{ roleIds: readonly string[]; version: number }>;
+
 export interface RoleAccessStore {
   findRoleById(id: string): Promise<RoleDefinition | null>;
   createRole(role: RoleDefinition): Promise<'created' | 'duplicate-name'>;
   replaceRoleIfVersionMatches(role: RoleDefinition, expectedVersion: number): Promise<'updated' | 'version-conflict' | 'duplicate-name'>;
-  listRoleIdsForAccount(accountId: string): Promise<readonly string[]>;
-  replaceAccountRoles(accountId: string, roleIds: readonly string[]): Promise<void>;
+  getAccountRoleSet(accountId: string): Promise<AccountRoleSet>;
+  replaceAccountRolesIfVersionMatches(
+    accountId: string,
+    roleIds: readonly string[],
+    expectedVersion: number,
+    updatedAt: Date,
+  ): Promise<'updated' | 'version-conflict'>;
 }
 
 export type ResolvedAccountAccess = Readonly<{
@@ -36,6 +44,7 @@ export class RoleAccessService {
     private readonly store: RoleAccessStore,
     private readonly permissionCatalog: PermissionCatalog,
     private readonly events: IdentitySecurityEventSink,
+    private readonly transactions?: AtomicTransactionBoundary,
   ) {}
 
   async createRole(input: Readonly<{
@@ -48,10 +57,12 @@ export class RoleAccessService {
   }>): Promise<RoleDefinition> {
     requirePrivilegedIdentityOperation(input.actor, 'manage-roles');
     const role = roleDefinition({ ...input, version: 1, createdAt: input.now, updatedAt: input.now }, this.permissionCatalog);
-    const result = await this.store.createRole(role);
-    if (result === 'duplicate-name') throw roleConflict('Role name already exists.');
-    await this.emitRoleChange(input.actor.accountId, role.id, input.now, input.correlationId);
-    return role;
+    return this.atomic(async () => {
+      const result = await this.store.createRole(role);
+      if (result === 'duplicate-name') throw roleConflict('Role name already exists.');
+      await this.emitRoleChange(input.actor.accountId, role.id, input.now, input.correlationId);
+      return role;
+    });
   }
 
   async replacePermissions(input: Readonly<{
@@ -72,37 +83,46 @@ export class RoleAccessService {
       version: existing.version + 1,
       updatedAt: input.now,
     }, this.permissionCatalog);
-    const result = await this.store.replaceRoleIfVersionMatches(updated, input.expectedVersion);
-    if (result === 'version-conflict') throw roleVersionConflict();
-    if (result === 'duplicate-name') throw roleConflict('Role name already exists.');
-    await this.emitRoleChange(input.actor.accountId, updated.id, input.now, input.correlationId);
-    return updated;
+    return this.atomic(async () => {
+      const result = await this.store.replaceRoleIfVersionMatches(updated, input.expectedVersion);
+      if (result === 'version-conflict') throw roleVersionConflict();
+      if (result === 'duplicate-name') throw roleConflict('Role name already exists.');
+      await this.emitRoleChange(input.actor.accountId, updated.id, input.now, input.correlationId);
+      return updated;
+    });
   }
 
   async assignRoles(input: Readonly<{
     actor: ActorContext;
     accountId: string;
     roleIds: readonly string[];
+    expectedVersion: number;
     now: Date;
     correlationId?: string;
-  }>): Promise<void> {
+  }>): Promise<number> {
     requirePrivilegedIdentityOperation(input.actor, 'manage-roles');
     const normalized = [...new Set(input.roleIds)].sort();
     for (const roleId of normalized) {
       if (!(await this.store.findRoleById(roleId))) throw roleNotFound(roleId);
     }
-    await this.store.replaceAccountRoles(input.accountId, normalized);
-    await this.events.emit(Object.freeze({
-      eventId: identityRolesChangedEvent,
-      occurredAt: new Date(input.now.getTime()),
-      actorAccountId: input.actor.accountId,
-      subjectAccountId: input.accountId,
-      correlationId: input.correlationId,
-    }));
+    if (!Number.isSafeInteger(input.expectedVersion) || input.expectedVersion < 0) throw new TypeError('expectedVersion must be a non-negative safe integer.');
+    return this.atomic(async () => {
+      const replaced = await this.store.replaceAccountRolesIfVersionMatches(input.accountId, normalized, input.expectedVersion, input.now);
+      if (replaced !== 'updated') throw roleVersionConflict();
+      await this.events.emit(Object.freeze({
+        eventId: identityRolesChangedEvent,
+        occurredAt: new Date(input.now.getTime()),
+        actorAccountId: input.actor.accountId,
+        subjectAccountId: input.accountId,
+        correlationId: input.correlationId,
+      }));
+      return input.expectedVersion + 1;
+    });
   }
 
   async resolve(accountId: string): Promise<ResolvedAccountAccess> {
-    const roleIds = [...new Set(await this.store.listRoleIdsForAccount(accountId))].sort();
+    const roleSet = await this.store.getAccountRoleSet(accountId);
+    const roleIds = [...new Set(roleSet.roleIds)].sort();
     const permissions = new Set<string>();
     for (const roleId of roleIds) {
       const role = await this.store.findRoleById(roleId);
@@ -110,6 +130,10 @@ export class RoleAccessService {
       for (const permission of role.permissions) permissions.add(permission);
     }
     return Object.freeze({ roleIds: Object.freeze(roleIds), permissions });
+  }
+
+  private atomic<T>(work: () => Promise<T>): Promise<T> {
+    return this.transactions ? this.transactions.run(work) : work();
   }
 
   private async emitRoleChange(actorAccountId: string, roleId: string, now: Date, correlationId?: string): Promise<void> {

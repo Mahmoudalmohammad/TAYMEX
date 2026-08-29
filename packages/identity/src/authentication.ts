@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Clock } from '@taymex/foundation';
+import type { AtomicTransactionBoundary } from '@taymex/data-postgres';
 import { createAccount, assertAccountCanAuthenticate, changeAccountStatus, markEmailVerified, normalizeEmail, type Account, type AccountStatus } from './account.js';
 import { createActorContext, type ActorContext } from './actor.js';
 import type {
@@ -66,6 +67,7 @@ export class IdentityService {
     private readonly clock: Clock,
     private readonly ids: IdGenerator,
     private readonly policy: IdentityPolicy = DEFAULT_IDENTITY_POLICY,
+    private readonly transactions?: AtomicTransactionBoundary,
   ) {
     validatePolicy(policy);
   }
@@ -75,19 +77,21 @@ export class IdentityService {
     const account = createAccount({ id: this.ids.next(), email: input.email, now });
     assertPasswordPolicy(input.password, this.policy.passwordPolicy);
     const passwordHash = await this.passwordHasher.hash(input.password);
-    const created = await this.repository.createAccount(account);
-    if (created === 'duplicate-email') {
-      throw new IdentityError({
-        code: IDENTITY_ERROR_CODES.accountEmailConflict,
-        category: 'conflict',
-        message: 'Account email already exists.',
-        safeMessageKey: 'errors.identity.accountEmailConflict',
-        field: 'email',
-      });
-    }
-    await this.repository.replacePasswordCredential(Object.freeze({ accountId: account.id, passwordHash, changedAt: now, version: 1 }));
-    await this.emit(identityAccountProvisionedEvent, now, { subjectAccountId: account.id, correlationId: input.correlationId });
-    return account;
+    return this.atomic(async () => {
+      const created = await this.repository.createAccount(account);
+      if (created === 'duplicate-email') {
+        throw new IdentityError({
+          code: IDENTITY_ERROR_CODES.accountEmailConflict,
+          category: 'conflict',
+          message: 'Account email already exists.',
+          safeMessageKey: 'errors.identity.accountEmailConflict',
+          field: 'email',
+        });
+      }
+      await this.repository.replacePasswordCredential(Object.freeze({ accountId: account.id, passwordHash, changedAt: now, version: 1 }));
+      await this.emit(identityAccountProvisionedEvent, now, { subjectAccountId: account.id, correlationId: input.correlationId });
+      return account;
+    });
   }
 
   async signIn(input: Readonly<{
@@ -138,11 +142,13 @@ export class IdentityService {
       now,
       ttlMs: this.policy.sessionTtlMs,
     });
-    await this.repository.createSession(session);
-    const actor = await this.actorFor(account, session.id, session.assurance, now);
-    await this.emit(identitySessionIssuedEvent, now, { subjectAccountId: account.id, sessionId: session.id, correlationId: input.correlationId });
-    await this.emit(identitySignInSucceededEvent, now, { subjectAccountId: account.id, sessionId: session.id, correlationId: input.correlationId });
-    return Object.freeze({ sessionSecret: issued.secret, actor });
+    return this.atomic(async () => {
+      await this.repository.createSession(session);
+      const actor = await this.actorFor(account, session.id, session.assurance, now);
+      await this.emit(identitySessionIssuedEvent, now, { subjectAccountId: account.id, sessionId: session.id, correlationId: input.correlationId });
+      await this.emit(identitySignInSucceededEvent, now, { subjectAccountId: account.id, sessionId: session.id, correlationId: input.correlationId });
+      return Object.freeze({ sessionSecret: issued.secret, actor });
+    });
   }
 
   async authenticateSession(sessionSecret: string, correlationId?: string): Promise<ActorContext> {
@@ -172,10 +178,12 @@ export class IdentityService {
     try { assertAccountCanAuthenticate(account, this.policy.requireVerifiedEmailForSignIn); } catch { throw sessionInvalidError(); }
     const issued = this.tokenService.issue();
     const rotated = rotateSession(current, issued.hash, now);
-    const result = await this.repository.replaceSessionIfVersionMatches(rotated, current.version);
-    if (result !== 'updated') throw sessionInvalidError();
-    await this.emit(identitySessionRotatedEvent, now, { subjectAccountId: account.id, sessionId: current.id, correlationId });
-    return Object.freeze({ sessionSecret: issued.secret, actor: await this.actorFor(account, current.id, current.assurance, now) });
+    return this.atomic(async () => {
+      const result = await this.repository.replaceSessionIfVersionMatches(rotated, current.version);
+      if (result !== 'updated') throw sessionInvalidError();
+      await this.emit(identitySessionRotatedEvent, now, { subjectAccountId: account.id, sessionId: current.id, correlationId });
+      return Object.freeze({ sessionSecret: issued.secret, actor: await this.actorFor(account, current.id, current.assurance, now) });
+    });
   }
 
   async signOut(sessionSecret: string, correlationId?: string): Promise<void> {
@@ -183,25 +191,31 @@ export class IdentityService {
     const current = await this.repository.findSessionByTokenHash(this.tokenService.hash(sessionSecret));
     if (!current) return;
     const revoked = revokeSession(current, now);
-    const result = await this.repository.replaceSessionIfVersionMatches(revoked, current.version);
-    if (result === 'updated') {
-      await this.emit(identitySessionRevokedEvent, now, { subjectAccountId: current.accountId, sessionId: current.id, correlationId });
-    }
+    await this.atomic(async () => {
+      const result = await this.repository.replaceSessionIfVersionMatches(revoked, current.version);
+      if (result === 'updated') {
+        await this.emit(identitySessionRevokedEvent, now, { subjectAccountId: current.accountId, sessionId: current.id, correlationId });
+      }
+    });
   }
 
   async signOutAll(actor: ActorContext, correlationId?: string): Promise<number> {
     const now = this.clock.now();
-    const count = await this.repository.revokeAllSessionsForAccount(actor.accountId, now);
-    await this.emit(identitySessionRevokedAllEvent, now, { actorAccountId: actor.accountId, subjectAccountId: actor.accountId, correlationId });
-    return count;
+    return this.atomic(async () => {
+      const count = await this.repository.revokeAllSessionsForAccount(actor.accountId, now);
+      await this.emit(identitySessionRevokedAllEvent, now, { actorAccountId: actor.accountId, subjectAccountId: actor.accountId, correlationId });
+      return count;
+    });
   }
 
   async revokeAllAccountSessions(input: Readonly<{ actor: ActorContext; accountId: string; correlationId?: string }>): Promise<number> {
     requirePrivilegedIdentityOperation(input.actor, 'manage-sessions');
     const now = this.clock.now();
-    const count = await this.repository.revokeAllSessionsForAccount(input.accountId, now);
-    await this.emit(identitySessionRevokedAllEvent, now, { actorAccountId: input.actor.accountId, subjectAccountId: input.accountId, correlationId: input.correlationId });
-    return count;
+    return this.atomic(async () => {
+      const count = await this.repository.revokeAllSessionsForAccount(input.accountId, now);
+      await this.emit(identitySessionRevokedAllEvent, now, { actorAccountId: input.actor.accountId, subjectAccountId: input.accountId, correlationId: input.correlationId });
+      return count;
+    });
   }
 
   async listSessions(actor: ActorContext): Promise<readonly SessionView[]> {
@@ -228,15 +242,17 @@ export class IdentityService {
     }
     assertPasswordPolicy(input.newPassword, this.policy.passwordPolicy);
     const passwordHash = await this.passwordHasher.hash(input.newPassword);
-    await this.repository.replacePasswordCredential(Object.freeze({
-      accountId: credential.accountId,
-      passwordHash,
-      changedAt: now,
-      version: credential.version + 1,
-    }));
-    await this.repository.revokeAllSessionsForAccount(input.actor.accountId, now);
-    await this.emit(identityPasswordChangedEvent, now, { actorAccountId: input.actor.accountId, subjectAccountId: input.actor.accountId, reason: 'password-changed', correlationId: input.correlationId });
-    await this.emit(identitySessionRevokedAllEvent, now, { subjectAccountId: input.actor.accountId, reason: 'password-changed', correlationId: input.correlationId });
+    await this.atomic(async () => {
+      await this.repository.replacePasswordCredential(Object.freeze({
+        accountId: credential.accountId,
+        passwordHash,
+        changedAt: now,
+        version: credential.version + 1,
+      }));
+      await this.repository.revokeAllSessionsForAccount(input.actor.accountId, now);
+      await this.emit(identityPasswordChangedEvent, now, { actorAccountId: input.actor.accountId, subjectAccountId: input.actor.accountId, reason: 'password-changed', correlationId: input.correlationId });
+      await this.emit(identitySessionRevokedAllEvent, now, { subjectAccountId: input.actor.accountId, reason: 'password-changed', correlationId: input.correlationId });
+    });
   }
 
   async requestPasswordReset(email: string, correlationId?: string): Promise<Readonly<{ accepted: true }>> {
@@ -258,17 +274,19 @@ export class IdentityService {
     const credential = await this.repository.findPasswordCredential(challenge.accountId);
     if (!credential) throw challengeInvalidError();
     const newHash = await this.passwordHasher.hash(newPassword);
-    const consumed = await this.repository.consumeChallengeIfActive(challenge.id, challenge.version, now);
-    if (consumed !== 'consumed') throw challengeInvalidError();
-    await this.repository.replacePasswordCredential(Object.freeze({
-      accountId: credential.accountId,
-      passwordHash: newHash,
-      changedAt: now,
-      version: credential.version + 1,
-    }));
-    await this.repository.revokeAllSessionsForAccount(challenge.accountId, now);
-    await this.emit(identityPasswordResetCompletedEvent, now, { subjectAccountId: challenge.accountId, reason: 'password-reset', correlationId });
-    await this.emit(identitySessionRevokedAllEvent, now, { subjectAccountId: challenge.accountId, reason: 'password-reset', correlationId });
+    await this.atomic(async () => {
+      const consumed = await this.repository.consumeChallengeIfActive(challenge.id, challenge.version, now);
+      if (consumed !== 'consumed') throw challengeInvalidError();
+      await this.repository.replacePasswordCredential(Object.freeze({
+        accountId: credential.accountId,
+        passwordHash: newHash,
+        changedAt: now,
+        version: credential.version + 1,
+      }));
+      await this.repository.revokeAllSessionsForAccount(challenge.accountId, now);
+      await this.emit(identityPasswordResetCompletedEvent, now, { subjectAccountId: challenge.accountId, reason: 'password-reset', correlationId });
+      await this.emit(identitySessionRevokedAllEvent, now, { subjectAccountId: challenge.accountId, reason: 'password-reset', correlationId });
+    });
   }
 
   async requestEmailVerification(accountId: string, correlationId?: string): Promise<void> {
@@ -286,13 +304,15 @@ export class IdentityService {
     const challenge = await this.requireActiveChallenge('EMAIL_VERIFICATION', token, now);
     const account = await this.repository.findAccountById(challenge.accountId);
     if (!account) throw challengeInvalidError();
-    const consumed = await this.repository.consumeChallengeIfActive(challenge.id, challenge.version, now);
-    if (consumed !== 'consumed') throw challengeInvalidError();
     const verified = markEmailVerified(account, { expectedVersion: account.version, now });
-    const replaced = await this.repository.replaceAccountIfVersionMatches(verified, account.version);
-    if (replaced !== 'updated') throw challengeInvalidError();
-    await this.emit(identityEmailVerificationCompletedEvent, now, { subjectAccountId: account.id, correlationId });
-    return verified;
+    return this.atomic(async () => {
+      const consumed = await this.repository.consumeChallengeIfActive(challenge.id, challenge.version, now);
+      if (consumed !== 'consumed') throw challengeInvalidError();
+      const replaced = await this.repository.replaceAccountIfVersionMatches(verified, account.version);
+      if (replaced !== 'updated') throw challengeInvalidError();
+      await this.emit(identityEmailVerificationCompletedEvent, now, { subjectAccountId: account.id, correlationId });
+      return verified;
+    });
   }
 
   async setAccountStatus(input: Readonly<{ actor: ActorContext; accountId: string; expectedVersion: number; status: AccountStatus; correlationId?: string }>): Promise<Account> {
@@ -301,21 +321,28 @@ export class IdentityService {
     const account = await this.repository.findAccountById(input.accountId);
     if (!account) throw accountNotFound();
     const changed = changeAccountStatus(account, { expectedVersion: input.expectedVersion, status: input.status, now });
-    const result = await this.repository.replaceAccountIfVersionMatches(changed, input.expectedVersion);
-    if (result !== 'updated') throw new IdentityError({
-      code: IDENTITY_ERROR_CODES.accountVersionConflict,
-      category: 'conflict',
-      message: 'Account version conflict.',
-      safeMessageKey: 'errors.identity.versionConflict',
+    return this.atomic(async () => {
+      const result = await this.repository.replaceAccountIfVersionMatches(changed, input.expectedVersion);
+      if (result !== 'updated') throw new IdentityError({
+        code: IDENTITY_ERROR_CODES.accountVersionConflict,
+        category: 'conflict',
+        message: 'Account version conflict.',
+        safeMessageKey: 'errors.identity.versionConflict',
+      });
+      if (changed.status !== 'ACTIVE') await this.repository.revokeAllSessionsForAccount(changed.id, now);
+      await this.emit(identityAccountStatusChangedEvent, now, {
+        actorAccountId: input.actor.accountId,
+        subjectAccountId: changed.id,
+        reason: 'account-status-changed',
+        correlationId: input.correlationId,
+      });
+      return changed;
     });
-    if (changed.status !== 'ACTIVE') await this.repository.revokeAllSessionsForAccount(changed.id, now);
-    await this.emit(identityAccountStatusChangedEvent, now, {
-      actorAccountId: input.actor.accountId,
-      subjectAccountId: changed.id,
-      reason: 'account-status-changed',
-      correlationId: input.correlationId,
-    });
-    return changed;
+  }
+
+
+  private atomic<T>(work: () => Promise<T>): Promise<T> {
+    return this.transactions ? this.transactions.run(work) : work();
   }
 
   private async actorFor(account: Account, sessionId: string, assurance: 'AAL1' | 'AAL2', now: Date): Promise<ActorContext> {

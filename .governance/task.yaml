@@ -1,103 +1,94 @@
-id: FOUNDATION-F3-001
-title: Implement settings audit and observability foundation
-mode: feature
+id: FOUNDATION-F4-001
+title: Implement PostgreSQL data and transaction foundation
+mode: migration
 risk: R3
 objective: >-
-  Implement F3 as three explicit application-foundation capabilities: a runtime settings administration layer that reuses canonical generated definitions and the platform resolver without duplicating precedence, an append-only redacting audit core that records identity security and settings administration evidence, and structured observability primitives for correlation redaction logging liveness and readiness; integrate only the existing health and Catalog settings validation paths and advance sequencing to F4 without claiming PostgreSQL or HTTP security proof.
-baseRevision: 1928ce6df696c1ed22b0f9579ec97521ab2dc770
+  Implement F4 as the single PostgreSQL 18 persistence foundation for TAYMEX: define governed Drizzle PostgreSQL schema truth and immutable additive SQL migration history, provide a node-postgres pool/transaction boundary with nested transaction reuse, implement PostgreSQL persistence adapters for identity roles settings and audit, enforce database-level optimistic compare-and-swap and append-only audit integrity, add reusable persisted idempotency semantics, and wire PostgreSQL readiness without advancing to F5 unless real PostgreSQL execution evidence exists.
+baseRevision: ea58e0e08dd2b4b8d0af84eefc9974fe4dab6948
 modules:
-  - application-foundation
+  - data-postgres
   - identity
-  - catalog
+  - settings-runtime
+  - audit
+  - observability
 scope:
   allowedPaths:
     - .governance/task.yaml
+    - packages/data-postgres/**
+    - packages/identity/**
     - packages/settings-runtime/**
     - packages/audit/**
     - packages/observability/**
     - apps/api/package.json
-    - apps/api/src/generated/settings.generated.ts
-    - apps/api/src/generated/permissions.generated.ts
-    - apps/api/src/modules/catalog/application/catalog-products-settings.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-settings.test.ts
     - apps/api/src/modules/health/**
-    - packages/identity/src/generated/permissions.generated.ts
-    - tooling/registry/permissions.registry.yaml
-    - scripts/generate-permission-bindings.py
-    - scripts/generate-settings-bindings.py
+    - package.json
+    - pnpm-workspace.yaml
     - blueprints/foundation/foundation.manifest.yaml
+    - docs/FOUNDATION_F4_DATA_TRANSACTION_REPORT.md
+    - .governance/repository-truth.json
   forbiddenPaths:
     - packages/foundation/**
-    - packages/identity/src/account.ts
-    - packages/identity/src/authentication.ts
-    - packages/identity/src/actor.ts
-    - packages/identity/src/contracts.ts
-    - packages/identity/src/password.ts
-    - packages/identity/src/privileged.ts
-    - packages/identity/src/roles.ts
-    - packages/identity/src/session.ts
-    - packages/identity/src/throttle.ts
     - apps/api/src/modules/catalog/domain/**
     - apps/api/src/modules/catalog/application/catalog-product-repository.ts
     - apps/api/src/modules/catalog/application/catalog-products-service.ts
     - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
-    - apps/api/src/modules/catalog/catalog.module.ts
     - apps/web/**
     - tooling/governance.config.yaml
     - tooling/policies/**
     - tooling/schemas/**
     - tooling/trust-root/**
-    - tooling/registry/rules.registry.yaml
-    - tooling/registry/settings.registry.yaml
-    - tooling/registry/events.registry.yaml
+    - tooling/registry/**
     - .platform/**
     - .github/**
   allowNewFiles: true
   allowedNewFiles:
-    - packages/settings-runtime/**
-    - packages/audit/**
-    - packages/observability/**
-    - apps/api/src/modules/health/**
+    - packages/data-postgres/**
+    - packages/identity/src/persistence/**
+    - packages/identity/tests/postgres-*.test.mjs
+    - packages/settings-runtime/src/postgres-store.ts
+    - packages/settings-runtime/src/schema.ts
+    - packages/settings-runtime/tests/postgres-*.test.mjs
+    - packages/audit/src/postgres-store.ts
+    - packages/audit/src/schema.ts
+    - packages/audit/tests/postgres-*.test.mjs
+    - docs/FOUNDATION_F4_DATA_TRANSACTION_REPORT.md
   allowDependencies: true
   allowedDependencies:
-    - '@taymex/settings-runtime'
-    - '@taymex/audit'
-    - '@taymex/observability'
-    - '@taymex/foundation'
-    - '@taymex/identity'
-    - '@engineering-platform/settings'
-    - '@engineering-platform/authorization'
-  allowMigrations: false
-  allowPublicContractChanges: false
+    - '@taymex/data-postgres'
+    - drizzle-orm
+    - pg
+  allowMigrations: true
+  allowPublicContractChanges: true
   allowPlatformChanges: false
   allowArchitectureChanges: true
+  allowDestructiveMigrations: false
 acceptance:
-  - id: AC-F3-SETTINGS-AUTHORITY
-    statement: Runtime setting definitions defaults bounds scopes and precedence remain generated from the single canonical settings registry and are resolved only by the versioned platform settings artifact; F3 adds no competing registry fallback or precedence implementation.
-  - id: AC-F3-SETTINGS-WRITES
-    statement: Mutable setting administration requires explicit canonical permission and AAL2 assurance supports create/update optimistic version checks append-only history rollback as a new version invalid-value rejection and immutable-setting denial.
-  - id: AC-F3-SETTINGS-APPLICATION
-    statement: Runtime behavior metadata is generated from the canonical registry and settings diagnostics distinguish applied state from saved-but-not-applied reload restart or deploy state without pretending a persisted value is already active.
-  - id: AC-F3-AUDIT
-    statement: Audit records are append-only structured immutable records with actor resource action changes timestamp correlation category severity and recursive sensitive-value redaction; settings changes and identity security events are mapped into the same audit contract.
-  - id: AC-F3-AUDIT-ACCESS
-    statement: Reading audit records requires the canonical audit.records.read permission and AAL2 assurance; write-side services never expose mutation or deletion methods for existing audit records.
-  - id: AC-F3-OBSERVABILITY
-    statement: Structured logging uses canonical correlation identifiers timestamps levels event names runtime metadata and recursive redaction; identity security events can fan out to audit and structured logging without raw credentials or token material.
-  - id: AC-F3-HEALTH
-    statement: Liveness and readiness are distinct runtime concepts with explicit dependency checks and build environment metadata; existing health routes use the central observability reporter without claiming PostgreSQL readiness before F4.
-  - id: AC-F3-REGRESSION
-    statement: Existing Catalog setting resolution behavior still uses generated definitions and platform resolution and all pre-F3 foundation Identity Catalog authorization application and settings tests continue to pass.
-  - id: AC-F3-FOUNDATION
-    statement: Foundation manifest records only demonstrated F3 evidence advances currentStage to F4 and keeps database persistence HTTP transport distributed controls and production delivery proof as explicit later work.
+  - id: AC-F4-SCHEMA-TRUTH
+    statement: Persisted foundation tables are declared as PostgreSQL Drizzle schema truth under exactly one owning module and match the additive migration schema; database ownership is discoverable by repository truth rather than inferred from prose.
+  - id: AC-F4-MIGRATIONS
+    statement: Migration execution is ordered checksummed immutable advisory-lock protected and transactional; checksum drift of an already applied migration blocks execution and F4 introduces no destructive migration.
+  - id: AC-F4-TRANSACTIONS
+    statement: One PostgreSQL transaction boundary owns BEGIN COMMIT ROLLBACK and nested foundation calls reuse the active connection so a settings or identity write and its durable audit record can participate in the same transaction.
+  - id: AC-F4-CONCURRENCY
+    statement: Account role session challenge and setting mutable records use database-side expected-version predicates or equivalent atomic PostgreSQL semantics; stale writes never silently overwrite accepted state.
+  - id: AC-F4-IDEMPOTENCY
+    statement: A reusable persisted idempotency primitive atomically claims an operation key binds it to a request hash and replays only the completed matching result while rejecting key reuse with different input.
+  - id: AC-F4-INTEGRITY
+    statement: PostgreSQL constraints enforce normalized-email uniqueness status and assurance enums positive versions setting coordinate uniqueness history uniqueness role relationships and append-only audit protection; representative query paths have intentional indexes.
+  - id: AC-F4-READINESS
+    statement: API readiness includes a PostgreSQL dependency check while liveness remains process-only; missing or failed database connectivity makes readiness NOT_READY without making liveness DOWN.
+  - id: AC-F4-REAL-PROOF
+    statement: F4 is not marked PROVEN and currentStage is not advanced to F5 unless migrations adapters concurrency rollback idempotency and readiness execute against an actual PostgreSQL 18 runtime.
+  - id: AC-F4-REGRESSION
+    statement: Existing F1 F2 F3 and Catalog regression tests continue to pass and memory adapters remain test/reference implementations rather than production persistence authority.
 assumptions:
-  - statement: F3 uses in-memory reference stores only to prove contracts and negative behavior; durable PostgreSQL implementations are intentionally deferred to F4 and are not claimed by F3.
+  - statement: PostgreSQL 18 remains the approved TAYMEX database from the governed project profile.
     status: verified
-    evidence: docs/FOUNDATION_BLUEPRINT.md
-  - statement: Existing platform settings resolution artifact remains the sole precedence and value-validation engine and is not forked inside the consumer repository.
+    evidence: blueprints/project-profiles/taymex.yaml
+  - statement: Drizzle PostgreSQL schema declarations are the machine-indexable persistence model truth supported by the current governance verifier; SQL migrations remain the applied database-state history.
     status: verified
-    evidence: docs/FOUNDATION_BLUEPRINT.md
-  - statement: Request-level HTTP correlation middleware cookie transport security and distributed rate limiting belong to F5; F3 provides reusable primitives only.
+    evidence: tooling/schemas/module-manifest.schema.json
+  - statement: The current execution environment may lack a runnable PostgreSQL server; absence of runtime evidence is a blocker to PROVEN rather than permission to substitute SQLite or an in-memory database.
     status: verified
     evidence: docs/FOUNDATION_BLUEPRINT.md
 obligations:
@@ -107,45 +98,45 @@ obligations:
   responsive: not-applicable
   accessibility: not-applicable
   concurrency: tested
-  idempotency: not-applicable
+  idempotency: tested
 functional:
   invariants:
-    - Canonical setting precedence is never reimplemented in F3 and no local default may override a generated registry definition.
-    - Settings with kind invariant cannot be mutated by the runtime administration service.
-    - A setting write with a stale expected version must fail without changing value history applied state or audit evidence.
-    - Rollback creates a new setting version; history is never rewritten.
-    - Non-hot setting writes remain visibly pending until the matching saved version is explicitly marked applied.
-    - Audit and log payloads redact credential secret token cookie authorization and password-like fields recursively.
-    - Audit stores expose append and query only; they expose no update or delete contract.
-    - Identity security event fanout preserves correlation and non-secret reason while excluding raw secret material.
+    - Applied migration content is immutable and checksum mismatch blocks startup migration execution.
+    - Every transaction commits exactly once on success and rolls back on failure; nested foundation transaction calls never open an independent connection.
+    - Optimistic writes modify a row only when its stored version equals expectedVersion and increment exactly once.
+    - Audit records are insert-only at both application contract and database trigger levels.
+    - Setting current value history row and hot applied-version update can be executed atomically with the corresponding audit append under one outer transaction.
+    - Idempotency key reuse with a different request hash is always a conflict and never returns another request result.
+    - Database readiness is not inferred from process liveness.
   statesAndTransitions:
-    - Setting absent at version 0 may be created as version 1; each accepted update increments version exactly once.
-    - Setting saved version may be APPLIED or PENDING_RELOAD PENDING_RESTART PENDING_DEPLOY based on generated runtime behavior; mark-applied may only acknowledge the current saved version.
-    - Readiness is READY only when every registered readiness dependency reports UP; liveness remains a process-level signal independent from external dependency readiness.
+    - Idempotency operation transitions ABSENT to IN_PROGRESS to COMPLETED; a completed matching request is replayable and a conflicting payload is rejected.
+    - Mutable setting/account/role/session/challenge records transition from version N to N+1 only through an expected-version predicate.
+    - Migration state transitions from unapplied to applied exactly once with immutable checksum evidence.
   edgeCases:
-    - Unauthorized or AAL1 actor attempts to change a setting.
-    - Stale setting expectedVersion races with a successful write.
-    - Rollback targets a historical version that no longer equals the current version.
-    - Sensitive nested metadata contains password token authorization cookie secret or credential-like keys.
-    - Incoming correlation identifier is blank malformed or overlong.
-    - One identity security sink fails during composite fanout.
-    - Readiness contains a DOWN dependency while liveness remains UP.
+    - Two concurrent writers use the same expected version.
+    - Duplicate normalized email is inserted concurrently.
+    - Challenge is consumed after expiry or after another consumer won the race.
+    - Audit append fails after a mutable state write inside an outer transaction.
+    - Idempotency claim races for the same key and request hash.
+    - Applied migration filename exists with changed contents.
+    - Database readiness query throws or exceeds the configured check timeout.
   failureModes:
-    - F3 duplicates setting defaults precedence or fallback outside generated definitions and the platform resolver.
-    - Audit records allow post-append mutation or leak sensitive values.
-    - Settings history is overwritten or rollback rewrites an old version.
-    - Saved settings are reported as active before required reload restart or deployment acknowledgment.
-    - Health endpoint reports dependency readiness that has not actually been checked.
-    - F3 claims durable audit/settings persistence database atomicity HTTP correlation middleware or production logging delivery before those stages exist.
+    - Local code performs read-then-write concurrency checks without a database predicate.
+    - Migration runner edits or silently reapplies an existing migration.
+    - Audit append is outside the transaction of the privileged write it records.
+    - Production persistence falls back to memory when PostgreSQL is unavailable.
+    - F4 is marked PROVEN based only on mock SQL executor tests.
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
   - DEP-001
+  - MIG-001
+  - DB-001
   - ARCH-001
   - RISK-001
   - TRUST-001
-  - SET-001
-  - PERM-001
   - MODEL-001
+  - DATA-001
+  - MIG-002

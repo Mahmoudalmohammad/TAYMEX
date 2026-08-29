@@ -1,0 +1,48 @@
+id: data-postgres
+layer: foundation
+owner: data-platform
+sourceRoots:
+  - packages/data-postgres/src
+tags:
+  - layer:foundation
+  - foundation:data
+  - database:postgresql
+  - concurrency:transactions
+dependencies:
+  allowedModules:
+    - application-foundation
+  allowedTags:
+    - layer:foundation
+data:
+  owns:
+    - db.table.foundation_idempotency_keys
+    - db.table.foundation_schema_migrations
+  readsViaContracts: []
+  classification: confidential
+  adapter: drizzle-postgres
+  schemaRoots:
+    - packages/data-postgres/src/schema.ts
+settings:
+  defines: []
+  consumes: []
+permissions:
+  defines: []
+  consumes: []
+events:
+  emits: []
+  consumes: []
+contracts:
+  owns: []
+  consumes: []
+api:
+  internalOnly: true
+securityTags:
+  - parameterized-sql
+  - migration-checksums
+  - idempotency
+performanceTags:
+  - connection-pool
+  - bounded-transactions
+extensionModes:
+  - USE
+  - EXTEND

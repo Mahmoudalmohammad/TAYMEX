@@ -2,60 +2,62 @@ id: audit
 layer: foundation
 owner: audit
 sourceRoots:
-  - packages/audit/src
+- packages/audit/src
 tags:
-  - layer:foundation
-  - foundation:audit
-  - security:audit
-  - data:append-only
+- layer:foundation
+- foundation:audit
+- security:audit
+- data:append-only
 dependencies:
   allowedModules:
-    - application-foundation
-    - identity
+  - application-foundation
+  - identity
+  - data-postgres
   allowedTags:
-    - layer:foundation
+  - layer:foundation
 data:
   owns:
-    - audit-records
+  - db.table.audit_records
   readsViaContracts: []
   classification: sensitive
-  adapter: none
-  schemaRoots: []
+  adapter: drizzle-postgres
+  schemaRoots:
+  - packages/audit/src/schema.ts
 settings:
   defines: []
   consumes: []
 permissions:
   defines:
-    - audit.records.read
+  - audit.records.read
   consumes: []
 events:
   emits: []
   consumes:
-    - identity.account.provisioned
-    - identity.account.status-changed
-    - identity.sign-in.succeeded
-    - identity.sign-in.failed
-    - identity.session.issued
-    - identity.session.rotated
-    - identity.session.revoked
-    - identity.session.revoked-all
-    - identity.password.changed
-    - identity.password-reset.requested
-    - identity.password-reset.completed
-    - identity.email-verification.requested
-    - identity.email-verification.completed
-    - identity.roles.changed
+  - identity.account.provisioned
+  - identity.account.status-changed
+  - identity.sign-in.succeeded
+  - identity.sign-in.failed
+  - identity.session.issued
+  - identity.session.rotated
+  - identity.session.revoked
+  - identity.session.revoked-all
+  - identity.password.changed
+  - identity.password-reset.requested
+  - identity.password-reset.completed
+  - identity.email-verification.requested
+  - identity.email-verification.completed
+  - identity.roles.changed
 contracts:
   owns: []
   consumes: []
 api:
   internalOnly: true
 securityTags:
-  - append-only
-  - redaction
-  - privileged-read
+- append-only
+- redaction
+- privileged-read
 performanceTags:
-  - bounded-query
+- bounded-query
 extensionModes:
-  - USE
-  - EXTEND
+- USE
+- EXTEND

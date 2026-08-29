@@ -20,7 +20,8 @@
     "@taymex/identity": "workspace:*",
     "@taymex/audit": "workspace:*",
     "@taymex/settings-runtime": "workspace:*",
-    "@taymex/observability": "workspace:*"
+    "@taymex/observability": "workspace:*",
+    "@taymex/data-postgres": "workspace:*"
   },
   "devDependencies": {
     "tsx": "4.20.5",

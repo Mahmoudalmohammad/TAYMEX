@@ -2,34 +2,37 @@ id: settings-runtime
 layer: foundation
 owner: settings
 sourceRoots:
-  - packages/settings-runtime/src
+- packages/settings-runtime/src
 tags:
-  - layer:foundation
-  - foundation:settings
-  - settings:administration
-  - concurrency:optimistic
+- layer:foundation
+- foundation:settings
+- settings:administration
+- concurrency:optimistic
 dependencies:
   allowedModules:
-    - application-foundation
-    - identity
-    - audit
+  - application-foundation
+  - identity
+  - audit
+  - data-postgres
   allowedTags:
-    - layer:foundation
+  - layer:foundation
 data:
   owns:
-    - runtime-setting-values
-    - runtime-setting-history
+  - db.table.runtime_setting_values
+  - db.table.runtime_setting_history
+  - db.table.runtime_setting_application
   readsViaContracts: []
   classification: confidential
-  adapter: none
-  schemaRoots: []
+  adapter: drizzle-postgres
+  schemaRoots:
+  - packages/settings-runtime/src/schema.ts
 settings:
   defines: []
   consumes:
-    - catalog.products.defaultPageSize
+  - catalog.products.defaultPageSize
 permissions:
   defines:
-    - settings.values.manage
+  - settings.values.manage
   consumes: []
 events:
   emits: []
@@ -40,11 +43,11 @@ contracts:
 api:
   internalOnly: true
 securityTags:
-  - privileged-write
-  - step-up
-  - sensitive-values
+- privileged-write
+- step-up
+- sensitive-values
 performanceTags:
-  - bounded-history
+- bounded-history
 extensionModes:
-  - USE
-  - EXTEND
+- USE
+- EXTEND

@@ -10,3 +10,5 @@ export * from './privileged.js';
 export * from './roles.js';
 export * from './session.js';
 export * from './throttle.js';
+export * from './persistence/postgres-identity-repository.js';
+export * from './persistence/postgres-role-access-store.js';

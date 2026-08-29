@@ -5,6 +5,7 @@ import {
   type SettingValues,
 } from '@engineering-platform/settings';
 import { requirePermission } from '@engineering-platform/authorization';
+import type { AtomicTransactionBoundary } from '@taymex/data-postgres';
 import { REDACTED_VALUE, sanitizeAuditValue, type AuditRecorder } from '@taymex/audit';
 import { requireNonBlank, type Clock } from '@taymex/foundation';
 import { requireAssurance, type ActorContext } from '@taymex/identity';
@@ -30,6 +31,7 @@ export class SettingsRuntimeService {
     private readonly store: SettingsValueStore,
     private readonly audit: AuditRecorder,
     private readonly clock: Clock,
+    private readonly transactions?: AtomicTransactionBoundary,
   ) {}
 
   async resolveEffective<T>(
@@ -60,7 +62,7 @@ export class SettingsRuntimeService {
     correlationId?: string;
     source?: string;
   }>): Promise<StoredSettingValue<T>> {
-    return this.mutate({ ...input, operation: 'write' });
+    return this.atomic(() => this.mutate({ ...input, operation: 'write' }));
   }
 
   async rollback<T>(input: Readonly<{
@@ -73,28 +75,30 @@ export class SettingsRuntimeService {
     correlationId?: string;
     source?: string;
   }>): Promise<StoredSettingValue<T>> {
-    assertCanManage(input.actor);
-    const coordinate = coordinateFor(input.definition.key, input.scope, input.scopeRef);
-    const historical = await this.store.findHistoryVersion<T>(coordinate, input.targetVersion);
-    if (!historical) {
-      throw new SettingsRuntimeError({
-        code: SETTINGS_RUNTIME_ERROR_CODES.historyNotFound,
-        category: 'not-found',
-        message: `Setting history version ${input.targetVersion} was not found for ${input.definition.key}.`,
-        safeMessageKey: 'errors.settings.historyNotFound',
+    return this.atomic(async () => {
+      assertCanManage(input.actor);
+      const coordinate = coordinateFor(input.definition.key, input.scope, input.scopeRef);
+      const historical = await this.store.findHistoryVersion<T>(coordinate, input.targetVersion);
+      if (!historical) {
+        throw new SettingsRuntimeError({
+          code: SETTINGS_RUNTIME_ERROR_CODES.historyNotFound,
+          category: 'not-found',
+          message: `Setting history version ${input.targetVersion} was not found for ${input.definition.key}.`,
+          safeMessageKey: 'errors.settings.historyNotFound',
+        });
+      }
+      return this.mutate({
+        definition: input.definition,
+        scope: input.scope,
+        scopeRef: input.scopeRef,
+        value: historical.value,
+        expectedVersion: input.expectedVersion,
+        actor: input.actor,
+        correlationId: input.correlationId,
+        source: input.source,
+        operation: 'rollback',
+        rolledBackFromVersion: input.targetVersion,
       });
-    }
-    return this.mutate({
-      definition: input.definition,
-      scope: input.scope,
-      scopeRef: input.scopeRef,
-      value: historical.value,
-      expectedVersion: input.expectedVersion,
-      actor: input.actor,
-      correlationId: input.correlationId,
-      source: input.source,
-      operation: 'rollback',
-      rolledBackFromVersion: input.targetVersion,
     });
   }
 
@@ -131,26 +135,33 @@ export class SettingsRuntimeService {
     correlationId?: string;
     runtimeSource: string;
   }>): Promise<void> {
-    const coordinate = coordinateFor(input.definition.key, input.scope, input.scopeRef);
-    const result = await this.store.markApplied(coordinate, input.version);
-    if (result !== 'applied') {
-      throw new SettingsRuntimeError({
-        code: SETTINGS_RUNTIME_ERROR_CODES.applicationVersionMismatch,
-        category: 'conflict',
-        message: `Cannot mark ${input.definition.key} version ${input.version} applied: ${result}.`,
-        safeMessageKey: 'errors.settings.applicationVersionMismatch',
+    return this.atomic(async () => {
+      const coordinate = coordinateFor(input.definition.key, input.scope, input.scopeRef);
+      const result = await this.store.markApplied(coordinate, input.version);
+      if (result !== 'applied') {
+        throw new SettingsRuntimeError({
+          code: SETTINGS_RUNTIME_ERROR_CODES.applicationVersionMismatch,
+          category: 'conflict',
+          message: `Cannot mark ${input.definition.key} version ${input.version} applied: ${result}.`,
+          safeMessageKey: 'errors.settings.applicationVersionMismatch',
+        });
+      }
+      await this.audit.record({
+        actionCode: 'settings.value.applied',
+        category: 'settings',
+        severity: 'info',
+        actor: { kind: 'system', systemId: requireNonBlank(input.runtimeSource, 'runtimeSource', 128) },
+        resource: { type: 'setting', id: coordinateId(coordinate) },
+        changes: [{ field: 'appliedVersion', after: input.version }],
+        ...(input.correlationId ? { correlationId: input.correlationId } : {}),
+        metadata: { key: definitionKey(input.definition), scope: input.scope },
       });
-    }
-    await this.audit.record({
-      actionCode: 'settings.value.applied',
-      category: 'settings',
-      severity: 'info',
-      actor: { kind: 'system', systemId: requireNonBlank(input.runtimeSource, 'runtimeSource', 128) },
-      resource: { type: 'setting', id: coordinateId(coordinate) },
-      changes: [{ field: 'appliedVersion', after: input.version }],
-      ...(input.correlationId ? { correlationId: input.correlationId } : {}),
-      metadata: { key: definitionKey(input.definition), scope: input.scope },
     });
+  }
+
+
+  private atomic<T>(work: () => Promise<T>): Promise<T> {
+    return this.transactions ? this.transactions.run(work) : work();
   }
 
   private async mutate<T>(input: Readonly<{
