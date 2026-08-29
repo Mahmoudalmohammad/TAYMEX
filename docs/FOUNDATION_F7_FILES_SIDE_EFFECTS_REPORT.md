@@ -1,8 +1,8 @@
 # TAYMEX Foundation F7 — Files, Events, Notifications, and Durable Side Effects
 
 **Stage:** F7 — Files and Side-Effect Foundation
-**Current decision:** **IMPLEMENTED — REAL PROOF PENDING**
-**Foundation current stage:** `F7`
+**Final stage decision:** **CLOSED**
+**Next foundation stage:** `F8` — ready to begin; implementation not started by this closure.
 **Broad feature expansion:** remains **BLOCKED** until the complete Foundation Readiness Gate is satisfied.
 
 ## 1. F7 scope
@@ -147,33 +147,42 @@ F7 does **not** introduce or claim proof for:
 
 These exclusions prevent foundation work from becoming a new horizontal platform before real consumers require it.
 
-## 10. Proof still required before closure
+## 10. Exact-SHA real proof accepted
 
-The two F7 capabilities remain `IMPLEMENTED`, not `PROVEN`. F7 must not close and the foundation must not advance to F8 until one exact committed implementation revision passes the pinned real-consumer validation, including:
+The exact committed F7 implementation revision `9affa751b5a5e3be9820aa1ff530be63fd571a33` passed the complete local-validation contract on Node `v24.14.0`, pnpm `11.24.0`, a real temporary filesystem, and PostgreSQL `18.6` (`server_version_num=180006`). The returned raw proof ZIP has SHA-256 `d3fe0b65c9361df341248578b9fd5354818af997eb0d755049ea7f0c60f53f72`.
 
-- Node 24;
-- pnpm 11.24.0 frozen clean install;
-- build, typecheck, unit/package tests;
-- real temporary-filesystem media proof;
-- generated binding checks and F0–F7 structural verifiers;
-- PostgreSQL 18 migrations and F4/F6 regression proof;
-- F7 transactional encrypted outbox/concurrency/retry proof;
-- F5 real HTTP regression and actual API process smoke;
-- Governance, Trust, Consumer Boundary, Handoff, and final exact-SHA integrity.
+Accepted proof includes:
 
-Any defect found by that run must be corrected at the lowest responsible layer and re-proven on the resulting SHA. A result from an earlier revision cannot close a changed runtime revision.
+- frozen clean install, build, typecheck, and package tests;
+- real media filesystem tests: `6/6` PASS with opaque keys, decode/re-encode normalization, integrity, authorization/audit, compensation, permissions, metadata validation, and malformed/traversal/polyglot rejection;
+- PostgreSQL 18 migrations `0001`, `0002`, and `0003`, followed by an idempotent second migration run with no work;
+- F4 and F6 PostgreSQL regressions on the same F7 SHA;
+- F7 outbox proof with `rollback_atomic=PASS`, `plaintext_persisted=false`, `concurrent_double_claim=false`, stable provider idempotency, bounded retry/dead-letter behavior, and `foundation_outbox_claim_idx`;
+- F5 real HTTP regression and actual API liveness/readiness smoke;
+- generated checks, F0–F7 structural verifiers, Governance, Trust, Consumer Boundary, Handoff, and final exact-SHA integrity.
 
-## 11. Current F7 status
+The durable side-effect boundary remains explicitly at-least-once across the external-provider boundary. F7 does not convert provider idempotency into a false exactly-once claim.
+
+The full accepted evidence contract is recorded in `docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md`.
+
+## 11. Closure scope and lineage
+
+The runtime proof belongs to `9affa751b5a5e3be9820aa1ff530be63fd571a33`. This separate closure changes only governed task metadata, maturity/evidence documentation, and structural verifiers. It does not change media/runtime code, notification/runtime code, identity transactions, encryption, SQL, migrations, dependencies, contracts, registry entries, platform artifacts, or trust-root implementation.
+
+Therefore the accepted real proof remains valid for the proven runtime SHA while this non-runtime closure records its result. Any future change that affects those proven paths must receive its own relevant proof on the changed SHA.
+
+## 12. Final F7 status
 
 ```text
-files.media-storage                    IMPLEMENTED / PROOF PENDING
-notifications.events-side-effects      IMPLEMENTED / PROOF PENDING
-F7                                     OPEN
-Foundation current stage               F7
-F8 implementation                      NOT STARTED
+files.media-storage                    PROVEN
+notifications.events-side-effects      PROVEN
+F7                                     CLOSED
+Foundation current stage               F8 (READY; implementation not started by this closure)
+Foundation readiness                   BLOCKED
 Broad feature expansion                BLOCKED
 Generalized broker/worker framework    NOT INTRODUCED
 Generalized storage ecosystem          NOT INTRODUCED
+Public media/CDN serving                NOT INTRODUCED
 ```
 
-**F7 is implementation-complete only for the declared narrow boundaries. Closure requires exact-SHA real filesystem and PostgreSQL 18 proof.**
+**F7 is closed from real exact-SHA filesystem and PostgreSQL 18 proof while retaining the deliberately narrow used-path architecture and all later foundation obligations.**

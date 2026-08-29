@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Deterministic F7 files/events/notifications/side-effect verifier.
 
-This gate proves construction rules only. Real filesystem execution, Node 24/pnpm
-11.24 package tests, PostgreSQL 18 transaction/concurrency behavior, HTTP runtime,
-and exact-SHA closure evidence remain local-validation requirements before F7 may
-be promoted from IMPLEMENTED to PROVEN.
+This gate preserves the F7 construction rules and verifies the accepted exact-SHA
+real filesystem/PostgreSQL closure evidence after F7 is promoted to PROVEN.
 """
 from __future__ import annotations
 
@@ -44,10 +42,12 @@ capabilities = {
 }
 files_cap = mapping(capabilities.get("files.media-storage"))
 notify_cap = mapping(capabilities.get("notifications.events-side-effects"))
-check("F7 remains the active foundation stage before real proof", foundation.get("currentStage") == "F7", str(foundation.get("currentStage")))
+check("F7 closure advances foundation to F8 readiness", foundation.get("currentStage") == "F8", str(foundation.get("currentStage")))
+proof_path = "docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md"
 for cid, capability in (("files.media-storage", files_cap), ("notifications.events-side-effects", notify_cap)):
-    check(f"{cid} is IMPLEMENTED but not prematurely PROVEN", capability.get("currentMaturity") == "IMPLEMENTED", str(capability.get("currentMaturity")))
-    check(f"{cid} still requires exact-SHA real proof", bool(list_value(capability.get("remaining"))), str(capability.get("remaining")))
+    check(f"{cid} is PROVEN from exact-SHA real proof", capability.get("currentMaturity") == "PROVEN", str(capability.get("currentMaturity")))
+    check(f"{cid} has no unresolved F7 work after proof", not list_value(capability.get("remaining")), str(capability.get("remaining")))
+    check(f"{cid} cites the accepted F7 proof", proof_path in list_value(capability.get("evidence")))
 
 root_package = json.loads(text("package.json"))
 scripts = mapping(root_package.get("scripts"))
@@ -179,9 +179,34 @@ for forbidden in ["kafka", "rabbitmq", "bullmq", "redis", "@aws-sdk", "azure-sto
     check(f"F7 does not introduce generalized infrastructure dependency {forbidden}", forbidden not in package_surfaces.lower())
 check("F7 creates no worker/scheduler package tree", not any(p.is_dir() for p in [ROOT / "packages/workers", ROOT / "packages/jobs", ROOT / "packages/queue", ROOT / "packages/broker"]))
 
+proof = text(proof_path)
+for phrase in [
+    "**PROVEN**",
+    "9affa751b5a5e3be9820aa1ff530be63fd571a33",
+    "c3d865ee97f33c7d0247e00fdd02e0c771ea6f98",
+    "v24.14.0",
+    "11.24.0",
+    "18.6 (Debian 18.6-1.pgdg13+2)",
+    "180006",
+    "d3fe0b65c9361df341248578b9fd5354818af997eb0d755049ea7f0c60f53f72",
+    "packages/media-storage test: pass 6",
+    "packages/media-storage test: fail 0",
+    "f7.outbox.rollback_atomic=PASS",
+    "f7.outbox.plaintext_persisted=false",
+    "f7.outbox.concurrent_double_claim=false",
+    "f7.outbox.provider_idempotency_key=PASS",
+    "f7.outbox.retry_dead_letter=PASS",
+    "foundation_outbox_claim_idx",
+    "Consumer Boundary verification — PASS",
+    "Handoff create/verify — PASS",
+]:
+    check(f"F7 closure proof records {phrase}", phrase in proof)
+
 report = text("docs/FOUNDATION_F7_FILES_SIDE_EFFECTS_REPORT.md")
-check("F7 report keeps stage open pending exact-SHA proof", "IMPLEMENTED — REAL PROOF PENDING" in report and "F7                                     OPEN" in report)
+check("F7 report records the stage as CLOSED", "**Final stage decision:** **CLOSED**" in report and "F7                                     CLOSED" in report)
+check("F7 report advances only to F8 readiness", "**Next foundation stage:** `F8`" in report and "implementation not started" in report)
 check("F7 report explicitly rejects generalized broker/worker expansion", "generic worker/scheduler subsystem" in report and "Kafka" in report and "Generalized broker/worker framework    NOT INTRODUCED" in report)
+check("F7 report preserves the narrow storage boundary", "Generalized storage ecosystem          NOT INTRODUCED" in report and "Public media/CDN serving                NOT INTRODUCED" in report)
 check("F7 report does not claim arbitrary document safety", "does not claim safe handling for arbitrary document" in report)
 
 for name, detail in PASS:

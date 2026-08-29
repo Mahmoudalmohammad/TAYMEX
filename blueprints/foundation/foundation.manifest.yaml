@@ -10,7 +10,7 @@ foundation:
     - PROVEN
     - PRODUCTION_PROVEN
   readinessRule: Every capability with requiredBeforeFeatureExpansion=true must be at or above exitMaturity.
-  currentStage: F7
+  currentStage: F8
   validationSlice:
     module: catalog
     status: FROZEN_FOR_FOUNDATION_PROOF
@@ -427,7 +427,7 @@ capabilities:
   - id: files.media-storage
     area: application-services
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: media
     purpose: One controlled file/media upload, storage, metadata, download, privacy, cleanup, and image-processing path.
@@ -439,13 +439,13 @@ capabilities:
       - packages/media-storage/tests/media-storage.test.mjs
       - scripts/verify-f7-files-side-effects.py
       - docs/FOUNDATION_F7_FILES_SIDE_EFFECTS_REPORT.md
-    remaining:
-      - Prove the secure private-filesystem media path on the exact committed F7 implementation revision with the pinned Node and pnpm toolchain.
+      - docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md
+    remaining: []
 
   - id: notifications.events-side-effects
     area: application-services
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: notifications
     purpose: Canonical events, notification template/provider contract, retry/failure behavior, and durable side-effect pattern.
@@ -460,8 +460,8 @@ capabilities:
       - apps/api/tests/f7-files-side-effects.integration.test.mjs
       - scripts/verify-f7-files-side-effects.py
       - docs/FOUNDATION_F7_FILES_SIDE_EFFECTS_REPORT.md
-    remaining:
-      - Prove encrypted transactional outbox rollback, PostgreSQL 18 claim concurrency, bounded retry/dead-letter behavior, and provider idempotency on the exact committed F7 implementation revision.
+      - docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md
+    remaining: []
 
   - id: testing.integrated-harness
     area: quality

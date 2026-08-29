@@ -121,7 +121,7 @@ manifest = yaml.safe_load(text("blueprints/foundation/foundation.manifest.yaml")
 foundation = mapping(mapping(manifest).get("foundation"))
 capabilities = {item.get("id"): item for item in list_value(mapping(manifest).get("capabilities")) if isinstance(item, dict)}
 performance = mapping(capabilities.get("performance.query-runtime"))
-check("F6 closure advances foundation to F7 readiness", foundation.get("currentStage") == "F7", str(foundation.get("currentStage")))
+check("F6 closure remains valid through lawful later-stage progression", foundation.get("currentStage") in {"F7", "F8", "F9", "F10"}, str(foundation.get("currentStage")))
 check("Performance capability is PROVEN from real PostgreSQL evidence", performance.get("currentMaturity") == "PROVEN", str(performance.get("currentMaturity")))
 check("Performance capability has no unresolved F6 work after proof", not list_value(performance.get("remaining")), str(performance.get("remaining")))
 proof_path = "docs/evidence/F6_POSTGRESQL18_PERFORMANCE_PROOF.md"
