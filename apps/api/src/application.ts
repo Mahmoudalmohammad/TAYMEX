@@ -17,7 +17,7 @@ export async function createApiApplication(): Promise<NestFastifyApplication> {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, adapter, { bufferLogs: true });
   app.setGlobalPrefix('api');
   app.enableCors({
-    origin: allowedOrigins(),
+    origin: [...allowedOrigins()],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
     allowedHeaders: ['content-type', 'x-correlation-id'],

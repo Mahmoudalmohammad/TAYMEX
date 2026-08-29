@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { AuthorizationDeniedError } from '@engineering-platform/authorization';
 import { createSessionCookie, clearSessionCookie, readSessionCookie } from '../dist/platform/session-cookie.js';
 import { ProcessRateLimiter } from '../dist/platform/process-rate-limiter.js';
+import { normalizeError } from '../dist/platform/http-exception.filter.js';
 
 test('session cookie transport is host-only secure and rejects malformed secrets', () => {
   const secret = 'A'.repeat(43);
@@ -26,4 +28,26 @@ test('process HTTP limiter is bounded and denies beyond the configured window qu
   assert.equal(denied.allowed, false);
   assert.equal(denied.retryAfterSeconds, 60);
   assert.equal(limiter.consume('peer', { limit: 2, windowMs: 60_000 }, new Date(now.getTime() + 60_001)).allowed, true);
+});
+
+test('central error normalization maps AuthorizationDeniedError to safe 403 and unknown errors to 500', () => {
+  const authError = new AuthorizationDeniedError('subject-123', 'identity.roles.manage');
+  const normalizedAuth = normalizeError(authError, 'corr-auth-1');
+  assert.equal(normalizedAuth.status, 403);
+  assert.equal(normalizedAuth.body.error.code, 'AUTHORIZATION_DENIED');
+  assert.equal(normalizedAuth.body.error.category, 'authorization');
+  assert.equal(normalizedAuth.body.error.correlationId, 'corr-auth-1');
+  assert.equal(typeof normalizedAuth.body.error.messageKey, 'string');
+  assert.equal('message' in normalizedAuth.body.error, false);
+  assert.equal('stack' in normalizedAuth.body.error, false);
+
+  const unknownError = new Error('database connection secret string');
+  const normalizedUnknown = normalizeError(unknownError, 'corr-unk-1');
+  assert.equal(normalizedUnknown.status, 500);
+  assert.equal(normalizedUnknown.body.error.code, 'HTTP_INTERNAL_ERROR');
+  assert.equal(normalizedUnknown.body.error.category, 'internal');
+  assert.equal(normalizedUnknown.body.error.correlationId, 'corr-unk-1');
+  assert.equal(typeof normalizedUnknown.body.error.messageKey, 'string');
+  assert.equal('message' in normalizedUnknown.body.error, false);
+  assert.equal('stack' in normalizedUnknown.body.error, false);
 });

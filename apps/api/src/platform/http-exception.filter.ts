@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, HttpException, Inject, type ExceptionFilter } from '@nestjs/common';
+import { AuthorizationDeniedError } from '@engineering-platform/authorization';
 import { ApplicationError, isApplicationError, toSafeErrorDescriptor } from '@taymex/foundation';
 import { API_RUNTIME, type ApiRuntime } from './runtime.js';
 import type { ApiHttpReply, ApiHttpRequest } from './http-types.js';
@@ -33,10 +34,23 @@ export class HttpExceptionBoundary implements ExceptionFilter {
   }
 }
 
-function normalizeError(error: unknown, correlationId: string): Readonly<{
+export function normalizeError(error: unknown, correlationId: string): Readonly<{
   status: number;
   body: Readonly<{ error: Readonly<{ code: string; category: string; messageKey: string; field?: string; correlationId: string }> }>;
 }> {
+  if (error instanceof AuthorizationDeniedError) {
+    return Object.freeze({
+      status: 403,
+      body: Object.freeze({
+        error: Object.freeze({
+          code: 'AUTHORIZATION_DENIED',
+          category: 'authorization',
+          messageKey: 'errors.authorization.denied',
+          correlationId,
+        }),
+      }),
+    });
+  }
   if (isApplicationError(error)) {
     const descriptor = toSafeErrorDescriptor(error, correlationId);
     return Object.freeze({

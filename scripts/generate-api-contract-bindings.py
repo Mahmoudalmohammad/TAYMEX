@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, copy, hashlib, json
+import argparse, copy, hashlib, json, re
 from pathlib import Path
 import yaml
 
@@ -91,7 +91,7 @@ def render_ts(doc: dict, source_hash: str) -> str:
             assurance = op.get('x-taymex-assurance')
             if assurance is not None and assurance not in ('AAL1','AAL2'): raise ValueError(f'Invalid assurance on {operation_id}')
             permission = op.get('x-taymex-permission')
-            nest_path = path.removeprefix('/api/').removeprefix('/api')
+            nest_path = re.sub(r'\{([^}]+)\}', r':\g<1>', path.removeprefix('/api/').removeprefix('/api'))
             fields = [
                 f'operationId: {q(operation_id)}', f'method: {q(HTTP[verb])}', f'path: {q(path)}',
                 f'nestPath: {q(nest_path)}', f'successStatus: {statuses[0]}', f'auth: {q(auth)}',

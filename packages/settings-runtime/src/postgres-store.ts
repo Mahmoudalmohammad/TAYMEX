@@ -31,7 +31,8 @@ export class PostgresSettingsValueStore implements SettingsValueStore {
     const scopes = coordinates.map((coordinate) => coordinate.scope);
     const scopeRefs = coordinates.map((coordinate) => coordinate.scopeRef ?? '');
     const result = await this.db.query<SettingValueRow>(
-      `${SETTING_VALUE_SELECT} AS value
+      `SELECT value.setting_key, value.scope, value.scope_ref, value.value_json, value.version, value.saved_at, value.saved_by_account_id, value.source
+       FROM runtime_setting_values AS value
        JOIN unnest($2::text[], $3::text[]) AS requested(scope, scope_ref)
          ON value.scope=requested.scope AND value.scope_ref=requested.scope_ref
        WHERE value.setting_key=$1`,

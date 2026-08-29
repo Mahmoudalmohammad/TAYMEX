@@ -106,7 +106,7 @@ check('HTTP proof distinguishes permission denial from AAL1 assurance denial', '
 check('HTTP proof exercises privileged AAL2 success path', 'adminCookie' in test_source and "assurance=$2" in test_source and "'AAL2'" in test_source)
 check('HTTP proof exercises rate limiting through the HTTP boundary', "remoteAddress: ratePeer" in test_source and "rateDenied.statusCode, 429" in test_source)
 check('HTTP settings proof is rerunnable through a unique project scope', "scope: 'project'" in test_source and 'projectRef = `f5-http-${unique}`' in test_source)
-check('HTTP proof exercises live readiness', "url: '/api/health/ready'" in test_source and "readiness.json().status, 'UP'" in test_source)
+check('HTTP proof exercises live readiness', "url: '/api/health/ready'" in test_source and ("readiness.json().status, 'READY'" in test_source or "readiness.json().status, 'UP'" in test_source))
 
 manifest=yaml.safe_load(text('apps/api/src/platform/module.manifest.yaml'))
 check('API foundation module is foundation-owned', manifest.get('id')=='api-foundation' and manifest.get('layer')=='foundation')

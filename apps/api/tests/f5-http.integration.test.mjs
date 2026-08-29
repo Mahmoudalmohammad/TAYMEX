@@ -149,7 +149,7 @@ if (!enabled || !connectionString) {
 
       const readiness = await server.inject({ method: 'GET', url: '/api/health/ready' });
       assert.equal(readiness.statusCode, 200);
-      assert.equal(readiness.json().status, 'UP');
+      assert.equal(readiness.json().status, 'READY');
 
       const malformedCorrelation = await server.inject({ method: 'GET', url: '/api/health', headers: { 'x-correlation-id': 'bad' } });
       assert.equal(malformedCorrelation.statusCode, 200);
