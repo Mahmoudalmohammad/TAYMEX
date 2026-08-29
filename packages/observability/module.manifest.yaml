@@ -1,0 +1,59 @@
+id: observability
+layer: foundation
+owner: observability
+sourceRoots:
+  - packages/observability/src
+tags:
+  - layer:foundation
+  - foundation:observability
+  - observability:structured-logging
+  - observability:health
+dependencies:
+  allowedModules:
+    - application-foundation
+    - identity
+    - audit
+  allowedTags:
+    - layer:foundation
+data:
+  owns: []
+  readsViaContracts: []
+  classification: internal
+  adapter: none
+  schemaRoots: []
+settings:
+  defines: []
+  consumes: []
+permissions:
+  defines: []
+  consumes: []
+events:
+  emits: []
+  consumes:
+    - identity.account.provisioned
+    - identity.account.status-changed
+    - identity.sign-in.succeeded
+    - identity.sign-in.failed
+    - identity.session.issued
+    - identity.session.rotated
+    - identity.session.revoked
+    - identity.session.revoked-all
+    - identity.password.changed
+    - identity.password-reset.requested
+    - identity.password-reset.completed
+    - identity.email-verification.requested
+    - identity.email-verification.completed
+    - identity.roles.changed
+contracts:
+  owns: []
+  consumes: []
+api:
+  internalOnly: true
+securityTags:
+  - redaction
+  - correlation
+performanceTags:
+  - bounded-health-checks
+extensionModes:
+  - USE
+  - EXTEND

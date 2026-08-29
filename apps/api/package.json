@@ -17,7 +17,10 @@
     "@engineering-platform/settings": "file:../../.platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz",
     "@engineering-platform/authorization": "file:../../.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz",
     "@taymex/foundation": "workspace:*",
-    "@taymex/identity": "workspace:*"
+    "@taymex/identity": "workspace:*",
+    "@taymex/audit": "workspace:*",
+    "@taymex/settings-runtime": "workspace:*",
+    "@taymex/observability": "workspace:*"
   },
   "devDependencies": {
     "tsx": "4.20.5",

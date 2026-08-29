@@ -77,6 +77,10 @@ def render_setting(setting: dict) -> str:
     key = setting['key']
     fields = [
         f'  key: {ts_string(key)},',
+        f'  owner: {ts_string(setting["owner"])},',
+        f'  kind: {ts_string(setting["kind"])},',
+        f'  lifecycle: {ts_string(setting["lifecycle"])},',
+        f'  runtimeBehavior: {ts_string(setting["runtimeBehavior"])},',
         f'  valueType: {ts_string(setting["valueType"])},',
         f'  resolution: {ts_string(setting["resolution"])},',
         '  scopes: [' + ', '.join(ts_string(v) for v in setting['scopes']) + '] as const,',
@@ -94,7 +98,7 @@ def render_setting(setting: dict) -> str:
     body = '\n'.join(fields)
     return (
         f'export const {const_name(key)} = {{\n{body}\n}} as const '
-        f'satisfies SettingDefinition<{ts_type(setting)}>;\n'
+        f'satisfies GeneratedManagedSettingDefinition<{ts_type(setting)}>;\n'
     )
 
 
@@ -123,6 +127,13 @@ def render() -> str:
         + f'// Source-SHA256: {source_sha256()}\n'
         '// Regenerate: python3 scripts/generate-settings-bindings.py\n\n'
         "import type { SettingDefinition } from '@engineering-platform/settings';\n\n"
+        + "export type GeneratedManagedSettingDefinition<T> = SettingDefinition<T> & Readonly<{\n"
+        + "  owner: string;\n"
+        + "  kind: 'configuration' | 'preference' | 'feature-flag' | 'security-policy' | 'secret-reference' | 'invariant';\n"
+        + "  lifecycle: 'experimental' | 'beta' | 'stable' | 'deprecated';\n"
+        + "  runtimeBehavior: 'hot' | 'reload' | 'restart' | 'deploy';\n"
+        + "  sensitive: boolean;\n"
+        + "}>;\n\n"
         + '\n'.join(chunks)
         + '\nexport const settingDefinitions = {\n'
         + exports

@@ -1,9 +1,10 @@
-id: FOUNDATION-F2-001
-title: Implement identity authentication sessions and access foundation
+id: FOUNDATION-F3-001
+title: Implement settings audit and observability foundation
 mode: feature
 risk: R3
-objective: Implement the F2 identity and access foundation as framework-neutral contracts for accounts, password credentials and recovery, secure session lifecycle, authenticated actor context, role-to-permission resolution, authentication throttling and canonical security events, then integrate the actor context into the existing Catalog authorization path without adding HTTP, database, UI, or product features.
-baseRevision: 8b8f3e48ff5ceb8681d0120deac43e7cb05454ab
+objective: >-
+  Implement F3 as three explicit application-foundation capabilities: a runtime settings administration layer that reuses canonical generated definitions and the platform resolver without duplicating precedence, an append-only redacting audit core that records identity security and settings administration evidence, and structured observability primitives for correlation redaction logging liveness and readiness; integrate only the existing health and Catalog settings validation paths and advance sequencing to F4 without claiming PostgreSQL or HTTP security proof.
+baseRevision: 1928ce6df696c1ed22b0f9579ec97521ab2dc770
 modules:
   - application-foundation
   - identity
@@ -11,21 +12,35 @@ modules:
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - packages/identity/**
+    - packages/settings-runtime/**
+    - packages/audit/**
+    - packages/observability/**
     - apps/api/package.json
+    - apps/api/src/generated/settings.generated.ts
     - apps/api/src/generated/permissions.generated.ts
-    - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
-    - apps/api/src/modules/catalog/application/catalog-products-service.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
-    - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
+    - apps/api/src/modules/catalog/application/catalog-products-settings.ts
+    - apps/api/src/modules/catalog/tests/catalog-products-settings.test.ts
+    - apps/api/src/modules/health/**
+    - packages/identity/src/generated/permissions.generated.ts
     - tooling/registry/permissions.registry.yaml
-    - tooling/registry/events.registry.yaml
     - scripts/generate-permission-bindings.py
-    - scripts/generate-event-bindings.py
+    - scripts/generate-settings-bindings.py
     - blueprints/foundation/foundation.manifest.yaml
   forbiddenPaths:
+    - packages/foundation/**
+    - packages/identity/src/account.ts
+    - packages/identity/src/authentication.ts
+    - packages/identity/src/actor.ts
+    - packages/identity/src/contracts.ts
+    - packages/identity/src/password.ts
+    - packages/identity/src/privileged.ts
+    - packages/identity/src/roles.ts
+    - packages/identity/src/session.ts
+    - packages/identity/src/throttle.ts
     - apps/api/src/modules/catalog/domain/**
     - apps/api/src/modules/catalog/application/catalog-product-repository.ts
+    - apps/api/src/modules/catalog/application/catalog-products-service.ts
+    - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
     - apps/api/src/modules/catalog/catalog.module.ts
     - apps/web/**
     - tooling/governance.config.yaml
@@ -33,51 +48,56 @@ scope:
     - tooling/schemas/**
     - tooling/trust-root/**
     - tooling/registry/rules.registry.yaml
+    - tooling/registry/settings.registry.yaml
+    - tooling/registry/events.registry.yaml
     - .platform/**
     - .github/**
   allowNewFiles: true
   allowedNewFiles:
-    - packages/identity/**
-    - scripts/generate-event-bindings.py
+    - packages/settings-runtime/**
+    - packages/audit/**
+    - packages/observability/**
+    - apps/api/src/modules/health/**
   allowDependencies: true
   allowedDependencies:
+    - '@taymex/settings-runtime'
+    - '@taymex/audit'
+    - '@taymex/observability'
+    - '@taymex/foundation'
     - '@taymex/identity'
+    - '@engineering-platform/settings'
     - '@engineering-platform/authorization'
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
   allowArchitectureChanges: true
 acceptance:
-  - id: AC-F2-ACCOUNT
-    statement: Account identity is separate from credentials sessions roles and product profiles, uses canonical normalized email identity, explicit lifecycle state and optimistic version semantics without framework or database coupling.
-  - id: AC-F2-PASSWORD
-    statement: Password credentials use a concrete memory-hard Node crypto implementation with explicit policy, salts and versioned encoding; password and reset secrets never appear in errors events sessions or persistent records.
-  - id: AC-F2-AUTHENTICATION
-    statement: Unknown accounts wrong passwords unavailable accounts and throttled attempts expose one generic authentication failure while internal security events preserve a non-secret reason and unknown accounts still execute password verification work.
-  - id: AC-F2-SESSION
-    statement: Session issuance stores only a hash of a high-entropy secret and supports authentication expiry rotation current-session revocation logout-all and safe session views with old rotated tokens becoming invalid.
-  - id: AC-F2-RECOVERY
-    statement: Password reset and email verification challenges are hashed expiring one-time credentials, password reset revokes existing sessions, and requests do not reveal account existence.
-  - id: AC-F2-ACTOR
-    statement: One authenticated ActorContext carries stable account/session identity explicit assurance role identifiers and resolved permission keys and can be consumed by the canonical authorization primitive without role-name shortcuts.
-  - id: AC-F2-ROLES
-    statement: Role-to-permission definitions validate permissions against an injected canonical permission catalog, permission union is explicit, unknown permissions fail, and role names such as admin grant nothing by themselves.
-  - id: AC-F2-THROTTLE
-    statement: Authentication depends on an explicit brute-force throttle contract and test reference implementation with bounded failure window and lock duration; success clears principal failure state.
-  - id: AC-F2-EVENTS
-    statement: Identity security events are canonical registry entries with generated typed identifiers and emitted payloads exclude passwords raw session tokens raw recovery tokens and credential hashes.
-  - id: AC-F2-INTEGRATION
-    statement: Catalog authorization inputs consume the F2 ActorContext and all existing Catalog domain application settings and authorization regression tests continue to pass.
-  - id: AC-F2-FOUNDATION
-    statement: Foundation manifest records only demonstrated F2 evidence and advances implementation sequencing to F3 while preserving later transport persistence audit and remote-security proof as explicit remaining work.
+  - id: AC-F3-SETTINGS-AUTHORITY
+    statement: Runtime setting definitions defaults bounds scopes and precedence remain generated from the single canonical settings registry and are resolved only by the versioned platform settings artifact; F3 adds no competing registry fallback or precedence implementation.
+  - id: AC-F3-SETTINGS-WRITES
+    statement: Mutable setting administration requires explicit canonical permission and AAL2 assurance supports create/update optimistic version checks append-only history rollback as a new version invalid-value rejection and immutable-setting denial.
+  - id: AC-F3-SETTINGS-APPLICATION
+    statement: Runtime behavior metadata is generated from the canonical registry and settings diagnostics distinguish applied state from saved-but-not-applied reload restart or deploy state without pretending a persisted value is already active.
+  - id: AC-F3-AUDIT
+    statement: Audit records are append-only structured immutable records with actor resource action changes timestamp correlation category severity and recursive sensitive-value redaction; settings changes and identity security events are mapped into the same audit contract.
+  - id: AC-F3-AUDIT-ACCESS
+    statement: Reading audit records requires the canonical audit.records.read permission and AAL2 assurance; write-side services never expose mutation or deletion methods for existing audit records.
+  - id: AC-F3-OBSERVABILITY
+    statement: Structured logging uses canonical correlation identifiers timestamps levels event names runtime metadata and recursive redaction; identity security events can fan out to audit and structured logging without raw credentials or token material.
+  - id: AC-F3-HEALTH
+    statement: Liveness and readiness are distinct runtime concepts with explicit dependency checks and build environment metadata; existing health routes use the central observability reporter without claiming PostgreSQL readiness before F4.
+  - id: AC-F3-REGRESSION
+    statement: Existing Catalog setting resolution behavior still uses generated definitions and platform resolution and all pre-F3 foundation Identity Catalog authorization application and settings tests continue to pass.
+  - id: AC-F3-FOUNDATION
+    statement: Foundation manifest records only demonstrated F3 evidence advances currentStage to F4 and keeps database persistence HTTP transport distributed controls and production delivery proof as explicit later work.
 assumptions:
-  - statement: TAYMEX account identity uses email as the initial sign-in identifier, while customer employee or other business profiles remain separate domain concerns.
+  - statement: F3 uses in-memory reference stores only to prove contracts and negative behavior; durable PostgreSQL implementations are intentionally deferred to F4 and are not claimed by F3.
     status: verified
     evidence: docs/FOUNDATION_BLUEPRINT.md
-  - statement: Public self-registration is not required to prove F2 and account provisioning remains an internal application capability until a product flow explicitly requires registration.
+  - statement: Existing platform settings resolution artifact remains the sole precedence and value-validation engine and is not forked inside the consumer repository.
     status: verified
     evidence: docs/FOUNDATION_BLUEPRINT.md
-  - statement: PostgreSQL persistence HTTP cookie transport distributed rate limiting MFA implementation audit storage and notification delivery belong to later foundation stages and must not be claimed as proven by F2 in-memory contract tests.
+  - statement: Request-level HTTP correlation middleware cookie transport security and distributed rate limiting belong to F5; F3 provides reusable primitives only.
     status: verified
     evidence: docs/FOUNDATION_BLUEPRINT.md
 obligations:
@@ -86,35 +106,37 @@ obligations:
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: considered
-  idempotency: required
+  concurrency: tested
+  idempotency: not-applicable
 functional:
   invariants:
-    - Raw passwords session secrets reset tokens verification tokens and password hashes never appear in emitted security events or safe views.
-    - Account profile data is not embedded into the identity account foundation.
-    - Unknown authority defaults to deny and role display names do not grant authority.
-    - Session secrets are persisted only as cryptographic hashes and rotated secrets invalidate prior tokens.
-    - Password reset and verification challenges are single-use and time-bounded.
-    - Authentication failure exposed to callers does not distinguish unknown account wrong password locked throttled or unavailable account states.
+    - Canonical setting precedence is never reimplemented in F3 and no local default may override a generated registry definition.
+    - Settings with kind invariant cannot be mutated by the runtime administration service.
+    - A setting write with a stale expected version must fail without changing value history applied state or audit evidence.
+    - Rollback creates a new setting version; history is never rewritten.
+    - Non-hot setting writes remain visibly pending until the matching saved version is explicitly marked applied.
+    - Audit and log payloads redact credential secret token cookie authorization and password-like fields recursively.
+    - Audit stores expose append and query only; they expose no update or delete contract.
+    - Identity security event fanout preserves correlation and non-secret reason while excluding raw secret material.
   statesAndTransitions:
-    - Account status ACTIVE may transition to SUSPENDED or DISABLED; SUSPENDED may return to ACTIVE; DISABLED requires explicit re-enable policy and cannot authenticate while disabled.
-    - Active session may rotate or revoke; expired or revoked sessions never authenticate.
-    - Recovery and verification challenge may transition from active to consumed or expire; consumed and expired challenges cannot be reused.
+    - Setting absent at version 0 may be created as version 1; each accepted update increments version exactly once.
+    - Setting saved version may be APPLIED or PENDING_RELOAD PENDING_RESTART PENDING_DEPLOY based on generated runtime behavior; mark-applied may only acknowledge the current saved version.
+    - Readiness is READY only when every registered readiness dependency reports UP; liveness remains a process-level signal independent from external dependency readiness.
   edgeCases:
-    - Email case and surrounding whitespace normalize to one canonical identity key.
-    - Unknown account sign-in still performs dummy password verification.
-    - Wrong password attempts cross the configured throttle threshold.
-    - Old session token is presented after successful rotation.
-    - Password reset token is reused after successful consumption or after expiry.
-    - Account becomes suspended after a session is issued.
-    - Role named admin has zero permissions and must still be denied.
-    - Role references an unknown permission key.
+    - Unauthorized or AAL1 actor attempts to change a setting.
+    - Stale setting expectedVersion races with a successful write.
+    - Rollback targets a historical version that no longer equals the current version.
+    - Sensitive nested metadata contains password token authorization cookie secret or credential-like keys.
+    - Incoming correlation identifier is blank malformed or overlong.
+    - One identity security sink fails during composite fanout.
+    - Readiness contains a DOWN dependency while liveness remains UP.
   failureModes:
-    - Identity implementation stores or emits raw credentials or session/recovery secrets.
-    - Authentication leaks account existence through different public error codes.
-    - Catalog continues accepting ad-hoc AuthorizationSubject instead of the canonical ActorContext.
-    - Role name or account identifier grants implicit permissions.
-    - F2 claims database atomicity cookie security distributed throttling audit persistence or MFA proof that has not been implemented.
+    - F3 duplicates setting defaults precedence or fallback outside generated definitions and the platform resolver.
+    - Audit records allow post-append mutation or leak sensitive values.
+    - Settings history is overwritten or rollback rewrites an old version.
+    - Saved settings are reported as active before required reload restart or deployment acknowledgment.
+    - Health endpoint reports dependency readiness that has not actually been checked.
+    - F3 claims durable audit/settings persistence database atomicity HTTP correlation middleware or production logging delivery before those stages exist.
 requiredGates:
   - TASK-001
   - BASE-001
@@ -124,6 +146,6 @@ requiredGates:
   - ARCH-001
   - RISK-001
   - TRUST-001
+  - SET-001
   - PERM-001
-  - EVT-001
   - MODEL-001

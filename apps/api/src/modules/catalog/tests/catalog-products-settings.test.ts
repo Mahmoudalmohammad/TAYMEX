@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { SettingsResolutionError } from '@engineering-platform/settings';
+import { catalogProductsDefaultPageSizeSetting } from '../../../generated/settings.generated.js';
 import {
   explainCatalogProductsDefaultPageSize,
   getCatalogProductsDefaultPageSize,
@@ -57,4 +58,14 @@ test('rejects out-of-range configured values instead of clamping or silently fal
     (error: unknown) =>
       error instanceof SettingsResolutionError && error.code === 'SETTING_VALUE_INVALID',
   );
+});
+
+
+test('generated definition carries canonical administration metadata without changing resolution authority', () => {
+  assert.equal(catalogProductsDefaultPageSizeSetting.owner, 'catalog');
+  assert.equal(catalogProductsDefaultPageSizeSetting.kind, 'configuration');
+  assert.equal(catalogProductsDefaultPageSizeSetting.lifecycle, 'experimental');
+  assert.equal(catalogProductsDefaultPageSizeSetting.runtimeBehavior, 'restart');
+  assert.deepEqual(catalogProductsDefaultPageSizeSetting.precedence, ['platform', 'project']);
+  assert.equal(catalogProductsDefaultPageSizeSetting.default, 25);
 });

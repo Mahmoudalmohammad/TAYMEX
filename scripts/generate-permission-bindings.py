@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / 'tooling/registry/permissions.registry.yaml'
 OUTPUT = ROOT / 'apps/api/src/generated/permissions.generated.ts'
 IDENTITY_OUTPUT = ROOT / 'packages/identity/src/generated/permissions.generated.ts'
+SETTINGS_OUTPUT = ROOT / 'packages/settings-runtime/src/generated/permissions.generated.ts'
+AUDIT_OUTPUT = ROOT / 'packages/audit/src/generated/permissions.generated.ts'
 
 
 def ts_string(value: str) -> str:
@@ -64,9 +66,13 @@ def render_outputs() -> dict[Path, str]:
         raise ValueError('Permission registry is malformed.')
     items = sorted(permissions, key=lambda item: item['key'])
     identity_items = [item for item in items if item.get('owner') == 'identity']
+    settings_items = [item for item in items if item.get('owner') == 'settings-runtime']
+    audit_items = [item for item in items if item.get('owner') == 'audit']
     return {
         OUTPUT: render_items(items, 'GeneratedPermissionKey', 'permissionKeys'),
         IDENTITY_OUTPUT: render_items(identity_items, 'GeneratedIdentityPermissionKey', 'identityPermissionKeys'),
+        SETTINGS_OUTPUT: render_items(settings_items, 'GeneratedSettingsPermissionKey', 'settingsPermissionKeys'),
+        AUDIT_OUTPUT: render_items(audit_items, 'GeneratedAuditPermissionKey', 'auditPermissionKeys'),
     }
 
 

@@ -34,3 +34,17 @@ permissions:
     scope: global
     sensitivity: privileged
     lifecycle: experimental
+
+  - key: settings.values.manage
+    owner: settings-runtime
+    description: Manage mutable runtime setting values through the governed settings administration path.
+    scope: global
+    sensitivity: privileged
+    lifecycle: experimental
+
+  - key: audit.records.read
+    owner: audit
+    description: Read bounded audit records for authorized investigation and administration.
+    scope: global
+    sensitivity: privileged
+    lifecycle: experimental

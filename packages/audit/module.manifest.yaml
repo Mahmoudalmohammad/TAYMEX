@@ -1,0 +1,61 @@
+id: audit
+layer: foundation
+owner: audit
+sourceRoots:
+  - packages/audit/src
+tags:
+  - layer:foundation
+  - foundation:audit
+  - security:audit
+  - data:append-only
+dependencies:
+  allowedModules:
+    - application-foundation
+    - identity
+  allowedTags:
+    - layer:foundation
+data:
+  owns:
+    - audit-records
+  readsViaContracts: []
+  classification: sensitive
+  adapter: none
+  schemaRoots: []
+settings:
+  defines: []
+  consumes: []
+permissions:
+  defines:
+    - audit.records.read
+  consumes: []
+events:
+  emits: []
+  consumes:
+    - identity.account.provisioned
+    - identity.account.status-changed
+    - identity.sign-in.succeeded
+    - identity.sign-in.failed
+    - identity.session.issued
+    - identity.session.rotated
+    - identity.session.revoked
+    - identity.session.revoked-all
+    - identity.password.changed
+    - identity.password-reset.requested
+    - identity.password-reset.completed
+    - identity.email-verification.requested
+    - identity.email-verification.completed
+    - identity.roles.changed
+contracts:
+  owns: []
+  consumes: []
+api:
+  internalOnly: true
+securityTags:
+  - append-only
+  - redaction
+  - privileged-read
+performanceTags:
+  - bounded-query
+extensionModes:
+  - USE
+  - EXTEND
