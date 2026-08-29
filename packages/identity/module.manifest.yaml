@@ -1,0 +1,61 @@
+id: identity
+layer: foundation
+owner: identity
+sourceRoots:
+  - packages/identity/src
+tags:
+  - layer:foundation
+  - foundation:identity
+  - security:authentication
+  - security:authorization-context
+dependencies:
+  allowedModules:
+    - application-foundation
+  allowedTags:
+    - layer:foundation
+data:
+  owns: []
+  readsViaContracts: []
+  classification: sensitive
+  adapter: none
+  schemaRoots: []
+settings:
+  defines: []
+  consumes: []
+permissions:
+  defines:
+    - identity.accounts.manage
+    - identity.roles.manage
+    - identity.sessions.manage
+  consumes: []
+events:
+  emits:
+    - identity.account.provisioned
+    - identity.account.status-changed
+    - identity.sign-in.succeeded
+    - identity.sign-in.failed
+    - identity.session.issued
+    - identity.session.rotated
+    - identity.session.revoked
+    - identity.session.revoked-all
+    - identity.password.changed
+    - identity.password-reset.requested
+    - identity.password-reset.completed
+    - identity.email-verification.requested
+    - identity.email-verification.completed
+    - identity.roles.changed
+  consumes: []
+contracts:
+  owns: []
+  consumes: []
+api:
+  internalOnly: true
+securityTags:
+  - credentials
+  - sessions
+  - brute-force-protection
+  - actor-context
+performanceTags: []
+extensionModes:
+  - USE
+  - EXTEND

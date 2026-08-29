@@ -2,25 +2,25 @@ import {
   evaluatePermission,
   requirePermission,
   type AuthorizationDecision,
-  type AuthorizationSubject,
 } from '@engineering-platform/authorization';
+import type { ActorContext } from '@taymex/identity';
 import {
   catalogProductsManagePermission,
   catalogProductsReadPermission,
 } from '../../../generated/permissions.generated.js';
 
-export function canReadProducts(subject: AuthorizationSubject): AuthorizationDecision {
-  return evaluatePermission(subject, catalogProductsReadPermission);
+export function canReadProducts(actor: ActorContext): AuthorizationDecision {
+  return evaluatePermission(actor, catalogProductsReadPermission);
 }
 
-export function requireProductsRead(subject: AuthorizationSubject): void {
-  requirePermission(subject, catalogProductsReadPermission);
+export function requireProductsRead(actor: ActorContext): void {
+  requirePermission(actor, catalogProductsReadPermission);
 }
 
-export function canManageProducts(subject: AuthorizationSubject): AuthorizationDecision {
-  return evaluatePermission(subject, catalogProductsManagePermission);
+export function canManageProducts(actor: ActorContext): AuthorizationDecision {
+  return evaluatePermission(actor, catalogProductsManagePermission);
 }
 
-export function requireProductsManage(subject: AuthorizationSubject): void {
-  requirePermission(subject, catalogProductsManagePermission);
+export function requireProductsManage(actor: ActorContext): void {
+  requirePermission(actor, catalogProductsManagePermission);
 }

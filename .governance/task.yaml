@@ -1,95 +1,120 @@
-id: FOUNDATION-F1-001
-title: Implement core application contracts and integrate them into TAYMEX
+id: FOUNDATION-F2-001
+title: Implement identity authentication sessions and access foundation
 mode: feature
-risk: R2
-objective: Implement the F1 application foundation as framework-neutral core contracts for canonical errors and validation, deterministic clock/time, exact money/currency, typed quantities/units, and localization primitives, then integrate those contracts into the existing Catalog and web localization paths without expanding product functionality.
-baseRevision: dd6243ff1f06dcde86553fa66258e8777d4fa599
+risk: R3
+objective: Implement the F2 identity and access foundation as framework-neutral contracts for accounts, password credentials and recovery, secure session lifecycle, authenticated actor context, role-to-permission resolution, authentication throttling and canonical security events, then integrate the actor context into the existing Catalog authorization path without adding HTTP, database, UI, or product features.
+baseRevision: 8b8f3e48ff5ceb8681d0120deac43e7cb05454ab
 modules:
+  - application-foundation
+  - identity
   - catalog
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - packages/foundation/**
+    - packages/identity/**
     - apps/api/package.json
-    - apps/web/package.json
-    - apps/api/src/modules/catalog/domain/product.ts
+    - apps/api/src/generated/permissions.generated.ts
+    - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
     - apps/api/src/modules/catalog/application/catalog-products-service.ts
-    - apps/api/src/generated/locales.generated.ts
-    - apps/web/src/i18n/locales.generated.ts
-    - apps/web/src/i18n/locales.ts
-    - scripts/generate-localization-bindings.py
+    - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
+    - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
+    - tooling/registry/permissions.registry.yaml
+    - tooling/registry/events.registry.yaml
+    - scripts/generate-permission-bindings.py
+    - scripts/generate-event-bindings.py
     - blueprints/foundation/foundation.manifest.yaml
   forbiddenPaths:
+    - apps/api/src/modules/catalog/domain/**
     - apps/api/src/modules/catalog/application/catalog-product-repository.ts
     - apps/api/src/modules/catalog/catalog.module.ts
-    - apps/api/src/modules/catalog/tests/**
-    - apps/web/app/**
-    - tooling/**
+    - apps/web/**
+    - tooling/governance.config.yaml
+    - tooling/policies/**
+    - tooling/schemas/**
+    - tooling/trust-root/**
+    - tooling/registry/rules.registry.yaml
     - .platform/**
     - .github/**
   allowNewFiles: true
   allowedNewFiles:
-    - packages/foundation/**
-    - apps/api/src/generated/locales.generated.ts
-    - apps/web/src/i18n/locales.generated.ts
-    - scripts/generate-localization-bindings.py
+    - packages/identity/**
+    - scripts/generate-event-bindings.py
   allowDependencies: true
   allowedDependencies:
-    - '@taymex/foundation'
+    - '@taymex/identity'
+    - '@engineering-platform/authorization'
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
   allowArchitectureChanges: true
 acceptance:
-  - id: AC-F1-ERRORS
-    statement: Canonical application errors separate machine code/category and safe client descriptors from internal messages, and validation primitives produce structured field issues.
-  - id: AC-F1-TIME
-    statement: Application code can depend on a Clock abstraction with deterministic fixed-clock tests and explicit UTC serialization helpers rather than reading wall-clock time directly.
-  - id: AC-F1-MONEY
-    statement: Money never uses binary floating point, validates currency/decimal precision, rejects incompatible currencies, and has explicit deterministic rounding modes with tests.
-  - id: AC-F1-UNITS
-    statement: Quantity values are decimal strings with canonical unit identifiers and exact compatible conversions while incompatible dimensions fail explicitly.
-  - id: AC-F1-LOCALIZATION
-    statement: AR/TR/EN locale bindings are generated from the project profile, directionality and bidi helpers are centralized, and locale-aware number/currency/time formatting has deterministic contract tests.
-  - id: AC-F1-INTEGRATION
-    statement: Catalog Product validation/money/errors and application clock/errors consume F1 contracts without changing Product feature scope or persisted field names.
-  - id: AC-F1-FOUNDATION
-    statement: Foundation manifest records F1 evidence and advances the current stage only to the next foundation stage after F1 checks pass.
+  - id: AC-F2-ACCOUNT
+    statement: Account identity is separate from credentials sessions roles and product profiles, uses canonical normalized email identity, explicit lifecycle state and optimistic version semantics without framework or database coupling.
+  - id: AC-F2-PASSWORD
+    statement: Password credentials use a concrete memory-hard Node crypto implementation with explicit policy, salts and versioned encoding; password and reset secrets never appear in errors events sessions or persistent records.
+  - id: AC-F2-AUTHENTICATION
+    statement: Unknown accounts wrong passwords unavailable accounts and throttled attempts expose one generic authentication failure while internal security events preserve a non-secret reason and unknown accounts still execute password verification work.
+  - id: AC-F2-SESSION
+    statement: Session issuance stores only a hash of a high-entropy secret and supports authentication expiry rotation current-session revocation logout-all and safe session views with old rotated tokens becoming invalid.
+  - id: AC-F2-RECOVERY
+    statement: Password reset and email verification challenges are hashed expiring one-time credentials, password reset revokes existing sessions, and requests do not reveal account existence.
+  - id: AC-F2-ACTOR
+    statement: One authenticated ActorContext carries stable account/session identity explicit assurance role identifiers and resolved permission keys and can be consumed by the canonical authorization primitive without role-name shortcuts.
+  - id: AC-F2-ROLES
+    statement: Role-to-permission definitions validate permissions against an injected canonical permission catalog, permission union is explicit, unknown permissions fail, and role names such as admin grant nothing by themselves.
+  - id: AC-F2-THROTTLE
+    statement: Authentication depends on an explicit brute-force throttle contract and test reference implementation with bounded failure window and lock duration; success clears principal failure state.
+  - id: AC-F2-EVENTS
+    statement: Identity security events are canonical registry entries with generated typed identifiers and emitted payloads exclude passwords raw session tokens raw recovery tokens and credential hashes.
+  - id: AC-F2-INTEGRATION
+    statement: Catalog authorization inputs consume the F2 ActorContext and all existing Catalog domain application settings and authorization regression tests continue to pass.
+  - id: AC-F2-FOUNDATION
+    statement: Foundation manifest records only demonstrated F2 evidence and advances implementation sequencing to F3 while preserving later transport persistence audit and remote-security proof as explicit remaining work.
 assumptions:
-  - statement: Product priceAmount and priceCurrency remain the current Catalog domain fields; F1 standardizes their validation and behavior without introducing a new persistence model.
+  - statement: TAYMEX account identity uses email as the initial sign-in identifier, while customer employee or other business profiles remain separate domain concerns.
     status: verified
-    evidence: apps/api/src/modules/catalog/domain/product.ts
-  - statement: Enabled locales and RTL locales are controlled by the canonical TAYMEX project profile.
+    evidence: docs/FOUNDATION_BLUEPRINT.md
+  - statement: Public self-registration is not required to prove F2 and account provisioning remains an internal application capability until a product flow explicitly requires registration.
     status: verified
-    evidence: blueprints/project-profiles/taymex.yaml
-  - statement: F1 introduces no database, HTTP, identity, settings-administration, audit, or product-feature expansion.
+    evidence: docs/FOUNDATION_BLUEPRINT.md
+  - statement: PostgreSQL persistence HTTP cookie transport distributed rate limiting MFA implementation audit storage and notification delivery belong to later foundation stages and must not be claimed as proven by F2 in-memory contract tests.
     status: verified
     evidence: docs/FOUNDATION_BLUEPRINT.md
 obligations:
-  securityDelta: not-applicable
+  securityDelta: required
   performance: standard
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
-  concurrency: not-applicable
-  idempotency: not-applicable
+  concurrency: considered
+  idempotency: required
 functional:
   invariants:
-    - Internal error messages are not automatically exposed as client-safe error text.
-    - Monetary arithmetic never converts decimal business amounts through JavaScript Number.
-    - Unit conversion is permitted only between units of the same physical dimension.
-    - Locale bindings cannot silently diverge from the project profile.
-    - Clock consumers receive cloned Date values so mutable Date objects cannot mutate clock state.
+    - Raw passwords session secrets reset tokens verification tokens and password hashes never appear in emitted security events or safe views.
+    - Account profile data is not embedded into the identity account foundation.
+    - Unknown authority defaults to deny and role display names do not grant authority.
+    - Session secrets are persisted only as cryptographic hashes and rotated secrets invalidate prior tokens.
+    - Password reset and verification challenges are single-use and time-bounded.
+    - Authentication failure exposed to callers does not distinguish unknown account wrong password locked throttled or unavailable account states.
+  statesAndTransitions:
+    - Account status ACTIVE may transition to SUSPENDED or DISABLED; SUSPENDED may return to ACTIVE; DISABLED requires explicit re-enable policy and cannot authenticate while disabled.
+    - Active session may rotate or revoke; expired or revoked sessions never authenticate.
+    - Recovery and verification challenge may transition from active to consumed or expire; consumed and expired challenges cannot be reused.
   edgeCases:
-    - Decimal values with leading zeros, trailing fractional zeros, excessive precision, and negative values.
-    - HALF_UP and HALF_EVEN rounding at exact midpoint values.
-    - Currency mismatch during addition/comparison.
-    - Incompatible unit conversion such as power to energy.
-    - Unknown locale and mixed-direction dynamic text.
+    - Email case and surrounding whitespace normalize to one canonical identity key.
+    - Unknown account sign-in still performs dummy password verification.
+    - Wrong password attempts cross the configured throttle threshold.
+    - Old session token is presented after successful rotation.
+    - Password reset token is reused after successful consumption or after expiry.
+    - Account becomes suspended after a session is issued.
+    - Role named admin has zero permissions and must still be denied.
+    - Role references an unknown permission key.
   failureModes:
-    - Product retains a private duplicate money validator after canonical money integration.
-    - Catalog service keeps its own clock contract instead of consuming the foundation Clock.
-    - Generated locale bindings become stale after project-profile changes.
+    - Identity implementation stores or emits raw credentials or session/recovery secrets.
+    - Authentication leaks account existence through different public error codes.
+    - Catalog continues accepting ad-hoc AuthorizationSubject instead of the canonical ActorContext.
+    - Role name or account identifier grants implicit permissions.
+    - F2 claims database atomicity cookie security distributed throttling audit persistence or MFA proof that has not been implemented.
 requiredGates:
   - TASK-001
   - BASE-001
@@ -99,3 +124,6 @@ requiredGates:
   - ARCH-001
   - RISK-001
   - TRUST-001
+  - PERM-001
+  - EVT-001
+  - MODEL-001

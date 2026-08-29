@@ -12,6 +12,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / 'tooling/registry/permissions.registry.yaml'
 OUTPUT = ROOT / 'apps/api/src/generated/permissions.generated.ts'
+IDENTITY_OUTPUT = ROOT / 'packages/identity/src/generated/permissions.generated.ts'
 
 
 def ts_string(value: str) -> str:
@@ -29,12 +30,7 @@ def const_name(key: str) -> str:
 def source_sha256() -> str:
     return hashlib.sha256((ROOT / 'tooling/registry/permissions.registry.yaml').read_bytes()).hexdigest()
 
-def render() -> str:
-    doc = yaml.safe_load(REGISTRY.read_text(encoding='utf-8'))
-    permissions = doc.get('permissions') if isinstance(doc, dict) else None
-    if not isinstance(permissions, list):
-        raise ValueError('Permission registry is malformed.')
-    items = sorted(permissions, key=lambda item: item['key'])
+def render_items(items: list[dict], type_name: str, map_name: str) -> str:
     seen = set()
     lines = [
         '// GENERATED FILE — DO NOT EDIT.',
@@ -49,33 +45,53 @@ def render() -> str:
             raise ValueError(f'Duplicate permission key in canonical registry: {key}')
         seen.add(key)
         lines.append(f'export const {const_name(key)} = {ts_string(key)} as const;')
-    lines.extend(['', 'export const permissionKeys = {'])
+    lines.extend(['', f'export const {map_name} = {{'])
     for item in items:
         lines.append(f'  {ts_string(item["key"])}: {const_name(item["key"])},')
     lines.extend([
         '} as const;',
         '',
-        'export type GeneratedPermissionKey = keyof typeof permissionKeys;',
+        f'export type {type_name} = keyof typeof {map_name};',
         '',
     ])
     return '\n'.join(lines)
+
+
+def render_outputs() -> dict[Path, str]:
+    doc = yaml.safe_load(REGISTRY.read_text(encoding='utf-8'))
+    permissions = doc.get('permissions') if isinstance(doc, dict) else None
+    if not isinstance(permissions, list):
+        raise ValueError('Permission registry is malformed.')
+    items = sorted(permissions, key=lambda item: item['key'])
+    identity_items = [item for item in items if item.get('owner') == 'identity']
+    return {
+        OUTPUT: render_items(items, 'GeneratedPermissionKey', 'permissionKeys'),
+        IDENTITY_OUTPUT: render_items(identity_items, 'GeneratedIdentityPermissionKey', 'identityPermissionKeys'),
+    }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description='Generate typed permission bindings from the canonical registry.')
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    expected = render()
+    outputs = render_outputs()
+    stale = []
+    for output, expected in outputs.items():
+        if args.check:
+            if not output.exists() or output.read_text(encoding='utf-8') != expected:
+                stale.append(output.relative_to(ROOT).as_posix())
+        else:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(expected, encoding='utf-8')
+            print(f'WROTE: {output.relative_to(ROOT)}')
+    if stale:
+        print('STALE: generated permission bindings differ from canonical registry:', file=sys.stderr)
+        for item in stale:
+            print(f'- {item}', file=sys.stderr)
+        print('Run: python3 scripts/generate-permission-bindings.py', file=sys.stderr)
+        return 2
     if args.check:
-        if not OUTPUT.exists() or OUTPUT.read_text(encoding='utf-8') != expected:
-            print('STALE: generated permission binding differs from canonical registry.', file=sys.stderr)
-            print('Run: python3 scripts/generate-permission-bindings.py', file=sys.stderr)
-            return 2
-        print('PASS: generated permission binding matches canonical registry.')
-        return 0
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(expected, encoding='utf-8')
-    print(f'WROTE: {OUTPUT.relative_to(ROOT)}')
+        print('PASS: generated permission bindings match canonical registry.')
     return 0
 
 

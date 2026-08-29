@@ -1,2 +1,86 @@
 version: 1
-events: []
+events:
+  - id: identity.account.provisioned
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.account.status-changed
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.sign-in.succeeded
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.sign-in.failed
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.session.issued
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.session.rotated
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.session.revoked
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.session.revoked-all
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.password.changed
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.password-reset.requested
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.password-reset.completed
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.email-verification.requested
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.email-verification.completed
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental
+  - id: identity.roles.changed
+    owner: identity
+    version: 1
+    delivery: in-process
+    classification: sensitive
+    lifecycle: experimental

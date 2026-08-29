@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   AuthorizationDeniedError,
-  type AuthorizationSubject,
 } from '@engineering-platform/authorization';
+import { createActorContext, type ActorContext } from '@taymex/identity';
 import {
   PRODUCT_ERROR_CODES,
   ProductDomainError,
@@ -32,8 +32,15 @@ const PRODUCT_3 = '550e8400-e29b-41d4-a716-446655440003';
 const T0 = new Date('2026-08-28T12:00:00.000Z');
 const T1 = new Date('2026-08-28T13:00:00.000Z');
 
-function subject(id: string, permissions: readonly string[]): AuthorizationSubject {
-  return { id, permissions: new Set(permissions) };
+function subject(id: string, permissions: readonly string[]): ActorContext {
+  return createActorContext({
+    accountId: id,
+    sessionId: `session-${id}`,
+    roleIds: [],
+    permissions,
+    assurance: 'AAL1',
+    authenticatedAt: T0,
+  });
 }
 
 class FixedClock {
@@ -115,7 +122,7 @@ function service(repository: InMemoryProductRepository, clock = new FixedClock(T
   return new CatalogProductsService(repository, clock, new SequenceIds([PRODUCT_2, PRODUCT_3]));
 }
 
-function validCreateInput(actor: AuthorizationSubject) {
+function validCreateInput(actor: ActorContext) {
   return {
     subject: actor,
     modelCode: 'UGP-NEW-100',

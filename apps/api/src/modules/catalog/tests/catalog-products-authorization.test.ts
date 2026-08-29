@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   AuthorizationDeniedError,
-  type AuthorizationSubject,
 } from '@engineering-platform/authorization';
+import { createActorContext, type ActorContext } from '@taymex/identity';
 import {
   canManageProducts,
   canReadProducts,
@@ -11,8 +11,17 @@ import {
   requireProductsRead,
 } from '../application/catalog-products-authorization.js';
 
-function subject(id: string, permissions: readonly string[]): AuthorizationSubject {
-  return { id, permissions: new Set(permissions) };
+const T0 = new Date('2026-08-29T06:00:00.000Z');
+
+function subject(id: string, permissions: readonly string[]): ActorContext {
+  return createActorContext({
+    accountId: id,
+    sessionId: `session-${id}`,
+    roleIds: [],
+    permissions,
+    assurance: 'AAL1',
+    authenticatedAt: T0,
+  });
 }
 
 test('allows a subject with the canonical Products read permission', () => {

@@ -10,7 +10,7 @@ foundation:
     - PROVEN
     - PRODUCTION_PROVEN
   readinessRule: Every capability with requiredBeforeFeatureExpansion=true must be at or above exitMaturity.
-  currentStage: F2
+  currentStage: F3
   validationSlice:
     module: catalog
     status: FROZEN_FOR_FOUNDATION_PROOF
@@ -112,13 +112,24 @@ capabilities:
   - id: identity.authentication-sessions
     area: identity-security
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: INTEGRATED
     exitMaturity: PROVEN
     owner: identity
     purpose: Identity, sign-in/out, credential lifecycle, secure sessions, recovery, abuse protection, and actor context.
-    evidence: []
+    evidence:
+      - packages/identity/src/account.ts
+      - packages/identity/src/password.ts
+      - packages/identity/src/session.ts
+      - packages/identity/src/authentication.ts
+      - packages/identity/src/actor.ts
+      - packages/identity/src/throttle.ts
+      - packages/identity/tests/identity.test.mjs
+      - tooling/registry/events.registry.yaml
     remaining:
-      - Implement the selected authentication/session model and integration tests.
+      - Prove account, credential, session, and one-time challenge persistence/transaction semantics against PostgreSQL in F4.
+      - Prove secure browser cookie/token transport and IP/network abuse controls on real HTTP routes in F5.
+      - Connect identity security events to the immutable audit/observability runtime in F3.
+      - Add a concrete MFA/step-up verifier only when an enabled product flow requires AAL2 elevation; the AAL2 policy boundary is already implemented.
 
   - id: authorization.permissions-policies
     area: identity-security
@@ -129,10 +140,16 @@ capabilities:
     purpose: Canonical typed permissions and policy-based positive/negative authorization.
     evidence:
       - tooling/registry/permissions.registry.yaml
+      - packages/identity/src/generated/permissions.generated.ts
+      - packages/identity/src/roles.ts
+      - packages/identity/src/privileged.ts
+      - packages/identity/tests/identity.test.mjs
+      - apps/api/src/modules/catalog/application/catalog-products-authorization.ts
       - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
     remaining:
-      - Integrate authenticated actor context and prove transport/application denial paths.
-      - Establish role-to-permission administration mechanism.
+      - Prove persisted role/account-role administration and optimistic concurrency against PostgreSQL in F4.
+      - Prove authenticated HTTP actor construction plus positive/negative route denial behavior in F5.
+      - Persist role/permission change security events through the F3 audit runtime.
 
   - id: settings.effective-runtime
     area: settings

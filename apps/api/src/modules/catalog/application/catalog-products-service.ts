@@ -1,5 +1,5 @@
 import { ApplicationError, ValidationError, requirePositiveSafeInteger, type Clock } from '@taymex/foundation';
-import type { AuthorizationSubject } from '@engineering-platform/authorization';
+import type { ActorContext } from '@taymex/identity';
 import {
   PRODUCT_ERROR_CODES,
   ProductDomainError,
@@ -55,7 +55,7 @@ export interface ProductIdGenerator {
 }
 
 export type ListProductsInput = Readonly<{
-  subject: AuthorizationSubject;
+  subject: ActorContext;
   page?: number;
   pageSizeSources?: CatalogProductsDefaultPageSizeSources;
 }>;
@@ -69,12 +69,12 @@ export type ProductPage = Readonly<{
 }>;
 
 export type GetProductInput = Readonly<{
-  subject: AuthorizationSubject;
+  subject: ActorContext;
   id: string;
 }>;
 
 export type CreateCatalogProductInput = Readonly<{
-  subject: AuthorizationSubject;
+  subject: ActorContext;
   modelCode: string;
   category: ProductCategory;
   name: LocalizedProductName;
@@ -84,7 +84,7 @@ export type CreateCatalogProductInput = Readonly<{
 }>;
 
 export type UpdateCatalogProductInput = Readonly<{
-  subject: AuthorizationSubject;
+  subject: ActorContext;
   id: string;
   expectedVersion: number;
   modelCode?: string;
@@ -95,7 +95,7 @@ export type UpdateCatalogProductInput = Readonly<{
 }>;
 
 export type ChangeCatalogProductStatusInput = Readonly<{
-  subject: AuthorizationSubject;
+  subject: ActorContext;
   id: string;
   expectedVersion: number;
   publicationStatus: ProductPublicationStatus;

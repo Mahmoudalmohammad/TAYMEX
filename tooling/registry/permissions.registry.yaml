@@ -13,3 +13,24 @@ permissions:
     scope: global
     sensitivity: privileged
     lifecycle: experimental
+
+  - key: identity.accounts.manage
+    owner: identity
+    description: Manage account security state and privileged account administration.
+    scope: global
+    sensitivity: privileged
+    lifecycle: experimental
+
+  - key: identity.roles.manage
+    owner: identity
+    description: Create roles and manage canonical role-to-permission assignments.
+    scope: global
+    sensitivity: privileged
+    lifecycle: experimental
+
+  - key: identity.sessions.manage
+    owner: identity
+    description: Revoke or inspect sessions beyond the authenticated account's own sessions.
+    scope: global
+    sensitivity: privileged
+    lifecycle: experimental
