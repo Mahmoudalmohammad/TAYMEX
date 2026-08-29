@@ -8,8 +8,10 @@ validated separately by the PostgreSQL 18 integration harness.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import sys
+import tarfile
 from pathlib import Path
 from typing import Iterable
 
@@ -389,35 +391,150 @@ def check_exports_and_access_patterns() -> None:
         passed("No TODO/FIXME/HACK markers in reviewed F1-F4 source")
 
 
+def check_artifact_bootstrap_and_toolchain() -> None:
+    runtime_lock_path = ROOT / ".platform/runtime.lock.yaml"
+    workspace_path = ROOT / "pnpm-workspace.yaml"
+    package_path = ROOT / "package.json"
+    project_profile_path = ROOT / "blueprints/project-profiles/taymex.yaml"
+    lockfile_path = ROOT / "pnpm-lock.yaml"
+
+    runtime_lock = yaml.safe_load(read(runtime_lock_path)) or {}
+    workspace = yaml.safe_load(read(workspace_path)) or {}
+    package = json.loads(read(package_path))
+    project_profile = yaml.safe_load(read(project_profile_path)) or {}
+    artifacts = runtime_lock.get("artifacts") or []
+    overrides = workspace.get("overrides") or {}
+
+    locked_by_name: dict[str, dict] = {}
+    for artifact in artifacts:
+        name = artifact.get("name")
+        if not isinstance(name, str) or name in locked_by_name:
+            fail(f"Runtime artifact name is missing or duplicated: {name!r}")
+            continue
+        locked_by_name[name] = artifact
+        rel = artifact.get("file")
+        path = ROOT / str(rel)
+        if not path.exists():
+            fail(f"Locked runtime artifact is missing: {rel}")
+            continue
+        actual_hash = sha256(path)
+        actual_size = path.stat().st_size
+        if actual_hash != artifact.get("sha256"):
+            fail(f"Runtime artifact hash mismatch for {name}: {actual_hash}")
+        if actual_size != artifact.get("size"):
+            fail(f"Runtime artifact size mismatch for {name}: {actual_size}")
+        expected_override = f"file:{rel}"
+        if overrides.get(name) != expected_override:
+            fail(f"Bootstrap override mismatch for {name}: expected {expected_override!r}, found {overrides.get(name)!r}")
+        try:
+            with tarfile.open(path, "r:gz") as tf:
+                member = tf.extractfile("package/package.json")
+                if member is None:
+                    raise ValueError("package/package.json missing")
+                manifest = json.loads(member.read().decode("utf-8"))
+        except Exception as exc:
+            fail(f"Unable to inspect runtime artifact {name}: {exc}")
+            continue
+        if manifest.get("name") != name or manifest.get("version") != artifact.get("version"):
+            fail(
+                f"Runtime artifact identity mismatch for {name}: "
+                f"package={manifest.get('name')}@{manifest.get('version')}, lock={name}@{artifact.get('version')}"
+            )
+        for section in ("dependencies", "optionalDependencies"):
+            for dependency, requested in (manifest.get(section) or {}).items():
+                if not dependency.startswith("@engineering-platform/"):
+                    continue
+                target = locked_by_name.get(dependency)
+                if target is None:
+                    fail(f"Internal artifact dependency is outside runtime.lock closure: {name} -> {dependency}@{requested}")
+                elif requested != target.get("version"):
+                    fail(
+                        f"Internal artifact dependency version mismatch: {name} -> {dependency}@{requested}, "
+                        f"locked={target.get('version')}"
+                    )
+
+    if set(overrides) != set(locked_by_name):
+        fail(
+            "Bootstrap override/runtime.lock name mismatch: "
+            f"override-only={sorted(set(overrides)-set(locked_by_name))}, "
+            f"lock-only={sorted(set(locked_by_name)-set(overrides))}"
+        )
+    if not any("Runtime artifact" in f or "Bootstrap override" in f or "Internal artifact" in f for f in FAILURES):
+        passed(f"Artifact bootstrap closure: {len(locked_by_name)} locked artifacts resolve locally with verified identity/hash/size")
+
+    package_manager = package.get("packageManager")
+    engine = (package.get("engines") or {}).get("node")
+    node_types = (package.get("devDependencies") or {}).get("@types/node")
+    profile_node = ((project_profile.get("runtime") or {}).get("node"))
+    lock_text = read(lockfile_path)
+    toolchain_errors: list[str] = []
+    if package_manager != "pnpm@11.24.0":
+        toolchain_errors.append(f"packageManager={package_manager!r}")
+    if profile_node != "24.x":
+        toolchain_errors.append(f"profile runtime.node={profile_node!r}")
+    if engine != ">=24 <25":
+        toolchain_errors.append(f"engines.node={engine!r}")
+    if node_types != "24.13.3":
+        toolchain_errors.append(f"@types/node={node_types!r}")
+    if not re.search(r"'@types/node':\s*\n\s*specifier:\s*24\.13\.3\s*\n\s*version:\s*24\.13\.3", lock_text):
+        toolchain_errors.append("pnpm-lock root @types/node specifier is not exactly 24.13.3")
+    if "onlyBuiltDependencies" in workspace:
+        toolchain_errors.append("deprecated/duplicate onlyBuiltDependencies is present")
+    if workspace.get("allowBuilds") != {"esbuild": True, "nx": True}:
+        toolchain_errors.append(f"allowBuilds={workspace.get('allowBuilds')!r}")
+    if toolchain_errors:
+        fail("Node/pnpm toolchain truth mismatch: " + "; ".join(toolchain_errors))
+    else:
+        passed("Toolchain truth: pnpm 11.24.0, Node 24.x engine/profile, exact Node 24 types, and one build-script allow-list agree")
+
+
 def check_maturity_integrity() -> None:
     path = ROOT / "blueprints/foundation/foundation.manifest.yaml"
+    proof_path = ROOT / "docs/evidence/F4_POSTGRESQL18_PROOF.md"
     manifest = yaml.safe_load(read(path))
     foundation = manifest.get("foundation") or {}
-    if foundation.get("currentStage") != "F4":
-        fail(f"Foundation currentStage must remain F4 until PostgreSQL 18 runtime proof; found {foundation.get('currentStage')!r}")
+    if foundation.get("currentStage") != "F5":
+        fail(f"Foundation currentStage must be F5 after accepted PostgreSQL 18 F4 proof; found {foundation.get('currentStage')!r}")
     else:
-        passed("Maturity integrity: currentStage remains F4 pending real PostgreSQL 18 proof")
-    sensitive = {
+        passed("Maturity integrity: F4 is closed and currentStage is F5")
+    if not proof_path.exists():
+        fail("F4 PostgreSQL 18 evidence file is missing")
+
+    proven_data = {
+        "data.postgresql-runtime",
+        "data.migrations-integrity",
+        "data.transactions-concurrency-idempotency",
+    }
+    later_stage = {
         "identity.authentication-sessions",
         "authorization.permissions-policies",
         "settings.effective-runtime",
         "audit.core",
         "observability.logging-tracing-health",
-        "data.postgresql-runtime",
-        "data.migrations-integrity",
-        "data.transactions-concurrency-idempotency",
     }
-    for capability in manifest.get("capabilities") or []:
-        if capability.get("id") in sensitive and capability.get("currentMaturity") in {"PROVEN", "PRODUCTION_PROVEN"}:
-            fail(f"Capability prematurely promoted without PostgreSQL/F5 evidence: {capability.get('id')}={capability.get('currentMaturity')}")
+    capability_by_id = {c.get("id"): c for c in manifest.get("capabilities") or []}
+    for cid in proven_data:
+        capability = capability_by_id.get(cid) or {}
+        if capability.get("currentMaturity") != "PROVEN":
+            fail(f"F4 data capability was not promoted from real PostgreSQL proof: {cid}={capability.get('currentMaturity')!r}")
+        if capability.get("remaining"):
+            fail(f"F4 data capability still declares unresolved F4 work after proof: {cid}: {capability.get('remaining')}")
+    if not any("F4 data capability" in f for f in FAILURES):
+        passed("F4 data maturity: PostgreSQL runtime, migrations/integrity, and transaction/concurrency/idempotency are PROVEN")
+
+    for cid in later_stage:
+        capability = capability_by_id.get(cid) or {}
+        if capability.get("currentMaturity") in {"PROVEN", "PRODUCTION_PROVEN"}:
+            fail(f"Later-stage capability was prematurely promoted by F4 closure: {cid}={capability.get('currentMaturity')}")
     if not any("prematurely promoted" in f for f in FAILURES):
-        passed("No F2-F4 capability has been falsely promoted to PROVEN")
+        passed("F2/F3 maturity remains honest: HTTP/production proof is not falsely inherited from F4 database proof")
 
 
 def main() -> int:
     check_context()
     check_schema_truth()
     check_exports_and_access_patterns()
+    check_artifact_bootstrap_and_toolchain()
     check_maturity_integrity()
     for message in PASSES:
         print(f"PASS: {message}")

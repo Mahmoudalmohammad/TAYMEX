@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.24.0",
   "engines": {
-    "node": ">=24 <27"
+    "node": ">=24 <25"
   },
   "scripts": {
     "dev:web": "pnpm --filter @taymex/web dev",
@@ -21,7 +21,7 @@
     "db:migrate": "pnpm --filter @taymex/data-postgres migrate"
   },
   "devDependencies": {
-    "@types/node": "^24.13.3",
+    "@types/node": "24.13.3",
     "nx": "23.1.2",
     "typescript": "5.9.2"
   }

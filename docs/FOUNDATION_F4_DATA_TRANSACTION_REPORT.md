@@ -1,200 +1,190 @@
-# TAYMEX Foundation F4 — Data & Transaction Implementation Report
+# TAYMEX Foundation F4 — Data & Transaction Closure Report
 
 **Stage:** F4 — Data & Transaction Foundation  
-**Result in this execution environment:** IMPLEMENTED / locally integrated where possible; **not PROVEN**  
-**Foundation stage after this work:** remains `F4` until PostgreSQL 18 integration evidence passes.
+**Final stage decision:** **CLOSED**
+**Next foundation stage:** `F5`
+**Broad feature expansion:** remains **BLOCKED** until the full Foundation Readiness Gate is satisfied.
 
-## 1. Scope implemented
+## 1. Closure decision
 
-F4 establishes one PostgreSQL persistence path rather than allowing each feature to choose its own database conventions.
+F4 is closed because the data foundation is no longer supported only by local fake-executor/unit evidence. The guarded integration harness has executed successfully against a real PostgreSQL 18.6 runtime with zero skipped tests, and the migration CLI has been proven from a clean disposable database.
 
-Implemented:
+The following capabilities are therefore promoted to `PROVEN`:
 
-- `@taymex/data-postgres` as the shared PostgreSQL transaction/runtime foundation;
-- pinned stable persistence dependencies: `drizzle-orm 0.45.2` and `pg 8.23.0`;
-- Drizzle PostgreSQL declarations as repository-indexable schema/model truth;
-- additive SQL migration `0001_foundation.sql` as applied database-state history;
-- ordered/checksummed migration loader and runner;
-- PostgreSQL advisory migration lock;
-- transaction-per-migration execution with rollback on failure;
-- applied-migration checksum drift rejection;
-- executable `db:migrate` path requiring `DATABASE_URL`;
-- bounded node-postgres connection-pool adapter;
-- shared `PostgresDatabase` transaction boundary with `AsyncLocalStorage` nested-transaction reuse;
-- PostgreSQL readiness check wired into API readiness while liveness remains process-only;
-- durable Identity account/credential/session/challenge repository;
-- durable Role/Permission and account-role-set repository;
-- durable Settings current/history/application-state store;
-- durable append-only Audit store;
-- persisted idempotency claim/replay/conflict primitive;
-- database-side CAS/expected-version predicates for mutable state;
-- database constraints and indexes for the persisted F4 tables;
-- database triggers rejecting `UPDATE` and `DELETE` on `audit_records`;
-- optional atomic boundary used by Identity, Role administration, and Settings so state changes and durable audit writes can share one outer database transaction.
+- `data.postgresql-runtime`;
+- `data.migrations-integrity`;
+- `data.transactions-concurrency-idempotency`.
 
-## 2. Canonical persistence ownership
+No unrelated capability is promoted by implication. HTTP authentication/authorization, API transport security, production observability delivery, remote merge authority, performance proof, full UI proof, and operations remain owned by their declared later stages.
 
-Repository Truth now discovers 14 Drizzle-backed data models owned by exactly one module:
+Runtime proof is recorded in `docs/evidence/F4_POSTGRESQL18_PROOF.md`.
 
-- data-postgres: 2
-- identity: 8
-- settings-runtime: 3
-- audit: 1
+## 2. Canonical persistence model
 
-The ownership keys use `db.table.<physical_table_name>` and are declared in each module manifest. A feature does not gain permission to invent a second table definition or persistence path simply because it needs the same data.
+F4 establishes one PostgreSQL persistence path for shared foundation state:
 
-`foundation_schema_migrations` is a bootstrap metadata table created by the migration runner before migration history is evaluated. All product/foundation persisted state introduced by migration 0001 is additive; F4 introduces no `DROP` or `TRUNCATE` migration.
+- PostgreSQL 18;
+- `@taymex/data-postgres` as the shared database/transaction runtime;
+- Drizzle declarations as compiler/repository-indexable model projection;
+- additive SQL migrations as applied database history;
+- exactly one declared module owner per persisted table;
+- no in-memory production fallback exported by normal package entry points.
 
-## 3. Transaction and concurrency rules now implemented
+The structural verifier confirms parity across:
 
-### Transaction ownership
+- **14 tables** in SQL, Drizzle, and module ownership;
+- column names and fundamental SQL types;
+- **10 named indexes**;
+- **37 named F4 hardening constraints**;
+- named cross-table foreign keys;
+- append-only audit triggers.
 
-`PostgresDatabase.transaction()` is the single transaction boundary. The outer call owns `BEGIN / COMMIT / ROLLBACK`. Nested foundation calls reuse the active connection rather than committing independently.
+Disagreement between these truth surfaces is a blocking defect rather than a precedence choice that is silently ignored.
 
-This allows flows such as:
+## 3. Migrations and integrity
+
+Applied migrations are:
 
 ```text
-Settings write
-  -> current value CAS
-  -> history append
-  -> applied-version update when hot
-  -> audit append
-  -> one COMMIT
+0001_foundation.sql
+0002_f4_integrity_hardening.sql
 ```
 
-and equivalent Identity/Role mutations when composed with the same transaction boundary.
+The migration runtime provides:
 
-### Optimistic concurrency
+- ordered migration discovery;
+- strict filename validation;
+- advisory locking;
+- per-migration transaction execution;
+- rollback on failure;
+- checksum persistence;
+- checksum drift rejection;
+- deleted/renamed applied-migration rejection;
+- rejection of destructive F4 migrations unless separately authorized;
+- destruction rather than pool reuse when a connection has unknown state after rollback failure.
 
-Database predicates, not read-only application checks, decide the winner for:
+The clean PostgreSQL proof executed `0001` and `0002` on the first run and `[]` on the immediate second run.
 
-- account replacement;
-- password credential version progression;
-- session rotation/revocation replacement;
-- one-time challenge consumption;
-- role replacement;
-- account-role assignment version;
-- runtime setting current value.
+## 4. Transactions and optimistic concurrency
 
-During F4 review, account-role assignment was upgraded from last-write-wins semantics to an explicit versioned account-role set. Password credential persistence was also hardened so a missing credential can only be created at version 1; later versions require a successful `N -> N+1` CAS and cannot silently recreate missing state.
+`PostgresDatabase.transaction()` is the shared transaction boundary. Services that require state mutation plus durable side effects do not receive an optional transaction fallback; the transaction boundary is mandatory.
 
-## 4. Idempotency
+Persisted optimistic mutation follows one contract:
 
-`PostgresIdempotencyStore` implements a persisted operation/key claim with a canonical SHA-256 hash of JSON-compatible request input.
+```text
+expectedVersion = N
+proposedVersion = N + 1
+```
 
-States:
+Two cases are deliberately distinct:
+
+1. a structurally valid stale writer proposes `N + 1` after another writer has already won → database CAS returns `version-conflict`;
+2. a caller attempts an invalid version jump such as `N -> N + 2` → precondition validation rejects the command before SQL.
+
+This behavior is covered for account/session state in the PostgreSQL 18 integration harness and is consistent with the hardened identity/role/settings persistence contracts.
+
+## 5. Idempotency
+
+The persisted idempotency primitive supports:
 
 ```text
 ABSENT -> IN_PROGRESS -> COMPLETED
 ```
 
-Behavior:
+with:
 
-- first matching claim starts;
-- same key + same hash while running reports in-progress;
-- same key + different hash reports conflict;
-- completed same key + same hash replays the stored response;
-- expired claims can be reclaimed under row locking;
-- non-JSON/circular request material is rejected instead of being ambiguously hashed.
+- canonical request hashing;
+- same-key/same-request in-progress detection;
+- same-key/different-request conflict;
+- completed response replay;
+- expiration/reclaim behavior;
+- claim-generation fencing so a stale worker cannot complete a later reclaimed claim.
 
-No claim that every endpoint requires idempotency is made. F4 provides the reusable primitive; later endpoint contracts classify when it is required.
+The real PostgreSQL integration harness proves started/in-progress/conflict/replay behavior.
 
-## 5. Integrity and indexing
+## 6. Audit durability and rollback coupling
 
-Migration 0001 establishes database enforcement for representative critical invariants including:
+Audit is append-only at the database layer. `UPDATE` and `DELETE` are rejected by database triggers, not merely by TypeScript interfaces.
 
-- unique normalized account email;
-- account/session/challenge/role status/assurance/kind constraints;
-- positive record versions;
-- account/role foreign-key integrity;
-- unique setting coordinates and immutable versioned setting history keys;
-- bounded semantic state for idempotency records;
-- audit append-only mutation rejection;
-- indexes for active sessions/challenges, role membership, recent settings history, audit investigation paths, and idempotency expiry.
+The F4 runtime proof also demonstrates rollback coupling: when state and audit are performed inside one outer transaction, failure does not leave one committed without the other.
 
-The application still validates earlier for usable errors; database constraints are the final integrity boundary, not a replacement for domain validation.
+This closes the durable-storage portion of `audit.core`; HTTP audit query/administration remains F5 work and therefore `audit.core` remains `INTEGRATED`, not `PROVEN`.
 
-## 6. Health behavior
+## 7. Settings and identity durability pulled through F4
 
-`/health` remains process liveness and does not query PostgreSQL.
+F4 proves the database sub-paths required by earlier stages without falsely closing their transport-level work:
 
-`/health/ready` includes a `postgresql` dependency check. Missing `DATABASE_URL`, connection failure, or failed readiness query returns a DOWN dependency and therefore `NOT_READY` without reporting process liveness as DOWN.
+- Identity accounts/credentials/sessions/challenges use durable PostgreSQL CAS paths;
+- role/account-role persistence uses set-based reads and versioned assignment;
+- settings current/history/application-state persistence, CAS, rollback, and audit coupling execute against PostgreSQL;
+- database readiness executes against real PostgreSQL and detects loss of availability.
 
-Pool size and connection/idle/statement timeouts are bounded from environment configuration. No silent in-memory production fallback exists.
+The remaining Identity/Authorization/Settings/Audit/Observability work is explicitly assigned to F5/F9 and remains visible in the foundation manifest.
 
-## 7. Executable evidence completed locally
+## 8. Bootstrap artifact/toolchain correction discovered during proof
 
-The following passed in the available environment:
+The external validation run exposed an independent-consumer bootstrap failure: packed platform artifacts such as app-shell/ui-patterns depended on `@engineering-platform/ui@0.1.0`, which could fall through to the public npm registry even though a locked local UI artifact existed.
 
-- strict TypeScript compilation of Foundation, Data PostgreSQL, Identity, Audit, Settings Runtime, and Observability packages;
-- API TypeScript compilation with temporary dependency shims necessitated by the offline package registry;
-- Foundation tests: 7/7;
-- Data PostgreSQL local tests: 8/8;
-- Identity tests: 17/17;
-- Audit tests: 5/5;
-- Settings Runtime tests: 12/12;
-- Observability tests: 7/7;
-- Catalog regression tests: 33/33.
+The correction is systemic rather than one-off:
 
-**Total executed passing tests: 89/89.**
+- every locked `@engineering-platform/*` artifact has a root bootstrap override to its locked `.tgz`;
+- runtime lock identity/hash/size is verified;
+- the structural verifier checks the full locked artifact dependency closure so a future internal dependency cannot silently fall through to the public registry;
+- the UI source fix was made in the platform source workspace and the consumer artifact was rebuilt rather than hand-edited;
+- build scripts use one `allowBuilds` policy;
+- Node runtime/profile/type definitions are aligned to the Node 24 foundation line.
 
-Local F4 tests prove transaction sequencing/rollback behavior, nested transaction reuse, canonical idempotency hashing, migration ordering/checksums, additive migration policy, advisory-lock runner behavior, and readiness result classification.
+## 9. Executed evidence
 
-Repository/governance preparation also confirms:
+### Real local operator runtime evidence
 
-- canonical registries valid;
-- generated settings bindings match registry;
-- generated permission bindings match registry;
-- project profile validates PostgreSQL 18;
-- Repository Truth indexes 14 data models with declared module ownership.
+- Node `24.14.0`;
+- pnpm `11.24.0`;
+- PostgreSQL `18.6` / server version number `180006`;
+- workspace install/build: PASS;
+- backend package tests: **65 passed, 0 failed**;
+- PostgreSQL 18 guarded integration test: **1 passed, 0 failed, 0 skipped**;
+- clean migration run: `executed=["0001","0002"]`;
+- immediate second migration run: `executed=[]`.
 
-## 8. PostgreSQL 18 proof deliberately not claimed
+### Structural/governance evidence
 
-This execution environment does not provide a PostgreSQL server, `psql`, Docker/Podman, or usable npm/network installation path. Therefore the guarded PostgreSQL integration test is present but reports SKIP when `TEST_DATABASE_URL` is absent.
+The final closure validates:
 
-F4 is intentionally **not promoted to PROVEN** based on mocks or SQL text alone.
+- context files preserved verbatim;
+- SQL/Drizzle/module ownership parity;
+- generated settings and permission bindings;
+- project profile;
+- independent consumer boundary;
+- runtime artifact lock closure;
+- Node/pnpm toolchain truth;
+- trust-root local verification;
+- task governance over the complete final repair delta.
 
-The integration harness requires both:
+## 10. Explicit non-claims
+
+F4 closure does **not** mean:
+
+- the complete application foundation is ready;
+- Products may expand broadly;
+- secure browser auth/cookie/token transport is proven;
+- route authorization is proven;
+- API contracts are complete;
+- performance budgets/query-plan proof are complete;
+- full UI/accessibility/visual coverage is complete;
+- production logs/metrics, delivery, backup/restore, or remote merge rules are proven.
+
+Those remain in F5–F10.
+
+## 11. Final F4 status
 
 ```text
-TEST_DATABASE_URL=<disposable PostgreSQL 18 database>
-F4_DATABASE_TESTS=1
+F4 data runtime                         PROVEN
+F4 migrations/integrity                PROVEN
+F4 transaction/concurrency/idempotency PROVEN
+Foundation current stage               F5
+Foundation readiness                   BLOCKED
+Products validation slice              FROZEN_FOR_FOUNDATION_PROOF
 ```
 
-It is designed to prove on an actual PostgreSQL 18 runtime:
-
-1. server major version 18;
-2. migration 0001 execution;
-3. second migration run as checksum-verified no-op;
-4. rejection of altered content for already-applied migration version;
-5. account and password-credential CAS;
-6. session CAS;
-7. one-time challenge race behavior;
-8. account-role assignment CAS;
-9. settings write/history/application-state CAS;
-10. database-enforced append-only audit behavior;
-11. rollback of both state and audit evidence from one outer transaction;
-12. idempotency started/in-progress/conflict/replay behavior;
-13. readiness UP while connected and DOWN after database unavailability.
-
-Only after that evidence passes may `data.postgresql-runtime`, `data.migrations-integrity`, and `data.transactions-concurrency-idempotency` be considered for promotion to `PROVEN`, and only then may the foundation roadmap decide whether F4's exit criteria permit movement to F5.
-
-## 9. Boundary decisions preserved
-
-F4 does **not**:
-
-- move Products persistence forward while the Foundation gate is frozen;
-- introduce another ORM/database path;
-- put database access in Next.js/browser code;
-- duplicate Settings precedence/default logic;
-- weaken governance to make a migration pass;
-- add destructive migrations;
-- pretend local fake-executor tests are PostgreSQL evidence;
-- implement HTTP auth/session transport, which belongs to F5;
-- generalize outbox/background delivery, which remains owned by its later application-services stage.
-
-## 10. Current conclusion
-
-F4 now has the code, contracts, migration path, ownership truth, negative rules, and a complete guarded PostgreSQL 18 proof harness required to test the design against reality. The remaining blocker is external runtime evidence, not another architecture decision.
-
-**Current stage remains F4.**
+**F4 is closed without weakening later-stage proof requirements.**

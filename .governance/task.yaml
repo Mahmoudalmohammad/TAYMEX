@@ -1,10 +1,10 @@
-id: FOUNDATION-F4-REVIEW-002
-title: Deep-audit and harden F0-F4 before F4 closure
-mode: migration
+id: FOUNDATION-F4-CLOSURE-003
+title: Close F4 from real PostgreSQL proof and canonical bootstrap fixes
+mode: fix
 risk: R3
 objective: >-
-  Preserve the complete project problem and expert-review context inside the TAYMEX repository, audit F0-F4 against the historical failure classes and authoritative foundation contracts, fix only verified defects at their owning shared layer, harden PostgreSQL migration/transaction/concurrency/idempotency/data-truth behavior, remove accidental production fallback paths, and produce explicit evidence without advancing F4 unless actual PostgreSQL 18 proof is obtained.
-baseRevision: 726d4e491eecca1e97912c444f1196fc8d7b465b
+  Govern and close the externally validated F4 repair delta from the last internally reviewed base, preserve the approved independent-consumer artifact transport, align the Node 24 toolchain truth surfaces, record real PostgreSQL 18 evidence, promote only the F4 data capabilities actually proven by that evidence, update the deep F0-F4 review, and advance the foundation sequence to F5 without weakening trust-root or future-stage requirements.
+baseRevision: 750e5c798741ecb9a846af23b2ac8a3737006d49
 modules:
   - data-postgres
   - identity
@@ -15,111 +15,108 @@ scope:
   allowedPaths:
     - .governance/task.yaml
     - .governance/repository-truth.json
-    - Problem_Context.md
-    - TAYMEX_CUMULATIVE_EXPERT_REVIEW.md
-    - packages/data-postgres/**
-    - packages/identity/**
-    - packages/settings-runtime/**
-    - packages/audit/**
-    - packages/observability/**
+    - .platform/runtime.lock.yaml
+    - .platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz
+    - apps/web/next-env.d.ts
+    - package.json
+    - pnpm-lock.yaml
+    - pnpm-workspace.yaml
+    - packages/data-postgres/tests/postgres18.integration.test.mjs
     - blueprints/foundation/foundation.manifest.yaml
     - docs/FOUNDATION_F4_DATA_TRANSACTION_REPORT.md
     - docs/FOUNDATION_F0_F4_DEEP_REVIEW.md
+    - docs/evidence/F4_POSTGRESQL18_PROOF.md
     - scripts/verify-f0-f4-foundation.py
   forbiddenPaths:
-    - apps/web/**
-    - apps/api/src/modules/catalog/domain/**
+    - .github/**
     - tooling/governance.config.yaml
     - tooling/policies/**
     - tooling/schemas/**
     - tooling/trust-root/**
     - tooling/registry/**
-    - .platform/**
-    - .github/**
+    - .platform/artifacts/governance/**
+    - .platform/governance.lock.yaml
+    - apps/api/src/modules/catalog/domain/**
   allowNewFiles: true
   allowedNewFiles:
-    - Problem_Context.md
-    - TAYMEX_CUMULATIVE_EXPERT_REVIEW.md
+    - pnpm-lock.yaml
+    - apps/web/next-env.d.ts
     - docs/FOUNDATION_F0_F4_DEEP_REVIEW.md
-    - scripts/verify-f0-f4-foundation.py
-    - packages/*/src/testing.ts
-    - packages/data-postgres/migrations/0002_f4_integrity_hardening.sql
-  allowDependencies: false
-  allowedDependencies: []
-  allowMigrations: true
-  allowPublicContractChanges: true
+    - docs/evidence/F4_POSTGRESQL18_PROOF.md
+  allowDependencies: true
+  allowedDependencies:
+    - '@types/node'
+  allowMigrations: false
+  allowPublicContractChanges: false
   allowPlatformChanges: false
-  allowArchitectureChanges: true
+  allowArchitectureChanges: false
+  allowVisualBaselineChanges: false
+  allowBreakingContractChanges: false
   allowDestructiveMigrations: false
+  allowControlPlaneChanges: false
+  allowTrustRootChanges: false
 acceptance:
-  - id: AC-REVIEW-CONTEXT
-    statement: The supplied problem context and cumulative expert review are preserved verbatim in the repository root and are classified as non-authoritative evidence/context rather than executable policy.
-  - id: AC-REVIEW-TRUTH
-    statement: SQL migration applied-state truth, Drizzle model truth, module ownership, and repository truth have an explicit conflict policy and automated parity evidence; disagreement blocks review closure.
-  - id: AC-REVIEW-TRANSACTION
-    statement: Failed rollback never returns an unknown PostgreSQL connection to the pool as reusable and the migration runner applies the same safety rule.
-  - id: AC-REVIEW-MIGRATION
-    statement: Invalid migration filenames, deleted applied migrations, filename drift, and checksum drift are all rejected rather than silently ignored.
-  - id: AC-REVIEW-IDEMPOTENCY
-    statement: Idempotency claims use a fencing token so an expired/stale worker cannot complete a later reclaimed claim for the same operation and key.
-  - id: AC-REVIEW-IDENTITY
-    statement: Identity and role optimistic writes enforce exact N-to-N+1 transitions, initial persisted version rules, bounded session listing, snapshot-consistent role reads, and no query-per-role loops.
-  - id: AC-REVIEW-NO-FALLBACK
-    statement: Test-only memory persistence/logging implementations are not exported through normal production package entry points.
-  - id: AC-REVIEW-REGRESSION
-    statement: F1-F4 unit/integration-independent regression suites, registry generation checks, project profile validation, consumer boundary, repository truth, task governance, and trust-root local verification pass after fixes.
-  - id: AC-REVIEW-HONEST-MATURITY
-    statement: No maturity is promoted to PROVEN and F4 is not advanced unless evidence meets the declared exit rule; environment limitations are reported as blockers rather than hidden or replaced with mocks.
+  - id: AC-F4-CLOSURE-ARTIFACT
+    statement: Every locked @engineering-platform runtime artifact resolves through the bootstrap overrides, matches its locked name/version/hash/size, and no internal runtime dependency can fall through to the public registry.
+  - id: AC-F4-CLOSURE-TOOLCHAIN
+    statement: The package manager, Node engine range, project profile, Node type package, and build-script allow-list describe one non-overlapping Node 24 toolchain policy.
+  - id: AC-F4-CLOSURE-POSTGRES
+    statement: Real PostgreSQL 18 evidence records a passing migration, CAS, rollback, audit, idempotency, and readiness integration test with no skip.
+  - id: AC-F4-CLOSURE-MIGRATION
+    statement: A clean disposable PostgreSQL 18 database applies migrations 0001 and 0002 once and the immediate second run is a verified no-op with applied checksums recorded.
+  - id: AC-F4-CLOSURE-MATURITY
+    statement: Only data.postgresql-runtime, data.migrations-integrity, and data.transactions-concurrency-idempotency are promoted to PROVEN by the F4 runtime evidence; later HTTP, remote-merge, operational, UI, and delivery proof remains delegated to its declared stages.
+  - id: AC-F4-CLOSURE-REVIEW
+    statement: The F0-F4 review distinguishes stage completion from capability maturity and records no known unresolved defect that belongs to F1-F4 rather than an explicitly delegated later stage.
+  - id: AC-F4-CLOSURE-GOVERNANCE
+    statement: The final canonical diff from 750e5c798741ecb9a846af23b2ac8a3737006d49 passes task governance, consumer boundary, trust-root local verification, canonical registries, repository truth, and the F0-F4 structural verifier.
 assumptions:
-  - statement: The two supplied root context files are evidence sources and do not override ADRs, machine registries, task contracts, runtime/build truth, or executable governance.
+  - statement: The operator executed the guarded PostgreSQL integration test on PostgreSQL 18.6 using the canonical TAYMEX checkout and reported one pass, zero fail, zero skip.
     status: verified
-    evidence: TAYMEX_CUMULATIVE_EXPERT_REVIEW.md
-  - statement: PostgreSQL 18 remains the required runtime and no SQLite or in-memory substitute can satisfy AC-F4-REAL-PROOF.
+    evidence: docs/evidence/F4_POSTGRESQL18_PROOF.md
+  - statement: The clean CLI migration proof applied 0001 and 0002 on the first run and executed no migration on the second run.
+    status: verified
+    evidence: docs/evidence/F4_POSTGRESQL18_PROOF.md
+  - statement: Node 24.x remains the approved runtime baseline for this foundation line.
     status: verified
     evidence: blueprints/project-profiles/taymex.yaml
-  - statement: The additive 0002 F4 hardening migration is within the user-authorized F4 repair scope and the predeclared packages/data-postgres/** plus allowMigrations=true authority; enumerating the exact new filename does not authorize destructive migration or any new path class.
+  - statement: The rebuilt UI artifact in TAYMEX is byte-identical to the bootstrap artifact produced by the accompanying ENGINEERING_PLATFORM source workspace at commit c3d865ee97f33c7d0247e00fdd02e0c771ea6f98.
     status: verified
-    evidence: packages/data-postgres/migrations/0002_f4_integrity_hardening.sql
+    evidence: .platform/runtime.lock.yaml
 obligations:
-  securityDelta: required
+  securityDelta: completed
   performance: standard
-  ui: not-applicable
+  ui: shared-ui-change
   responsive: not-applicable
   accessibility: not-applicable
   concurrency: tested
   idempotency: tested
 functional:
   invariants:
-    - Repairs occur at the lowest shared owning layer and do not create parallel local implementations.
-    - Runtime/build/database evidence outranks descriptive prose, but any disagreement is reported and fixed.
-    - Unknown rollback connection state is destroyed rather than recycled.
-    - Persisted optimistic versions advance exactly one step.
-    - Idempotency completion is fenced to the exact claim generation.
-    - Query loops are replaced by bounded set-based access where the existing foundation rule already requires it.
+    - A stage is never closed by documentation alone; F4 closure requires the real PostgreSQL 18 runtime evidence recorded in this task.
+    - Toolchain and artifact bootstrap configuration have one canonical effective policy and do not maintain duplicate competing settings.
+    - F4 closure does not promote HTTP/auth transport, production observability delivery, remote merge authority, or later-stage capabilities.
+    - The previously hardened exact N-to-N+1 mutation contract remains intact; stale valid mutations return version-conflict and invalid version jumps remain precondition failures.
   statesAndTransitions:
-    - F4 remains current until real PostgreSQL 18 proof satisfies the existing stage gate.
+    - F4 current and runtime proof pending -> F4 proven and currentStage F5 only after all closure evidence and governance pass.
   edgeCases:
-    - rollback itself fails after a transaction error
-    - applied migration file is removed or renamed
-    - malformed SQL file exists in the migration directory
-    - stale idempotency worker completes after claim expiry and reclamation
-    - role assignment changes while access is resolved
-    - more sessions exist than the default device/session visibility limit
+    - internal tarball depends on another @engineering-platform package that is not directly declared by the consumer application
+    - Node types major differs from the approved runtime major
+    - stale writer proposes the valid next version after another writer has already won
+    - invalid writer attempts to skip an optimistic version
   failureModes:
-    - weakening a gate or maturity rule merely to close the phase
-    - keeping two competing sources of database truth without conflict detection
-    - exposing memory stores as accidental production persistence choices
-    - fixing a shared defect with a feature-local workaround
+    - relying on a task verification result whose head predates the canonical local repair commits
+    - adding a one-off override for only the dependency that happened to fail
+    - allowing public-registry fallback for a locked internal platform package
+    - promoting all F2/F3 capabilities merely because their durable PostgreSQL sub-path was proven in F4
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
-  - MIG-001
-  - DB-001
-  - ARCH-001
+  - DEP-001
+  - PLT-001
   - RISK-001
   - TRUST-001
   - MODEL-001
   - DATA-001
-  - MIG-002
