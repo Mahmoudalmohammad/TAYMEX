@@ -1,0 +1,34 @@
+/* Generated governed theme: taymex. Do not edit by hand. */
+[data-project-theme="taymex"] {
+  --ep-font-family-sans: Inter, Noto Sans Arabic, system-ui, sans-serif;
+  --ep-font-size-2xl: 28px;
+  --ep-font-size-lg: 18px;
+  --ep-font-size-md: 16px;
+  --ep-font-size-sm: 14px;
+  --ep-font-size-xl: 22px;
+  --ep-font-size-xs: 12px;
+  --ep-radius-card: 14px;
+  --ep-radius-control: 10px;
+  --ep-radius-panel: 18px;
+  --ep-size-header: 64px;
+  --ep-size-sidebar: 272px;
+  --ep-size-sidebarcollapsed: 76px;
+}
+[data-project-theme="taymex"][data-theme="light"], [data-project-theme="taymex"] [data-theme="light"] {
+  --ep-semantic-color-action-primary: #1E55B6;
+  --ep-semantic-color-action-primaryhover: #194797;
+  --ep-semantic-color-border-focus: #2868D8;
+  --ep-semantic-color-status-danger: #A72F2F;
+  --ep-semantic-color-status-success: #0F704A;
+  --ep-semantic-color-status-warning: #925F18;
+  --ep-semantic-color-text-brand: #194797;
+}
+[data-project-theme="taymex"][data-theme="dark"], [data-project-theme="taymex"] [data-theme="dark"] {
+  --ep-semantic-color-action-primary: #7AA7F7;
+  --ep-semantic-color-action-primaryhover: #95B9FA;
+  --ep-semantic-color-border-focus: #8AB4FF;
+  --ep-semantic-color-status-danger: #EE7777;
+  --ep-semantic-color-status-success: #59C99A;
+  --ep-semantic-color-status-warning: #E3B663;
+  --ep-semantic-color-text-brand: #8AB4FF;
+}

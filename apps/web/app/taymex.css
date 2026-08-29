@@ -1,3 +1,13 @@
 html, body { margin: 0; min-height: 100%; }
-body { background: var(--ep-semantic-color-surface-page, #fff); color: var(--ep-semantic-color-text-primary, #111); }
-[data-taymex-placeholder] { padding: var(--ep-core-space-6, 1.5rem); }
+body { background: var(--ep-semantic-color-surface-canvas); color: var(--ep-semantic-color-text-default); font-family: var(--ep-font-family-sans); }
+a { color: var(--ep-semantic-color-text-brand); }
+[data-taymex-placeholder], [data-taymex-public-home] { padding: var(--ep-space-6); max-width: var(--ep-size-contentcomfortable); margin-inline: auto; }
+[data-taymex-card-grid] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--ep-space-4); }
+[data-f8-reference] { display: grid; gap: var(--ep-space-8); }
+[data-taymex-reference-section] { display: grid; gap: var(--ep-space-4); }
+[data-taymex-action-row] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ep-space-2); }
+[data-taymex-format-grid] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--ep-space-3); margin: 0; }
+[data-taymex-format-grid] > div { border: 1px solid var(--ep-semantic-color-border-default); border-radius: var(--ep-radius-control); padding: var(--ep-space-3); background: var(--ep-semantic-color-surface-default); }
+[data-taymex-format-grid] dt { color: var(--ep-semantic-color-text-secondary); font-size: var(--ep-font-size-sm); }
+[data-taymex-format-grid] dd { margin: var(--ep-space-1) 0 0; font-weight: var(--ep-font-weight-semibold); overflow-wrap: anywhere; }
+@media (max-width: 767px) { [data-taymex-placeholder], [data-taymex-public-home] { padding: var(--ep-space-4); } }

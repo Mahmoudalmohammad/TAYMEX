@@ -1,0 +1,34 @@
+id: taymex
+displayName: TAYMEX Foundation Theme
+description: Governed semantic theme for the TAYMEX multilingual foundation UI.
+overrides:
+  common:
+    font.family.sans: "Inter, Noto Sans Arabic, system-ui, sans-serif"
+    radius.control: 10px
+    radius.card: 14px
+    radius.panel: 18px
+    size.sidebar: 272px
+    size.sidebarCollapsed: 76px
+    size.header: 64px
+    font.size.xs: 12px
+    font.size.sm: 14px
+    font.size.md: 16px
+    font.size.lg: 18px
+    font.size.xl: 22px
+    font.size.2xl: 28px
+  light:
+    semantic.color.action.primary: "#1E55B6"
+    semantic.color.action.primaryHover: "#194797"
+    semantic.color.text.brand: "#194797"
+    semantic.color.border.focus: "#2868D8"
+    semantic.color.status.success: "#0F704A"
+    semantic.color.status.warning: "#925F18"
+    semantic.color.status.danger: "#A72F2F"
+  dark:
+    semantic.color.action.primary: "#7AA7F7"
+    semantic.color.action.primaryHover: "#95B9FA"
+    semantic.color.text.brand: "#8AB4FF"
+    semantic.color.border.focus: "#8AB4FF"
+    semantic.color.status.success: "#59C99A"
+    semantic.color.status.warning: "#E3B663"
+    semantic.color.status.danger: "#EE7777"

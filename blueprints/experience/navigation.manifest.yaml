@@ -1,0 +1,24 @@
+schemaVersion: 1
+shells:
+  public:
+    purpose: Locale entry and future public/company/commerce surfaces.
+    currentRoutes:
+      - /{locale}
+    rules:
+      - Keep primary public navigation shallow and visible; do not hide core destinations behind hover-only interaction.
+      - Preserve locale in every internal destination.
+  customer:
+    purpose: Authenticated customer self-service surfaces.
+    currentRoutes: []
+    rules:
+      - Do not create customer navigation before an authenticated customer capability is admitted.
+      - Reuse the shared shell and authorization boundaries when the first customer route exists.
+  admin:
+    purpose: Operational administration surfaces.
+    currentRoutes:
+      - /{locale}/admin/products
+      - /{locale}/foundation/ui
+    rules:
+      - Use the shared AppShell with grouped navigation and a single current-page marker.
+      - Desktop sidebar and mobile modal navigation are the same information architecture, not separate route truth.
+      - Collapse behavior changes presentation only and must preserve accessible link names.

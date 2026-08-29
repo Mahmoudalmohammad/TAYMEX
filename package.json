@@ -29,7 +29,8 @@
     "events:generate": "python3 scripts/generate-event-bindings.py",
     "events:check": "python3 scripts/generate-event-bindings.py --check",
     "f7:verify": "python3 scripts/verify-f7-files-side-effects.py",
-    "f7:test:postgres": "node --test apps/api/tests/f7-files-side-effects.integration.test.mjs"
+    "f7:test:postgres": "node --test apps/api/tests/f7-files-side-effects.integration.test.mjs",
+    "f8:verify": "python3 scripts/verify-f8-ui-ux.py"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

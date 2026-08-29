@@ -1,31 +1,52 @@
-id: FOUNDATION-F8-PLATFORM-HYGIENE-002
-title: Align F8 workspace overrides with locked UI artifacts
-mode: platform-change
-risk: R4
+id: FOUNDATION-F8-UI-002
+title: Implement the TAYMEX F8 UI and UX foundation
+mode: feature
+risk: R3
 objective: >-
-  Repair the package-manager bootstrap metadata left inconsistent by the F8 artifact transport commit by aligning only the four ENGINEERING_PLATFORM UI overrides in pnpm-workspace.yaml with the already adopted and hash-locked 0.2.0 runtime artifacts, without changing any artifact, runtime code, foundation maturity, contract, or trust policy.
-baseRevision: 7e2dd161a74ec0672334c54eadd351e4ffc2a59c
+  Implement the complete used F8 UI/UX foundation in TAYMEX by consuming only locked platform artifacts, establishing one governed theme and typography profile, correcting document locale direction, finalizing current shell information architecture, proving AR/TR/EN formatting paths, and exercising shared form, table, upload, feedback, navigation, loading, modal, tabs and page-state behavior on one real reference route without creating a second design system or prematurely implementing deferred interaction patterns.
+baseRevision: 9b9e8687ed62aa6f931d18a2d74b0597841ce20b
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - pnpm-workspace.yaml
+    - apps/web/**
+    - blueprints/theme-profiles/taymex.yaml
+    - blueprints/experience/navigation.manifest.yaml
+    - blueprints/foundation/foundation.manifest.yaml
+    - docs/FOUNDATION_F8_UI_UX_REPORT.md
+    - scripts/verify-f8-ui-ux.py
+    - package.json
   forbiddenPaths:
-    - .platform/**
     - .github/**
-    - tooling/**
-    - apps/**
+    - .platform/**
+    - tooling/governance.config.yaml
+    - tooling/policies/**
+    - tooling/schemas/**
+    - tooling/trust-root/**
+    - tooling/registry/**
+    - apps/api/**
     - packages/**
     - contracts/**
-    - blueprints/**
     - pnpm-lock.yaml
-  allowNewFiles: false
-  allowedNewFiles: []
-  allowDependencies: true
+  allowNewFiles: true
+  allowedNewFiles:
+    - apps/web/proxy.ts
+    - apps/web/app/[locale]/page.tsx
+    - apps/web/app/[locale]/foundation/ui/page.tsx
+    - apps/web/app/taymex-theme.generated.css
+    - apps/web/src/components/f8-reference-surface.tsx
+    - apps/web/src/i18n/formatting.ts
+    - apps/web/src/i18n/ui-reference-messages.ts
+    - apps/web/ui.verification.yaml
+    - blueprints/theme-profiles/taymex.yaml
+    - blueprints/experience/navigation.manifest.yaml
+    - docs/FOUNDATION_F8_UI_UX_REPORT.md
+    - scripts/verify-f8-ui-ux.py
+  allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
-  allowPlatformChanges: true
+  allowPlatformChanges: false
   allowArchitectureChanges: false
   allowVisualBaselineChanges: false
   allowBreakingContractChanges: false
@@ -33,36 +54,62 @@ scope:
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-WORKSPACE-OVERRIDES
-    statement: The four ENGINEERING_PLATFORM UI workspace overrides exactly match the corresponding 0.2.0 artifacts declared in .platform/runtime.lock.yaml and pnpm-lock.yaml.
-  - id: AC-F8-HYGIENE-ONLY
-    statement: The repair changes only pnpm-workspace.yaml and this task contract; no runtime, artifact, lockfile, maturity, trust-root, or product behavior changes.
+  - id: AC-F8-ONE-DESIGN-SYSTEM
+    statement: TAYMEX pages use locked platform tokens, components, patterns and AppShell without local primitive forks, copied component catalogs, raw design colors, or fallback design values.
+  - id: AC-F8-THEME
+    statement: A single governed TAYMEX theme profile defines approved semantic brand mapping, typography, radii and shell sizing and generates the committed theme CSS deterministically from the locked design-token artifact.
+  - id: AC-F8-I18N
+    statement: AR, TR and EN routes drive the document lang and dir, preserve locale in navigation, and expose representative number, currency, date, unit and mixed-script formatting without silent translation fallback.
+  - id: AC-F8-SHELL
+    statement: Public, customer and admin shell information-architecture rules are explicit; the implemented admin shell reuses the shared responsive AppShell for desktop and mobile rather than maintaining separate navigation truth.
+  - id: AC-F8-USED-PATTERNS
+    statement: The real /{locale}/foundation/ui route exercises the used form states, password, file upload, selection controls, search, table, pagination, tabs, modal, toast, alert, skeleton and empty-state contracts from the locked platform artifacts.
+  - id: AC-F8-VERIFICATION-MANIFEST
+    statement: Representative AR/TR/EN, light/dark and mobile/tablet/desktop browser scenarios are declared with direction, accessibility smoke, visual and minimum touch-target checks without an exhaustive combinatorial matrix.
+  - id: AC-F8-HONEST-MATURITY
+    statement: Relevant F8 capabilities advance only to IMPLEMENTED; PROVEN and F8 closure remain blocked until exact-SHA Node 24 and real Chromium runtime evidence is returned and reviewed.
 assumptions:
-  - statement: The F8 UI 0.2.0 runtime artifacts and pnpm-lock.yaml entries were already adopted and trust-verified in the base revision.
+  - statement: The locked 0.2.0 platform UI line and governance 0.1.4 were adopted and trust-verified by the immediately preceding platform transport commit.
     status: verified
     evidence: .platform/runtime.lock.yaml
+  - statement: The current project has no approved independent marketing brand palette beyond the accessible semantic mapping recorded in the governed F8 theme profile, so no additional ungoverned colors are invented in application CSS.
+    status: verified
+    evidence: blueprints/theme-profiles/taymex.yaml
 obligations:
   securityDelta: not-applicable
-  performance: not-applicable
-  ui: not-applicable
-  responsive: not-applicable
-  accessibility: not-applicable
+  performance: standard
+  ui: standard
+  responsive: required
+  accessibility: required
   concurrency: not-applicable
   idempotency: not-applicable
 functional:
   invariants:
-    - pnpm-workspace.yaml and runtime.lock.yaml identify the same UI artifact versions.
-    - No production or platform-control source changes are permitted by this repair.
+    - UI behavior and visual tokens are consumed from one platform artifact line; TAYMEX owns composition and project theme/profile only.
+    - Shared control states are not reimplemented with native feature-local inputs when an approved platform component exists.
+    - Locale routing controls document direction and formatting; direction is not hard-coded globally.
+    - Primary actions remain discoverable without hover and motion is non-essential and compatible with reduced-motion behavior.
+    - Browser proof uses a representative risk-based matrix rather than an unbounded locale × theme × viewport × state product.
+    - Conditional and deferred patterns are not materialized until a real consumer requires them.
   edgeCases:
-    - one workspace override points to a stale artifact while the lockfiles point to the adopted version
+    - direct request to a non-locale route must use the declared default locale rather than trusting an inbound custom header
+    - Arabic mixed-script values contain Latin product/unit tokens while the document remains RTL
+    - mobile navigation opens as a modal focus scope while desktop navigation remains visible
+    - dark theme changes semantic tokens without introducing local raw colors
+    - long localized labels must not create horizontal viewport overflow
   failureModes:
-    - accepting a split package-manager source of truth for the same locked runtime artifact
+    - creating component-v2 or local native-form forks
+    - reintroducing a copied component catalog as a second source of truth
+    - hard-coding lang, dir, raw colors, z-index, shadows or spacing in product composition
+    - marking F8 PROVEN based only on static verification
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
   - DEP-001
-  - PLT-001
   - RISK-001
   - TRUST-001
+  - UI-001
+  - UI-002
+  - UI-011

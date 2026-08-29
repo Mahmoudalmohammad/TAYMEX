@@ -4,12 +4,15 @@ import { AppShell } from '@engineering-platform/app-shell';
 import type { TaymexLocale } from '../i18n/locales';
 import { messages } from '../i18n/messages';
 
-export function AdminShell({ locale, children }: { locale: TaymexLocale; children: ReactNode }) {
+export function AdminShell({ locale, children, current='products' }: { locale: TaymexLocale; children: ReactNode; current?:'products'|'ui-foundation' }) {
   const t=messages[locale];
   return <AppShell
     brand={<strong>TAYMEX</strong>}
-    navigation={[{id:'administration',label:t.administration,items:[{id:'products',label:t.products,href:`/${locale}/admin/products`,current:true}]}]}
-    header={{context:<span>{t.administration}</span>}}
+    navigation={[
+      {id:'administration',label:t.administration,items:[{id:'products',label:t.products,href:`/${locale}/admin/products`,current:current==='products'}]},
+      {id:'foundation',label:t.foundationUi,items:[{id:'ui-foundation',label:t.foundationUi,href:`/${locale}/foundation/ui`,current:current==='ui-foundation'}]},
+    ]}
+    header={{context:<span>{current==='ui-foundation'?t.foundationUi:t.administration}</span>}}
     labels={{skipToContent:t.skip,primaryNavigation:t.navigation,mobileNavigation:t.mobileNavigation,openNavigation:t.open,closeNavigation:t.close,collapseNavigation:t.collapse,expandNavigation:t.expand}}
     footer={<small>TAYMEX</small>}
   >{children}</AppShell>;

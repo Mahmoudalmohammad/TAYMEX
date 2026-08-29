@@ -359,7 +359,7 @@ capabilities:
   - id: localization.i18n-bidi-formatting
     area: localization
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: IMPLEMENTED
     exitMaturity: PROVEN
     owner: experience
     purpose: AR/TR/EN routing, RTL/LTR, translation policy, bidi, time/number/currency/unit formatting.
@@ -370,23 +370,27 @@ capabilities:
       - apps/web/src/i18n/locales.generated.ts
       - apps/web/src/i18n/locales.ts
       - apps/web/src/i18n/messages.ts
+      - apps/web/src/i18n/ui-reference-messages.ts
+      - apps/web/src/i18n/formatting.ts
+      - apps/web/proxy.ts
       - packages/foundation/src/localization.ts
       - packages/foundation/tests/foundation.test.mjs
     remaining:
-      - Prove missing translation behavior, mixed-script cases, and locale-aware formatting in the real UI path during the UI/UX foundation stage.
+      - Prove document language/direction, mixed-script handling, and locale-aware number/currency/date/unit formatting in the exact-SHA browser runtime.
 
   - id: ui.design-tokens-theme-typography
     area: experience
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: IMPLEMENTED
     exitMaturity: PROVEN
     owner: experience
     purpose: Approved semantic theme, typography, spacing/density, radii/elevation, icons, and brand mapping.
     evidence:
       - .platform/runtime.lock.yaml
+      - blueprints/theme-profiles/taymex.yaml
+      - apps/web/app/taymex-theme.generated.css
     remaining:
-      - Finalize TAYMEX brand semantic mapping and typography profile.
-      - Prove actual production UI build against platform artifacts.
+      - Prove light/dark theme application and actual production UI build against the locked platform artifacts in the exact-SHA browser runtime.
 
   - id: ui.shell-navigation
     area: experience
@@ -397,21 +401,25 @@ capabilities:
     purpose: Responsive accessible application shell mechanisms and product-specific navigation composition rules.
     evidence:
       - apps/web/src/components/admin-shell.tsx
+      - blueprints/experience/navigation.manifest.yaml
+      - apps/web/proxy.ts
     remaining:
-      - Finalize admin/public/customer shell information architecture required for the first release.
-      - Prove mobile and RTL behavior in TAYMEX runtime.
+      - Prove desktop collapse, mobile modal navigation, keyboard focus behavior, and RTL/LTR shell behavior in the exact-SHA browser runtime.
 
   - id: ui.components-patterns-states
     area: experience
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: IMPLEMENTED
     exitMaturity: PROVEN
     owner: experience
     purpose: Shared forms, tables, dialogs, feedback, page states, filters, and composable CRUD patterns.
     evidence:
       - .platform/runtime.lock.yaml
+      - apps/web/app/[locale]/foundation/ui/page.tsx
+      - apps/web/src/components/f8-reference-surface.tsx
+      - apps/web/ui.verification.yaml
     remaining:
-      - Prove the used component/pattern set in actual TAYMEX pages with Storybook/browser evidence.
+      - Prove the used component/pattern states on the real TAYMEX reference route with exact-SHA browser evidence.
 
   - id: ui.responsive-rtl-accessibility-visual
     area: experience
@@ -420,9 +428,12 @@ capabilities:
     exitMaturity: PROVEN
     owner: experience
     purpose: Mobile-first, RTL/LTR, keyboard/touch accessibility, axe and governed visual regression.
-    evidence: []
+    evidence:
+      - apps/web/ui.verification.yaml
+      - scripts/verify-f8-ui-ux.py
+      - docs/FOUNDATION_F8_UI_UX_REPORT.md
     remaining:
-      - Wire affected-page verification to actual TAYMEX routes and approved baselines.
+      - Produce exact-SHA Chromium evidence for representative mobile/tablet/desktop, AR RTL plus TR/EN LTR, light/dark, keyboard/focus/accessibility smoke, reduced motion, overflow, and screenshots before F8 closure.
 
   - id: files.media-storage
     area: application-services

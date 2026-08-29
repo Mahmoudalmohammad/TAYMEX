@@ -1,0 +1,60 @@
+id: taymex.f8-ui-foundation
+sourcePatterns:
+  - apps/web/app/**
+  - apps/web/src/components/**
+  - apps/web/src/i18n/**
+  - blueprints/theme-profiles/taymex.yaml
+target:
+  kind: url
+  url: http://127.0.0.1:3000/ar/foundation/ui
+  server:
+    command: pnpm --filter @taymex/web exec next start -p 3000
+    cwd: .
+    readyUrl: http://127.0.0.1:3000/ar/foundation/ui
+    timeoutSeconds: 90
+scenarios:
+  locales:
+    - {id: ar, locale: ar-SY, dir: rtl}
+    - {id: tr, locale: tr-TR, dir: ltr}
+    - {id: en, locale: en-US, dir: ltr}
+  themes: [light, dark]
+  viewports:
+    - {width: 390, height: 844}
+    - {width: 768, height: 900}
+    - {width: 1440, height: 1000}
+  matrix: representative
+checks:
+  responsive: true
+  direction: true
+  accessibilitySmoke: true
+  axe: false
+  visual: true
+  visualThreshold: 0.0015
+  requireOneH1: true
+  requireMain: true
+  minTouchTarget: 44
+interactions:
+  - name: theme toggle
+    action: click
+    selector: '[data-f8-theme="dark"]'
+    expect:
+      selector: html
+      attribute: data-theme
+      notEqualBefore: true
+  - name: desktop sidebar collapse
+    action: click
+    selector: '[data-shell-collapse-trigger]'
+    expect:
+      selector: '[data-ep-shell="app"]'
+      attribute: data-sidebar-collapsed
+      notEqualBefore: true
+    minWidth: 768
+  - name: mobile drawer
+    action: click
+    selector: '[data-shell-mobile-trigger]'
+    expect:
+      selector: '[data-shell-mobile-modal]'
+      visible: true
+    maxWidth: 767
+baselineDirectory: docs/evidence/f8-visual-baselines
+artifactDirectory: .governance/evidence/f8-browser
