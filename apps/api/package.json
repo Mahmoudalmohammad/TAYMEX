@@ -6,7 +6,9 @@
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "test:http": "node --test tests/f5-http.integration.test.mjs",
+    "test:http-primitives": "node --test tests/f5-http-primitives.test.mjs"
   },
   "dependencies": {
     "@nestjs/common": "11.2.3",

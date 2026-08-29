@@ -1,15 +1,21 @@
-import { Controller, Get } from '@nestjs/common';
-import { apiHealthReporter } from './health-runtime.js';
+import { Controller, Get, Inject } from '@nestjs/common';
+import { apiOperations } from '../../generated/api-contracts.generated.js';
+import { ApiPolicy } from '../../platform/http-policy.js';
+import { API_RUNTIME, type ApiRuntime } from '../../platform/runtime.js';
 
-@Controller('health')
+@Controller()
 export class HealthController {
-  @Get()
+  constructor(@Inject(API_RUNTIME) private readonly runtime: ApiRuntime) {}
+
+  @Get(apiOperations.healthLiveness.nestPath)
+  @ApiPolicy(apiOperations.healthLiveness)
   getHealth() {
-    return apiHealthReporter.liveness();
+    return this.runtime.health.liveness();
   }
 
-  @Get('ready')
-  async getReadiness() {
-    return apiHealthReporter.readiness();
+  @Get(apiOperations.healthReadiness.nestPath)
+  @ApiPolicy(apiOperations.healthReadiness)
+  getReadiness() {
+    return this.runtime.health.readiness();
   }
 }

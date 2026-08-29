@@ -1,0 +1,10 @@
+id: api.openapi.taymex.v1
+owner: api-foundation
+audience: internal
+stability: experimental
+version: 0.1.0
+source: contracts/openapi/taymex-v1/source.openapi.yaml
+openapi: contracts/openapi/taymex-v1/openapi.generated.yaml
+operationalOpenApi: 3.1.0
+consumers: []
+securityProfile: high-assurance

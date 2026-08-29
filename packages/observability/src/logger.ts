@@ -87,3 +87,18 @@ function requireEvent(value: string): string {
   if (!/^[a-z][a-z0-9.-]+$/u.test(event)) throw new TypeError('Log event must be a canonical lowercase code.');
   return event;
 }
+
+/**
+ * Line-delimited JSON sink for the API process. Delivery/collection durability is an F9 concern;
+ * F5 guarantees only structured, redacted process output.
+ */
+export class ConsoleJsonLogSink implements LogSink {
+  constructor(private readonly writeLine: (line: string) => void = (line) => process.stdout.write(`${line}\n`)) {}
+
+  async write(record: LogRecord): Promise<void> {
+    this.writeLine(JSON.stringify({
+      ...record,
+      timestamp: record.timestamp.toISOString(),
+    }));
+  }
+}

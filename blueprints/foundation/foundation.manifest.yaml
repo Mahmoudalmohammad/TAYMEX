@@ -40,20 +40,25 @@ capabilities:
       - blueprints/project-profiles/taymex.yaml
       - apps/api/src/app.module.ts
       - apps/web/app/layout.tsx
+      - apps/api/src/application.ts
+      - apps/api/src/platform/runtime.ts
     remaining:
       - Prove install/build/start under the approved Node and package runtime.
 
   - id: architecture.repository-truth
     area: architecture
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: engineering-foundation
     purpose: Machine discovery of modules, symbols, settings, permissions, contracts, and persisted models used by tasks.
     evidence:
       - .governance/repository-truth.json
-    remaining:
-      - Prove API and PostgreSQL schema truth once those sources exist.
+      - contracts/openapi/taymex-v1/api.contract.yaml
+      - contracts/openapi/taymex-v1/openapi.generated.yaml
+      - packages/data-postgres/src/schema.ts
+      - scripts/verify-f0-f4-foundation.py
+    remaining: []
 
   - id: core.errors-validation
     area: application-kernel
@@ -125,15 +130,17 @@ capabilities:
       - packages/identity/src/throttle.ts
       - packages/identity/tests/identity.test.mjs
       - packages/identity/src/persistence/schema.ts
-      - docs/evidence/F4_POSTGRESQL18_PROOF.md
       - packages/identity/src/persistence/postgres-identity-repository.ts
       - packages/data-postgres/migrations/0001_foundation.sql
       - tooling/registry/events.registry.yaml
+      - apps/api/src/platform/runtime.ts
+      - apps/api/src/platform/http-security.guard.ts
+      - apps/api/src/platform/session-cookie.ts
+      - apps/api/tests/f5-http.integration.test.mjs
       - docs/evidence/F4_POSTGRESQL18_PROOF.md
     remaining:
-      - Prove secure browser cookie/token transport and IP/network abuse controls on real HTTP routes in F5.
-      - Compose the F3 identity security audit/log sinks into the real API identity runtime when HTTP composition is introduced in F5; durable audit persistence is proved in F4.
-      - Add a concrete MFA/step-up verifier only when an enabled product flow requires AAL2 elevation; the AAL2 policy boundary is already implemented.
+      - Prove secure browser cookie/session transport and negative authentication behavior on the real F5 HTTP runtime under Node 24 and PostgreSQL 18.
+      - Add a concrete MFA/step-up verifier only when an enabled product flow requires AAL2 elevation; the AAL2 policy boundary is implemented and F5 proves its route enforcement.
 
   - id: authorization.permissions-policies
     area: identity-security
@@ -153,9 +160,11 @@ capabilities:
       - apps/api/src/modules/catalog/tests/catalog-products-authorization.test.ts
       - packages/identity/src/persistence/postgres-role-access-store.ts
       - packages/identity/src/persistence/schema.ts
+      - apps/api/src/platform/http-security.guard.ts
+      - apps/api/src/generated/api-contracts.generated.ts
+      - apps/api/tests/f5-http.integration.test.mjs
     remaining:
-      - Prove authenticated HTTP actor construction plus positive/negative route denial behavior in F5.
-      - Prove the HTTP role/permission administration path in F5.
+      - Prove authenticated HTTP actor construction plus positive/negative permission and AAL2 route behavior on the real F5 HTTP runtime.
 
   - id: settings.effective-runtime
     area: settings
@@ -175,8 +184,10 @@ capabilities:
       - packages/data-postgres/migrations/0001_foundation.sql
       - apps/api/src/modules/catalog/tests/catalog-products-settings.test.ts
       - docs/evidence/F4_POSTGRESQL18_PROOF.md
+      - apps/api/src/platform/routes/settings-admin.controller.ts
+      - apps/api/tests/f5-http.integration.test.mjs
     remaining:
-      - Bind the privileged administration contract to authenticated HTTP transport and negative route tests in F5.
+      - Prove the privileged settings administration transport and negative route behavior on the real F5 HTTP runtime.
 
   - id: audit.core
     area: audit-observability
@@ -195,8 +206,11 @@ capabilities:
       - packages/audit/tests/audit.test.mjs
       - packages/data-postgres/migrations/0001_foundation.sql
       - tooling/registry/permissions.registry.yaml
+      - apps/api/src/platform/runtime.ts
+      - apps/api/src/platform/routes/audit-admin.controller.ts
+      - apps/api/tests/f5-http.integration.test.mjs
     remaining:
-      - Compose identity, role, settings, and later domain audit producers into the real API runtime and prove privileged audit-query transport in F5.
+      - Prove identity/settings audit production through the real HTTP composition and privileged audit-query transport in F5.
 
   - id: observability.logging-tracing-health
     area: audit-observability
@@ -211,12 +225,15 @@ capabilities:
       - packages/observability/src/health.ts
       - packages/observability/src/memory-log-sink.ts
       - packages/observability/tests/observability.test.mjs
-      - apps/api/src/modules/health/health-runtime.ts
       - apps/api/src/modules/health/health.controller.ts
       - packages/data-postgres/src/readiness.ts
       - docs/evidence/F4_POSTGRESQL18_PROOF.md
+      - apps/api/src/platform/runtime.ts
+      - apps/api/src/platform/http-logging.interceptor.ts
+      - apps/api/src/platform/http-exception.filter.ts
+      - apps/api/src/platform/response-security.ts
     remaining:
-      - Wire request correlation and structured request/error logging at the HTTP boundary in F5.
+      - Prove request correlation and structured request/error logging on the real F5 HTTP runtime.
       - Prove the selected production log/metrics delivery and deployment diagnostics path in F9.
 
   - id: data.postgresql-runtime
@@ -230,9 +247,9 @@ capabilities:
       - packages/data-postgres/src/node-pg.ts
       - packages/data-postgres/src/database.ts
       - packages/data-postgres/src/readiness.ts
-      - apps/api/src/modules/health/health-runtime.ts
       - packages/data-postgres/tests/postgres18.integration.test.mjs
       - docs/evidence/F4_POSTGRESQL18_PROOF.md
+      - apps/api/src/platform/runtime.ts
     remaining: []
 
   - id: data.migrations-integrity
@@ -275,35 +292,56 @@ capabilities:
   - id: api.contracts
     area: api
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: INTEGRATED
     exitMaturity: PROVEN
     owner: api-foundation
     purpose: TypeSpec/OpenAPI source, generated consumers, compatibility checks, pagination, errors, auth and correlation boundaries.
-    evidence: []
+    evidence:
+      - contracts/openapi/taymex-v1/source.openapi.yaml
+      - contracts/openapi/taymex-v1/openapi.generated.yaml
+      - contracts/openapi/taymex-v1/api.contract.yaml
+      - scripts/generate-api-contract-bindings.py
+      - apps/api/src/generated/api-contracts.generated.ts
+      - apps/api/src/platform/routes
+      - scripts/verify-f5-api-security.py
     remaining:
-      - Implement first real API contract generation and consumer integration.
+      - Prove install/build/start and generated contract consumption on the approved Node 24/pnpm runtime.
+      - Run the real PostgreSQL-backed HTTP integration proof and confirm route/method/status/security behavior end-to-end.
 
   - id: security.application-baseline
     area: security
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: INTEGRATED
     exitMaturity: PROVEN
     owner: security
     purpose: Central web/API security controls, abuse limits, secure headers, secrets/dependency checks, and negative testing.
-    evidence: []
+    evidence:
+      - apps/api/src/application.ts
+      - apps/api/src/platform/http-security.guard.ts
+      - apps/api/src/platform/http-exception.filter.ts
+      - apps/api/src/platform/response-security.ts
+      - apps/api/src/platform/session-cookie.ts
+      - apps/api/src/platform/process-rate-limiter.ts
+      - apps/api/tests/f5-http.integration.test.mjs
+      - scripts/verify-f5-api-security.py
     remaining:
-      - Implement and prove baseline controls on real routes.
+      - Prove the negative HTTP security matrix on the real Node 24/PostgreSQL 18 runtime.
+      - Run the dependency advisory scan against the current registry/advisory database and resolve any high-or-higher findings before F5 closure.
+      - Production multi-instance/edge abuse protection remains an F9 deployment concern; F5 only claims bounded per-process application protection.
 
   - id: security.data-classification
     area: security
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: INTEGRATED
     exitMaturity: INTEGRATED
     owner: security
     purpose: Data classification, redaction, access/audit expectations, encryption triggers, retention ownership.
-    evidence: []
-    remaining:
-      - Define machine-consumable classification convention and apply to first sensitive data model.
+    evidence:
+      - contracts/openapi/taymex-v1/source.openapi.yaml
+      - apps/api/src/generated/api-contracts.generated.ts
+      - apps/api/src/platform/module.manifest.yaml
+      - scripts/verify-f5-api-security.py
+    remaining: []
 
   - id: performance.query-runtime
     area: performance

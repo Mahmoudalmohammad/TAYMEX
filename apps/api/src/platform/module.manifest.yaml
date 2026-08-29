@@ -1,0 +1,60 @@
+id: api-foundation
+layer: foundation
+owner: api-foundation
+sourceRoots:
+  - apps/api/src/platform
+tags:
+  - layer:foundation
+  - foundation:api
+  - security:http-boundary
+  - api:openapi
+dependencies:
+  allowedModules:
+    - application-foundation
+    - identity
+    - data-postgres
+    - settings-runtime
+    - audit
+    - observability
+  allowedTags:
+    - layer:foundation
+data:
+  owns: []
+  readsViaContracts: []
+  classification: sensitive
+  adapter: none
+  schemaRoots: []
+settings:
+  defines: []
+  consumes: []
+permissions:
+  defines: []
+  consumes:
+    - identity.roles.manage
+    - settings.values.manage
+    - audit.records.read
+events:
+  emits: []
+  consumes: []
+contracts:
+  owns:
+    - api.openapi.taymex.v1
+  consumes: []
+api:
+  internalOnly: false
+securityTags:
+  - secure-cookie
+  - authentication
+  - authorization
+  - aal2
+  - correlation
+  - safe-errors
+  - security-headers
+  - cors
+  - rate-limit
+  - data-classification
+performanceTags:
+  - bounded-request-body
+  - bounded-rate-limiter
+extensionModes:
+  - USE
