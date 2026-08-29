@@ -1,116 +1,72 @@
-id: FOUNDATION-F5-001
-title: Implement F5 API and security boundary
-mode: feature
+id: FOUNDATION-F5-CLOSURE-002
+title: Close F5 from real Node 24, PostgreSQL 18, and HTTP security proof
+mode: fix
 risk: R3
-objective: Implement the first real TAYMEX HTTP boundary on the approved NestJS/Fastify runtime using one canonical OpenAPI
-  contract source, generated contract bindings, real PostgreSQL-backed identity/settings/audit composition, authenticated
-  actor construction, centralized authorization and AAL enforcement, canonical safe error transport, correlation-aware structured
-  request/error logging, bounded input controls, explicit security headers/CORS policy, API abuse protection, and negative
-  HTTP tests without expanding product functionality or weakening F0-F4 guarantees.
-baseRevision: ce0af30434b47c1fa6efe495a4bff62246db9297
+objective: >-
+  Close F5 from the externally executed canonical runtime proof at TAYMEX revision 36602be3b40314f2b7aee8265b5fce13663a3d90, record the real Node 24/pnpm 11/PostgreSQL 18 HTTP evidence, promote only the architecture/API/identity/authorization/settings/audit/observability/security capabilities actually proven by that evidence, keep later performance/UI/operations/remote-merge obligations visible, make stage-regression verifiers compatible with lawful progression beyond F5, and advance the foundation sequence to F6 without modifying the proven runtime implementation or weakening trust-root controls.
+baseRevision: 36602be3b40314f2b7aee8265b5fce13663a3d90
 modules:
-- identity
-- settings-runtime
-- audit
-- observability
-- data-postgres
-- api-foundation
+  - application-foundation
+  - api-foundation
+  - identity
+  - settings-runtime
+  - audit
+  - observability
 scope:
   allowedPaths:
-  - .governance/task.yaml
-  - .governance/repository-truth.json
-  - apps/api/**
-  - packages/identity/**
-  - packages/audit/**
-  - packages/settings-runtime/**
-  - packages/observability/**
-  - packages/data-postgres/**
-  - contracts/openapi/**
-  - scripts/generate-api-contract-bindings.py
-  - scripts/verify-f5-api-security.py
-  - package.json
-  - pnpm-lock.yaml
-  - blueprints/foundation/foundation.manifest.yaml
-  - docs/FOUNDATION_F5_API_SECURITY_REPORT.md
-  - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    - .governance/task.yaml
+    - blueprints/foundation/foundation.manifest.yaml
+    - docs/FOUNDATION_F5_API_SECURITY_REPORT.md
+    - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    - scripts/verify-f5-api-security.py
+    - scripts/verify-f0-f4-foundation.py
   forbiddenPaths:
-  - .github/**
-  - tooling/governance.config.yaml
-  - tooling/policies/**
-  - tooling/schemas/**
-  - tooling/trust-root/**
-  - tooling/registry/**
-  - .platform/**
-  - apps/web/**
-  - apps/api/src/modules/catalog/domain/**
-  - apps/api/src/modules/catalog/application/**
-  allowNewFiles: true
-  allowedNewFiles:
-  - apps/api/tests/**
-  - apps/api/src/platform/**
-  - apps/api/src/generated/api-contracts.generated.ts
-  - apps/api/src/application.ts
-  - scripts/generate-api-contract-bindings.py
-  - scripts/verify-f5-api-security.py
-  - docs/FOUNDATION_F5_API_SECURITY_REPORT.md
-  - docs/evidence/F5_HTTP_SECURITY_PROOF.md
-  - contracts/openapi/taymex-v1/source.openapi.yaml
-  - contracts/openapi/taymex-v1/openapi.generated.yaml
-  - contracts/openapi/taymex-v1/api.contract.yaml
+    - .github/**
+    - tooling/governance.config.yaml
+    - tooling/policies/**
+    - tooling/schemas/**
+    - tooling/trust-root/**
+    - tooling/registry/**
+    - .platform/**
+    - apps/**
+    - packages/**
+    - contracts/**
+  allowNewFiles: false
   allowDependencies: false
   allowMigrations: false
-  allowPublicContractChanges: true
+  allowPublicContractChanges: false
   allowPlatformChanges: false
-  allowArchitectureChanges: true
+  allowArchitectureChanges: false
   allowVisualBaselineChanges: false
   allowBreakingContractChanges: false
   allowDestructiveMigrations: false
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-- id: AC-F5-CONTRACT
-  statement: One canonical OpenAPI 3.1 authoring source generates the stamped operational OpenAPI and TypeScript bindings;
-    source/output staleness and implemented route/method/status truth are verified.
-- id: AC-F5-COMPOSITION
-  statement: HTTP identity, roles, settings and audit routes use the real PostgreSQL-backed F2-F4 services through one application
-    composition root with no production memory-store fallback.
-- id: AC-F5-AUTHN
-  statement: Session authentication uses a secure HttpOnly cookie transport, constructs the canonical ActorContext, rejects
-    missing/invalid/revoked sessions, and never logs or returns session secrets.
-- id: AC-F5-AUTHZ
-  statement: Privileged routes enforce canonical generated permissions and required AAL at the shared HTTP authorization boundary
-    with positive and negative tests.
-- id: AC-F5-ERRORS
-  statement: Validation, authentication, authorization, conflict, not-found and unexpected failures map through one safe machine-readable
-    error envelope carrying the request correlation ID without leaking internal exception details.
-- id: AC-F5-CORRELATION
-  statement: Every request receives a valid correlation ID, response propagation and structured request/error logs use the
-    same ID, and malformed caller IDs are replaced rather than trusted.
-- id: AC-F5-SECURITY
-  statement: Security headers, explicit CORS policy, body-size/content-type controls, bounded API rate limiting and anti-cache
-    rules for sensitive responses are centralized and covered by negative HTTP tests.
-- id: AC-F5-DATA
-  statement: A machine-consumable data classification convention is attached to the sensitive HTTP identity/session surface
-    and the security verifier rejects unclassified F5 sensitive routes.
-- id: AC-F5-GOVERNANCE
-  statement: F5 build/tests, generated contract check, structural verifier, repository truth, project profile, consumer boundary,
-    task governance and trust-root verification pass on the committed final diff.
+  - id: AC-F5-CLOSURE-RUNTIME
+    statement: The evidence records a clean Node 24/pnpm 11 build and actual NestJS/Fastify process smoke on the exact proven runtime revision.
+  - id: AC-F5-CLOSURE-HTTP
+    statement: A PostgreSQL 18.6-backed HTTP integration run proves real authentication/session handling, permission denial, AAL1 denial, AAL2 success, settings, audit, errors, security controls, rate limiting, correlation, and readiness with zero skipped tests.
+  - id: AC-F5-CLOSURE-CONTRACT
+    statement: Canonical OpenAPI authoring, generated operational OpenAPI/TypeScript bindings, and Nest route placeholder generation remain structurally verified and are not replaced by controller-local contract truth.
+  - id: AC-F5-CLOSURE-SECURITY
+    statement: The real dependency advisory run has no high-or-higher known vulnerability findings, safe error transport does not leak internal messages/stacks, and F5 does not claim distributed edge protection or production delivery concerns owned by F9.
+  - id: AC-F5-CLOSURE-MATURITY
+    statement: Only F5 capabilities supported by real consumer proof are promoted to PROVEN; security.data-classification remains at its satisfied INTEGRATED exit maturity and F6-F10 capabilities are not promoted by implication.
+  - id: AC-F5-CLOSURE-REGRESSION
+    statement: F0-F4 regression verification remains valid after lawful stage progression to F6 and requires F5 proof before accepting F5-dependent PROVEN maturity.
+  - id: AC-F5-CLOSURE-GOVERNANCE
+    statement: The closure-only final diff contains no runtime code, dependency, migration, platform, trust-root, or public-contract change and passes task governance, trust-root, consumer-boundary, handoff, and structural verification.
 assumptions:
-- statement: PostgreSQL 18 persistence and transaction guarantees from F4 are the canonical durable stores used by the F5
-    composition root.
-  status: verified
-  evidence: docs/evidence/F4_POSTGRESQL18_PROOF.md
-- statement: NestJS 11 with Fastify is the approved API runtime topology for this foundation line.
-  status: verified
-  evidence: blueprints/project-profiles/taymex.yaml
-- statement: F5 may expose only bounded foundation/security routes needed to prove composition; broad Catalog/Products API
-    construction remains frozen.
-  status: verified
-  evidence: blueprints/foundation/foundation.manifest.yaml
-- statement: F5 introduces the pre-approved api-foundation module manifest needed to own the canonical HTTP/OpenAPI boundary;
-    this is implementation of the F5 blueprint, not product-domain redesign.
-  status: verified
-  evidence: blueprints/foundation/FOUNDATION_BLUEPRINT.md
+  - statement: The operator executed the F5 HTTP integration harness against PostgreSQL 18.6 on canonical TAYMEX revision 36602be3b40314f2b7aee8265b5fce13663a3d90 with one pass, zero fail, and zero skip.
+    status: verified
+    evidence: docs/evidence/F5_HTTP_SECURITY_PROOF.md
+  - statement: The operator executed frozen-lockfile install/build/tests, dependency audit, actual API start smoke, task governance, trust-root verification, and handoff verification on the same runtime revision.
+    status: verified
+    evidence: docs/evidence/F5_HTTP_SECURITY_PROOF.md
+  - statement: The accompanying ENGINEERING_PLATFORM source revision remains c3d865ee97f33c7d0247e00fdd02e0c771ea6f98.
+    status: verified
+    evidence: docs/evidence/F5_HTTP_SECURITY_PROOF.md
 obligations:
   securityDelta: completed
   performance: standard
@@ -121,39 +77,29 @@ obligations:
   idempotency: tested
 functional:
   invariants:
-  - No HTTP controller may construct its own identity, authorization, settings, audit or observability implementation.
-  - Session secrets are transported only by the canonical secure cookie mechanism and are never persisted or emitted in plaintext
-    logs/audit records.
-  - Authorization denial is fail-closed; absence of actor, permission or required assurance never falls through to the handler.
-  - OpenAPI/generated contract truth must fail when routes drift rather than becoming descriptive documentation.
-  - F5 does not modify F4 migrations or weaken exact optimistic version transitions.
+    - Stage closure is based on real runtime evidence tied to an exact committed implementation revision, not on documentation or structural checks alone.
+    - The F5 closure commit does not modify the runtime implementation proven at 36602be3b40314f2b7aee8265b5fce13663a3d90.
+    - F5 proof does not imply production merge authority, distributed edge abuse protection, production observability delivery, UI/browser proof, performance proof, or side-effect delivery proof.
+    - Products remain frozen until the complete Foundation Readiness Gate passes.
   statesAndTransitions:
-  - unauthenticated request -> authenticated ActorContext only after canonical session validation.
-  - authenticated AAL1 actor -> privileged handler only when permission and assurance requirements are satisfied.
-  - F5 current -> F6 only after real HTTP positive/negative proof and governance pass.
+    - F5 current and runtime proof pending -> F5 closed and currentStage F6 only after the exact runtime evidence is recorded and closure governance passes.
   edgeCases:
-  - malformed or oversized correlation ID
-  - missing, malformed, expired or revoked session cookie
-  - credential stuffing against sign-in route
-  - CORS request from disallowed origin
-  - oversized JSON body or unsupported content type
-  - privileged actor has permission but insufficient AAL
-  - sensitive route accidentally cacheable
-  - internal exception contains database or secret detail
+    - a platform authorization error does not inherit the application error hierarchy
+    - OpenAPI path parameters use braces while Nest route parameters use colon syntax
+    - PostgreSQL joined scope columns are ambiguous unless qualified
+    - a later-stage verifier reinterprets lawful maturity progression as an F4 regression
   failureModes:
-  - duplicating authorization checks inside individual controllers
-  - trusting X-Forwarded-For without an explicit proxy policy
-  - using wildcard CORS with credential cookies
-  - exposing raw exception messages or stack traces
-  - using in-memory authentication throttling as a multi-instance production guarantee
+    - promoting capabilities not exercised by the F5 runtime proof
+    - claiming runtime tests ran on the closure metadata commit rather than the exact tested implementation revision
+    - weakening governance or tests to transform a runtime failure into PASS
 requiredGates:
-- TASK-001
-- BASE-001
-- SCP-001
-- SCP-002
-- DEP-001
-- PLT-001
-- RISK-001
-- TRUST-001
-- MODEL-001
-- DATA-001
+  - TASK-001
+  - BASE-001
+  - SCP-001
+  - SCP-002
+  - DEP-001
+  - PLT-001
+  - RISK-001
+  - TRUST-001
+  - MODEL-001
+  - DATA-001

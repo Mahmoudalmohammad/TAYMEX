@@ -490,14 +490,17 @@ def check_artifact_bootstrap_and_toolchain() -> None:
 
 def check_maturity_integrity() -> None:
     path = ROOT / "blueprints/foundation/foundation.manifest.yaml"
-    proof_path = ROOT / "docs/evidence/F4_POSTGRESQL18_PROOF.md"
+    f4_proof_path = ROOT / "docs/evidence/F4_POSTGRESQL18_PROOF.md"
+    f5_proof_path = ROOT / "docs/evidence/F5_HTTP_SECURITY_PROOF.md"
     manifest = yaml.safe_load(read(path))
     foundation = manifest.get("foundation") or {}
-    if foundation.get("currentStage") != "F5":
-        fail(f"Foundation currentStage must be F5 after accepted PostgreSQL 18 F4 proof; found {foundation.get('currentStage')!r}")
+    current_stage = foundation.get("currentStage")
+    lawful_post_f4_stages = {"F5", "F6", "F7", "F8", "F9", "F10"}
+    if current_stage not in lawful_post_f4_stages:
+        fail(f"Foundation stage regressed before the accepted F4 closure: currentStage={current_stage!r}")
     else:
-        passed("Maturity integrity: F4 is closed and currentStage is F5")
-    if not proof_path.exists():
+        passed(f"Maturity integrity: F4 remains closed while foundation lawfully progresses at {current_stage}")
+    if not f4_proof_path.exists():
         fail("F4 PostgreSQL 18 evidence file is missing")
 
     proven_data = {
@@ -505,29 +508,35 @@ def check_maturity_integrity() -> None:
         "data.migrations-integrity",
         "data.transactions-concurrency-idempotency",
     }
-    later_stage = {
+    f5_dependent = {
         "identity.authentication-sessions",
         "authorization.permissions-policies",
         "settings.effective-runtime",
         "audit.core",
         "observability.logging-tracing-health",
+        "api.contracts",
+        "security.application-baseline",
     }
     capability_by_id = {c.get("id"): c for c in manifest.get("capabilities") or []}
     for cid in proven_data:
         capability = capability_by_id.get(cid) or {}
         if capability.get("currentMaturity") != "PROVEN":
-            fail(f"F4 data capability was not promoted from real PostgreSQL proof: {cid}={capability.get('currentMaturity')!r}")
+            fail(f"F4 data capability was not preserved at PROVEN maturity: {cid}={capability.get('currentMaturity')!r}")
         if capability.get("remaining"):
-            fail(f"F4 data capability still declares unresolved F4 work after proof: {cid}: {capability.get('remaining')}")
+            fail(f"F4 data capability declares unresolved F4 work after proof: {cid}: {capability.get('remaining')}")
     if not any("F4 data capability" in f for f in FAILURES):
-        passed("F4 data maturity: PostgreSQL runtime, migrations/integrity, and transaction/concurrency/idempotency are PROVEN")
+        passed("F4 data maturity remains PROVEN with no reopened F4 work")
 
-    for cid in later_stage:
-        capability = capability_by_id.get(cid) or {}
-        if capability.get("currentMaturity") in {"PROVEN", "PRODUCTION_PROVEN"}:
-            fail(f"Later-stage capability was prematurely promoted by F4 closure: {cid}={capability.get('currentMaturity')}")
-    if not any("prematurely promoted" in f for f in FAILURES):
-        passed("F2/F3 maturity remains honest: HTTP/production proof is not falsely inherited from F4 database proof")
+    promoted_f5 = [cid for cid in f5_dependent if (capability_by_id.get(cid) or {}).get("currentMaturity") in {"PROVEN", "PRODUCTION_PROVEN"}]
+    if promoted_f5:
+        if not f5_proof_path.exists() or "**PROVEN**" not in read(f5_proof_path):
+            fail(f"F5-dependent capabilities are PROVEN without accepted F5 runtime evidence: {sorted(promoted_f5)}")
+        elif current_stage == "F5":
+            fail(f"F5-dependent capabilities are PROVEN while currentStage is still F5: {sorted(promoted_f5)}")
+        else:
+            passed("F2/F3/API/security maturity is backed by separate accepted F5 runtime proof rather than inherited from F4")
+    else:
+        passed("F2/F3/API/security maturity has not been inherited from F4 data proof")
 
 
 def main() -> int:

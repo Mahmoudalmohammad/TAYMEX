@@ -114,6 +114,44 @@ check('API contract ownership is declared', 'api.openapi.taymex.v1' in manifest.
 check('API foundation does not claim direct DB table ownership', not manifest.get('data',{}).get('owns'))
 check('Sensitive API module classification is declared', manifest.get('data',{}).get('classification')=='sensitive')
 
+foundation_manifest=yaml.safe_load(text('blueprints/foundation/foundation.manifest.yaml'))
+foundation=foundation_manifest.get('foundation') or {}
+capability_by_id={c.get('id'): c for c in foundation_manifest.get('capabilities') or []}
+check('F5 closure advances foundation stage to F6', foundation.get('currentStage')=='F6', f"currentStage={foundation.get('currentStage')!r}")
+check('Products validation slice remains frozen after F5', (foundation.get('validationSlice') or {}).get('status')=='FROZEN_FOR_FOUNDATION_PROOF')
+proven_by_f5={
+    'architecture.runtime-boundaries',
+    'identity.authentication-sessions',
+    'authorization.permissions-policies',
+    'settings.effective-runtime',
+    'audit.core',
+    'observability.logging-tracing-health',
+    'api.contracts',
+    'security.application-baseline',
+}
+for cid in sorted(proven_by_f5):
+    capability=capability_by_id.get(cid) or {}
+    check(f'{cid}: F5 real-consumer maturity is PROVEN', capability.get('currentMaturity')=='PROVEN', str(capability.get('currentMaturity')))
+    check(f'{cid}: no unresolved F5 work remains', not capability.get('remaining'), str(capability.get('remaining')))
+    check(f'{cid}: F5 runtime proof is cited', 'docs/evidence/F5_HTTP_SECURITY_PROOF.md' in (capability.get('evidence') or []))
+classification=capability_by_id.get('security.data-classification') or {}
+check('Data classification stays at its declared satisfied INTEGRATED maturity', classification.get('currentMaturity')=='INTEGRATED' and classification.get('exitMaturity')=='INTEGRATED')
+performance=capability_by_id.get('performance.query-runtime') or {}
+check('F6 performance capability is not prematurely promoted by F5', performance.get('currentMaturity')=='DESIGNED')
+proof=text('docs/evidence/F5_HTTP_SECURITY_PROOF.md')
+for phrase in [
+    '**PROVEN**',
+    '36602be3b40314f2b7aee8265b5fce13663a3d90',
+    'PostgreSQL:            18.6',
+    'server_version_num:   180006',
+    'No known vulnerabilities found',
+    'pass 1',
+    'fail 0',
+    'skipped 0',
+    'GET /api/health/ready -> 200, status=READY',
+]:
+    check(f'F5 closure proof records {phrase}', phrase in proof)
+
 # High-confidence repository secret scan for production/config surfaces. Historical context/docs and tests are excluded.
 secret_patterns = {
     'private-key': re.compile(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'),

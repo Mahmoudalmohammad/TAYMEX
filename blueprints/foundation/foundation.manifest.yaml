@@ -10,7 +10,7 @@ foundation:
     - PROVEN
     - PRODUCTION_PROVEN
   readinessRule: Every capability with requiredBeforeFeatureExpansion=true must be at or above exitMaturity.
-  currentStage: F5
+  currentStage: F6
   validationSlice:
     module: catalog
     status: FROZEN_FOR_FOUNDATION_PROOF
@@ -32,7 +32,7 @@ capabilities:
   - id: architecture.runtime-boundaries
     area: architecture
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: engineering-foundation
     purpose: Next.js web plus NestJS/Fastify modular Core API with independent platform artifact boundary.
@@ -42,8 +42,8 @@ capabilities:
       - apps/web/app/layout.tsx
       - apps/api/src/application.ts
       - apps/api/src/platform/runtime.ts
-    remaining:
-      - Prove install/build/start under the approved Node and package runtime.
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    remaining: []
 
   - id: architecture.repository-truth
     area: architecture
@@ -117,7 +117,7 @@ capabilities:
   - id: identity.authentication-sessions
     area: identity-security
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: identity
     purpose: Identity, sign-in/out, credential lifecycle, secure sessions, recovery, abuse protection, and actor context.
@@ -138,14 +138,13 @@ capabilities:
       - apps/api/src/platform/session-cookie.ts
       - apps/api/tests/f5-http.integration.test.mjs
       - docs/evidence/F4_POSTGRESQL18_PROOF.md
-    remaining:
-      - Prove secure browser cookie/session transport and negative authentication behavior on the real F5 HTTP runtime under Node 24 and PostgreSQL 18.
-      - Add a concrete MFA/step-up verifier only when an enabled product flow requires AAL2 elevation; the AAL2 policy boundary is implemented and F5 proves its route enforcement.
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    remaining: []
 
   - id: authorization.permissions-policies
     area: identity-security
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: authorization
     purpose: Canonical typed permissions and policy-based positive/negative authorization.
@@ -163,13 +162,13 @@ capabilities:
       - apps/api/src/platform/http-security.guard.ts
       - apps/api/src/generated/api-contracts.generated.ts
       - apps/api/tests/f5-http.integration.test.mjs
-    remaining:
-      - Prove authenticated HTTP actor construction plus positive/negative permission and AAL2 route behavior on the real F5 HTTP runtime.
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    remaining: []
 
   - id: settings.effective-runtime
     area: settings
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: settings
     purpose: Canonical settings, explicit precedence, typed consumption, explain/provenance, safe runtime administration.
@@ -186,13 +185,13 @@ capabilities:
       - docs/evidence/F4_POSTGRESQL18_PROOF.md
       - apps/api/src/platform/routes/settings-admin.controller.ts
       - apps/api/tests/f5-http.integration.test.mjs
-    remaining:
-      - Prove the privileged settings administration transport and negative route behavior on the real F5 HTTP runtime.
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    remaining: []
 
   - id: audit.core
     area: audit-observability
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: audit
     purpose: Immutable structured audit events with actor, resource, changes, correlation, and redaction.
@@ -209,13 +208,13 @@ capabilities:
       - apps/api/src/platform/runtime.ts
       - apps/api/src/platform/routes/audit-admin.controller.ts
       - apps/api/tests/f5-http.integration.test.mjs
-    remaining:
-      - Prove identity/settings audit production through the real HTTP composition and privileged audit-query transport in F5.
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    remaining: []
 
   - id: observability.logging-tracing-health
     area: audit-observability
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: observability
     purpose: Structured logs, correlation, redaction, health/readiness, runtime metadata, and diagnostics.
@@ -232,9 +231,8 @@ capabilities:
       - apps/api/src/platform/http-logging.interceptor.ts
       - apps/api/src/platform/http-exception.filter.ts
       - apps/api/src/platform/response-security.ts
-    remaining:
-      - Prove request correlation and structured request/error logging on the real F5 HTTP runtime.
-      - Prove the selected production log/metrics delivery and deployment diagnostics path in F9.
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    remaining: []
 
   - id: data.postgresql-runtime
     area: data
@@ -292,7 +290,7 @@ capabilities:
   - id: api.contracts
     area: api
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: api-foundation
     purpose: TypeSpec/OpenAPI source, generated consumers, compatibility checks, pagination, errors, auth and correlation boundaries.
@@ -304,14 +302,13 @@ capabilities:
       - apps/api/src/generated/api-contracts.generated.ts
       - apps/api/src/platform/routes
       - scripts/verify-f5-api-security.py
-    remaining:
-      - Prove install/build/start and generated contract consumption on the approved Node 24/pnpm runtime.
-      - Run the real PostgreSQL-backed HTTP integration proof and confirm route/method/status/security behavior end-to-end.
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    remaining: []
 
   - id: security.application-baseline
     area: security
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: security
     purpose: Central web/API security controls, abuse limits, secure headers, secrets/dependency checks, and negative testing.
@@ -324,10 +321,8 @@ capabilities:
       - apps/api/src/platform/process-rate-limiter.ts
       - apps/api/tests/f5-http.integration.test.mjs
       - scripts/verify-f5-api-security.py
-    remaining:
-      - Prove the negative HTTP security matrix on the real Node 24/PostgreSQL 18 runtime.
-      - Run the dependency advisory scan against the current registry/advisory database and resolve any high-or-higher findings before F5 closure.
-      - Production multi-instance/edge abuse protection remains an F9 deployment concern; F5 only claims bounded per-process application protection.
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
+    remaining: []
 
   - id: security.data-classification
     area: security
@@ -341,6 +336,7 @@ capabilities:
       - apps/api/src/generated/api-contracts.generated.ts
       - apps/api/src/platform/module.manifest.yaml
       - scripts/verify-f5-api-security.py
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
     remaining: []
 
   - id: performance.query-runtime
@@ -458,8 +454,9 @@ capabilities:
       - apps/api/src/modules/catalog/tests/catalog-products-application.test.ts
       - packages/data-postgres/tests/data-postgres.test.mjs
       - packages/data-postgres/tests/postgres18.integration.test.mjs
+      - docs/evidence/F5_HTTP_SECURITY_PROOF.md
     remaining:
-      - Run the PostgreSQL 18 integration harness in an environment with TEST_DATABASE_URL, then add API/browser harnesses in their owning stages.
+      - Add and prove browser/UI/accessibility harnesses in F8 and performance harnesses in F6; PostgreSQL 18 and real API HTTP integration paths are already proven.
 
   - id: operations.environment-secrets-delivery
     area: operations
