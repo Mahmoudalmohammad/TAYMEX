@@ -1,42 +1,27 @@
-id: FOUNDATION-F8-PLATFORM-001
-title: Adopt governed F8 design-system artifacts
+id: FOUNDATION-F8-PLATFORM-HYGIENE-002
+title: Align F8 workspace overrides with locked UI artifacts
 mode: platform-change
 risk: R4
 objective: >-
-  Adopt the independently built and hash-locked ENGINEERING_PLATFORM F8 design-system and governance artifacts, remove the duplicated consumer-side component catalog so component and theme truth resolve only from verified runtime artifacts, and update only the web package transport metadata needed to consume the 0.2.0 UI line before implementing TAYMEX-specific F8 UI behavior.
-baseRevision: 844d264506ad4793bf1d61c455334f45ba714a47
+  Repair the package-manager bootstrap metadata left inconsistent by the F8 artifact transport commit by aligning only the four ENGINEERING_PLATFORM UI overrides in pnpm-workspace.yaml with the already adopted and hash-locked 0.2.0 runtime artifacts, without changing any artifact, runtime code, foundation maturity, contract, or trust policy.
+baseRevision: 7e2dd161a74ec0672334c54eadd351e4ffc2a59c
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.4.tar.gz
-    - .platform/governance.lock.yaml
-    - .platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz
-    - .platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
-    - .platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
-    - .platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz
-    - .platform/runtime.lock.yaml
-    - .platform/catalog/**
-    - apps/web/package.json
-    - pnpm-lock.yaml
+    - pnpm-workspace.yaml
   forbiddenPaths:
+    - .platform/**
     - .github/**
-    - tooling/trust-root/**
-    - tooling/registry/**
-    - tooling/policies/**
-    - tooling/schemas/**
-    - apps/api/**
+    - tooling/**
+    - apps/**
     - packages/**
     - contracts/**
-    - blueprints/foundation/**
-  allowNewFiles: true
-  allowedNewFiles:
-    - .platform/artifacts/governance/engineering-platform-governance-0.1.4.tar.gz
-    - .platform/artifacts/runtime/engineering-platform-design-tokens-0.2.0.tgz
-    - .platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
-    - .platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
-    - .platform/artifacts/runtime/engineering-platform-ui-patterns-0.2.0.tgz
+    - blueprints/**
+    - pnpm-lock.yaml
+  allowNewFiles: false
+  allowedNewFiles: []
   allowDependencies: true
   allowMigrations: false
   allowPublicContractChanges: false
@@ -45,48 +30,33 @@ scope:
   allowVisualBaselineChanges: false
   allowBreakingContractChanges: false
   allowDestructiveMigrations: false
-  allowControlPlaneChanges: true
-  allowTrustRootChanges: true
+  allowControlPlaneChanges: false
+  allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-ARTIFACT-IDENTITY
-    statement: The four F8 UI artifacts and governance 0.1.4 are immutable local artifacts with exact SHA-256 and size entries in their canonical locks.
-  - id: AC-F8-NO-DUPLICATE-CATALOG
-    statement: The copied .platform/catalog component tree is removed and component discovery resolves from verified component-catalog.json payloads inside locked runtime artifacts.
-  - id: AC-F8-INDEPENDENT-CONSUMER
-    statement: TAYMEX consumes platform UI artifacts only through local versioned tarballs and does not link ENGINEERING_PLATFORM source directories.
-  - id: AC-F8-TRANSPORT-ONLY
-    statement: This commit changes artifact transport and dependency metadata only; no TAYMEX page, runtime behavior, foundation maturity, API, database, or domain behavior is changed.
-  - id: AC-F8-TRUST-AUTHORITY
-    statement: Trust-root change authority is limited to adopting the explicitly versioned governance 0.1.4 artifact and its lock entry; no trust-root policy, verifier rule, branch control, registry, or proof baseline is changed.
+  - id: AC-F8-WORKSPACE-OVERRIDES
+    statement: The four ENGINEERING_PLATFORM UI workspace overrides exactly match the corresponding 0.2.0 artifacts declared in .platform/runtime.lock.yaml and pnpm-lock.yaml.
+  - id: AC-F8-HYGIENE-ONLY
+    statement: The repair changes only pnpm-workspace.yaml and this task contract; no runtime, artifact, lockfile, maturity, trust-root, or product behavior changes.
 assumptions:
-  - statement: ENGINEERING_PLATFORM revision e149f794d08eb24718227e4f9eb46cf2034cb1ef produced the declared deterministic 0.2.0 UI artifacts after Platform Governance and Trust passed.
+  - statement: The F8 UI 0.2.0 runtime artifacts and pnpm-lock.yaml entries were already adopted and trust-verified in the base revision.
     status: verified
     evidence: .platform/runtime.lock.yaml
-  - statement: Governance 0.1.4 was trust-verified from its previous trusted Platform base before TAYMEX adoption.
-    status: verified
-    evidence: .platform/governance.lock.yaml
 obligations:
-  securityDelta: completed
+  securityDelta: not-applicable
   performance: not-applicable
-  ui: shared-ui-change
+  ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
   concurrency: not-applicable
   idempotency: not-applicable
 functional:
   invariants:
-    - Platform source directories never become a runtime dependency of TAYMEX.
-    - Artifact SHA mismatch fails closed before governance, theme, or component metadata is trusted.
-    - Consumer-side copied component manifests are not maintained as a second source of truth.
-    - F8 maturity remains unchanged by this transport commit.
+    - pnpm-workspace.yaml and runtime.lock.yaml identify the same UI artifact versions.
+    - No production or platform-control source changes are permitted by this repair.
   edgeCases:
-    - a runtime artifact is tampered after lock creation
-    - a removed copied catalog would otherwise shadow artifact metadata
-    - pnpm package metadata points at an older tarball than runtime.lock.yaml
+    - one workspace override points to a stale artifact while the lockfiles point to the adopted version
   failureModes:
-    - accepting an artifact without matching SHA-256
-    - keeping both copied manifests and artifact catalogs as competing component truth
-    - using workspace/link/source dependencies to ENGINEERING_PLATFORM
+    - accepting a split package-manager source of truth for the same locked runtime artifact
 requiredGates:
   - TASK-001
   - BASE-001
