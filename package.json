@@ -21,6 +21,7 @@
     "db:migrate": "pnpm --filter @taymex/data-postgres migrate"
   },
   "devDependencies": {
+    "@types/node": "^26.4.0",
     "nx": "23.1.2",
     "typescript": "5.9.2"
   }

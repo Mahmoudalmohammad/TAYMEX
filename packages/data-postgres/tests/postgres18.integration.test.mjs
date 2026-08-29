@@ -60,7 +60,9 @@ test('PostgreSQL 18 proves F4 migration, CAS, rollback, audit, idempotency, and 
     );
     const accountV2 = Object.freeze({ ...account, version: 2, updatedAt: new Date(now.getTime() + 2) });
     assert.equal(await identity.replaceAccountIfVersionMatches(accountV2, 1), 'updated');
-    assert.equal(await identity.replaceAccountIfVersionMatches(Object.freeze({ ...accountV2, version: 3 }), 1), 'version-conflict');
+    const staleAccountV2 = Object.freeze({ ...account, version: 2, updatedAt: new Date(now.getTime() + 3) });
+    assert.equal(await identity.replaceAccountIfVersionMatches(staleAccountV2, 1), 'version-conflict');
+    await assert.rejects(() => identity.replaceAccountIfVersionMatches(Object.freeze({ ...accountV2, version: 3 }), 1), RangeError);
 
     const sessionId = randomUUID();
     const session = Object.freeze({
@@ -69,7 +71,9 @@ test('PostgreSQL 18 proves F4 migration, CAS, rollback, audit, idempotency, and 
     });
     await identity.createSession(session);
     assert.equal(await identity.replaceSessionIfVersionMatches(Object.freeze({ ...session, version: 2, rotatedAt: new Date(now.getTime() + 3) }), 1), 'updated');
-    assert.equal(await identity.replaceSessionIfVersionMatches(Object.freeze({ ...session, version: 3 }), 1), 'version-conflict');
+    const staleSessionV2 = Object.freeze({ ...session, version: 2, rotatedAt: new Date(now.getTime() + 4) });
+    assert.equal(await identity.replaceSessionIfVersionMatches(staleSessionV2, 1), 'version-conflict');
+    await assert.rejects(() => identity.replaceSessionIfVersionMatches(Object.freeze({ ...session, version: 3 }), 1), RangeError);
 
     const challengeId = randomUUID();
     await identity.createChallenge(Object.freeze({

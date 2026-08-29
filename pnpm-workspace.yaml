@@ -1,3 +1,19 @@
 packages:
   - apps/*
   - packages/*
+
+overrides:
+  "@engineering-platform/ui": "file:.platform/artifacts/runtime/engineering-platform-ui-0.1.0.tgz"
+  "@engineering-platform/design-tokens": "file:.platform/artifacts/runtime/engineering-platform-design-tokens-0.1.0.tgz"
+  "@engineering-platform/app-shell": "file:.platform/artifacts/runtime/engineering-platform-app-shell-0.1.0.tgz"
+  "@engineering-platform/ui-patterns": "file:.platform/artifacts/runtime/engineering-platform-ui-patterns-0.1.0.tgz"
+  "@engineering-platform/settings": "file:.platform/artifacts/runtime/engineering-platform-settings-0.1.0.tgz"
+  "@engineering-platform/authorization": "file:.platform/artifacts/runtime/engineering-platform-authorization-0.1.0.tgz"
+
+allowBuilds:
+  esbuild: true
+  nx: true
+
+onlyBuiltDependencies:
+  - esbuild
+  - nx
