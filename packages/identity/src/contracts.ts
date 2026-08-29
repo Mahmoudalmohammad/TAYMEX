@@ -75,6 +75,7 @@ export interface IdentitySecurityEventSink {
 
 export type SecretDeliveryPurpose = 'password-reset' | 'email-verification';
 export type SecretDelivery = Readonly<{
+  deliveryId: string;
   purpose: SecretDeliveryPurpose;
   accountId: string;
   secret: string;

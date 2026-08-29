@@ -27,6 +27,7 @@ SCHEMA_FILES = [
     ROOT / "packages/identity/src/persistence/schema.ts",
     ROOT / "packages/settings-runtime/src/schema.ts",
     ROOT / "packages/audit/src/schema.ts",
+    ROOT / "packages/notifications/src/schema.ts",
 ]
 MANIFEST_FILES = [
     ROOT / "packages/data-postgres/module.manifest.yaml",
@@ -34,6 +35,7 @@ MANIFEST_FILES = [
     ROOT / "packages/settings-runtime/module.manifest.yaml",
     ROOT / "packages/audit/module.manifest.yaml",
     ROOT / "packages/observability/module.manifest.yaml",
+    ROOT / "packages/notifications/module.manifest.yaml",
 ]
 MIGRATION_DIR = ROOT / "packages/data-postgres/migrations"
 MIGRATION_RUNNER = ROOT / "packages/data-postgres/src/migrations.ts"
@@ -311,7 +313,7 @@ def check_schema_truth() -> None:
 
     sql_indexes = set(re.findall(r"CREATE\s+(?:UNIQUE\s+)?INDEX\s+([a-z_][a-z0-9_]*)", combined_sql, re.I))
     drizzle_text = "\n".join(read(p) for p in SCHEMA_FILES)
-    drizzle_indexes = set(re.findall(r"\bindex\(\s*['\"]([^'\"]+)['\"]", drizzle_text))
+    drizzle_indexes = set(re.findall(r"\b(?:uniqueIndex|index)\(\s*['\"]([^'\"]+)['\"]", drizzle_text))
     if sql_indexes != drizzle_indexes:
         fail(f"Index truth mismatch: SQL-only={sorted(sql_indexes-drizzle_indexes)}, Drizzle-only={sorted(drizzle_indexes-sql_indexes)}")
     else:

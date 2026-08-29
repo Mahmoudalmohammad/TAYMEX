@@ -27,6 +27,7 @@ if (!enabled || !connectionString) {
     process.env.CORS_ALLOWED_ORIGINS = 'https://app.taymex.test';
     process.env.NODE_ENV = 'test';
     process.env.BUILD_REVISION = 'f5-http-integration';
+    process.env.NOTIFICATION_OUTBOX_ENCRYPTION_KEY = Buffer.alloc(32, 5).toString('base64');
 
     const app = await createApiApplication();
     const server = app.getHttpAdapter().getInstance();

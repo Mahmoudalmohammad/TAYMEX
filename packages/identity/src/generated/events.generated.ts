@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT.
 // Source: tooling/registry/events.registry.yaml
-// Source-SHA256: 2374f325747225f34088bb1e1acd656f388db35ec878a48ebcb45da3f6191f2c
+// Source-SHA256: 29099350d85f6e122c5f2a5f17bd1c6fe040461bf7018208449c26eeef07f689
 // Regenerate: python3 scripts/generate-event-bindings.py
 
 export const identityAccountProvisionedEvent = "identity.account.provisioned" as const;

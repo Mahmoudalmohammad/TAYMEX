@@ -39,8 +39,10 @@ test('PostgreSQL 18 proves F4 migration, CAS, rollback, audit, idempotency, and 
     const tampered = await mkdtemp(join(tmpdir(), 'taymex-tampered-migration-'));
     try {
       const source0002 = await readFile(join(migrations, '0002_f4_integrity_hardening.sql'), 'utf8');
+      const source0003 = await readFile(join(migrations, '0003_f7_outbox.sql'), 'utf8');
       await writeFile(join(tampered, '0001_foundation.sql'), '-- tampered applied migration\nSELECT 1;\n');
       await writeFile(join(tampered, '0002_f4_integrity_hardening.sql'), source0002);
+      await writeFile(join(tampered, '0003_f7_outbox.sql'), source0003);
       await assert.rejects(() => new PostgresMigrationRunner(pool).migrate(tampered), /checksum mismatch/);
     } finally { await rm(tampered, { recursive: true, force: true }); }
 

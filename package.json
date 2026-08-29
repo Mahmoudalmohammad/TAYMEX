@@ -25,7 +25,11 @@
     "security:secrets": "python3 scripts/verify-f5-api-security.py",
     "security:dependencies": "pnpm audit --prod --audit-level high",
     "f6:verify": "python3 scripts/verify-f6-performance.py",
-    "f6:test:postgres": "node --test apps/api/tests/f6-performance.integration.test.mjs"
+    "f6:test:postgres": "node --test apps/api/tests/f6-performance.integration.test.mjs",
+    "events:generate": "python3 scripts/generate-event-bindings.py",
+    "events:check": "python3 scripts/generate-event-bindings.py --check",
+    "f7:verify": "python3 scripts/verify-f7-files-side-effects.py",
+    "f7:test:postgres": "node --test apps/api/tests/f7-files-side-effects.integration.test.mjs"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

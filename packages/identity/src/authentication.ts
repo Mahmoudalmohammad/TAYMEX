@@ -261,12 +261,11 @@ export class IdentityService {
     const normalized = normalizeEmail(email);
     const account = await this.repository.findAccountByNormalizedEmail(normalized);
     if (account && account.status === 'ACTIVE') {
-      const challenge = await this.atomic(async () => {
-        const created = await this.createChallenge('PASSWORD_RESET', account.id, this.policy.passwordResetTtlMs, now);
+      await this.atomic(async () => {
+        const challenge = await this.createChallenge('PASSWORD_RESET', account.id, this.policy.passwordResetTtlMs, now);
         await this.emit(identityPasswordResetRequestedEvent, now, { subjectAccountId: account.id, correlationId });
-        return created;
+        await this.secretDelivery.deliver({ deliveryId: challenge.record.id, purpose: 'password-reset', accountId: account.id, secret: challenge.secret, expiresAt: challenge.record.expiresAt });
       });
-      await this.secretDelivery.deliver({ purpose: 'password-reset', accountId: account.id, secret: challenge.secret, expiresAt: challenge.record.expiresAt });
     }
     return Object.freeze({ accepted: true });
   }
@@ -299,12 +298,11 @@ export class IdentityService {
     const account = await this.repository.findAccountById(normalizedAccountId);
     if (!account) throw accountNotFound();
     if (account.emailVerifiedAt) return;
-    const challenge = await this.atomic(async () => {
-      const created = await this.createChallenge('EMAIL_VERIFICATION', account.id, this.policy.emailVerificationTtlMs, now);
+    await this.atomic(async () => {
+      const challenge = await this.createChallenge('EMAIL_VERIFICATION', account.id, this.policy.emailVerificationTtlMs, now);
       await this.emit(identityEmailVerificationRequestedEvent, now, { subjectAccountId: account.id, correlationId });
-      return created;
+      await this.secretDelivery.deliver({ deliveryId: challenge.record.id, purpose: 'email-verification', accountId: account.id, secret: challenge.secret, expiresAt: challenge.record.expiresAt });
     });
-    await this.secretDelivery.deliver({ purpose: 'email-verification', accountId: account.id, secret: challenge.secret, expiresAt: challenge.record.expiresAt });
   }
 
   async completeEmailVerification(token: string, correlationId?: string): Promise<Account> {

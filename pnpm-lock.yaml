@@ -58,6 +58,9 @@ importers:
       '@taymex/observability':
         specifier: workspace:*
         version: link:../../packages/observability
+      '@taymex/notifications':
+        specifier: workspace:*
+        version: link:../../packages/notifications
       '@taymex/settings-runtime':
         specifier: workspace:*
         version: link:../../packages/settings-runtime
@@ -143,6 +146,28 @@ importers:
         version: 8.23.0
 
   packages/foundation: {}
+
+  packages/media-storage:
+    dependencies:
+      '@taymex/audit':
+        specifier: workspace:*
+        version: link:../audit
+      sharp:
+        specifier: 0.35.4
+        version: 0.35.4(@types/node@24.13.3)
+
+
+  packages/notifications:
+    dependencies:
+      '@taymex/data-postgres':
+        specifier: workspace:*
+        version: link:../data-postgres
+      '@taymex/identity':
+        specifier: workspace:*
+        version: link:../identity
+      drizzle-orm:
+        specifier: 0.45.2
+        version: 0.45.2(pg@8.23.0)
 
   packages/identity:
     dependencies:

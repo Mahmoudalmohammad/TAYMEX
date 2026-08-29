@@ -427,25 +427,41 @@ capabilities:
   - id: files.media-storage
     area: application-services
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: IMPLEMENTED
     exitMaturity: PROVEN
     owner: media
     purpose: One controlled file/media upload, storage, metadata, download, privacy, cleanup, and image-processing path.
-    evidence: []
+    evidence:
+      - packages/media-storage/src/contracts.ts
+      - packages/media-storage/src/service.ts
+      - packages/media-storage/src/filesystem-provider.ts
+      - packages/media-storage/src/image-sanitizer.ts
+      - packages/media-storage/tests/media-storage.test.mjs
+      - scripts/verify-f7-files-side-effects.py
+      - docs/FOUNDATION_F7_FILES_SIDE_EFFECTS_REPORT.md
     remaining:
-      - Implement provider-neutral storage contract and secure upload/download proof.
+      - Prove the secure private-filesystem media path on the exact committed F7 implementation revision with the pinned Node and pnpm toolchain.
 
   - id: notifications.events-side-effects
     area: application-services
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: IMPLEMENTED
     exitMaturity: PROVEN
-    owner: application-services
-    purpose: Canonical events, notification templates/providers, retry/failure behavior, and durable side-effect pattern.
+    owner: notifications
+    purpose: Canonical events, notification template/provider contract, retry/failure behavior, and durable side-effect pattern.
     evidence:
       - tooling/registry/events.registry.yaml
+      - packages/notifications/src/contracts.ts
+      - packages/notifications/src/outbox.ts
+      - packages/notifications/src/postgres-store.ts
+      - packages/notifications/src/schema.ts
+      - packages/data-postgres/migrations/0003_f7_outbox.sql
+      - packages/identity/src/authentication.ts
+      - apps/api/tests/f7-files-side-effects.integration.test.mjs
+      - scripts/verify-f7-files-side-effects.py
+      - docs/FOUNDATION_F7_FILES_SIDE_EFFECTS_REPORT.md
     remaining:
-      - Implement event/notification runtime contract and one transactional side-effect proof.
+      - Prove encrypted transactional outbox rollback, PostgreSQL 18 claim concurrency, bounded retry/dead-letter behavior, and provider idempotency on the exact committed F7 implementation revision.
 
   - id: testing.integrated-harness
     area: quality

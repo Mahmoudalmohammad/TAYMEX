@@ -1,105 +1,156 @@
-id: FOUNDATION-F6-CLOSURE-003
-title: Close F6 from exact-SHA PostgreSQL 18 deterministic performance proof
-mode: fix
+id: FOUNDATION-F7-001
+title: Implement F7 files events notifications and durable side effects
+mode: migration
 risk: R3
 objective: >-
-  Close F6 from the externally executed exact-SHA validation proof at TAYMEX revision c98a084a86a751acd8fe68e49769e9dd4e4c8b7e, record the real Node 24/pnpm 11.24/PostgreSQL 18.6 query-count, bounded-pagination, query-amplification, query-plan/index, HTTP/runtime, governance, trust, consumer-boundary, and handoff evidence, promote only performance.query-runtime to PROVEN, preserve all later foundation obligations, make earlier-stage verifiers accept lawful progression, and advance the foundation sequence to F7 readiness without modifying the proven runtime implementation.
-baseRevision: c98a084a86a751acd8fe68e49769e9dd4e4c8b7e
+  Implement F7 without broad platform expansion: add one provider-neutral private media-storage contract with deterministic upload validation, path-free original-name metadata, extension/MIME/content agreement, decode/re-encode normalization, random opaque storage keys, integrity hashing, validated metadata, audit-backed authorization-gated download, failed-write cleanup, and compensating authorized delete for the supported image path; add one canonical event/notification runtime boundary with encrypted transactional outbox persistence for identity secret-delivery requests, bounded leasing/retry/dead-letter behavior, provider idempotency, and PostgreSQL 18 proof; keep brokers, generalized worker frameworks, public media serving, and product feature expansion out of scope; keep F7 open until the exact committed implementation revision is proven locally on the pinned toolchain and PostgreSQL 18.
+baseRevision: 204e45fb22cdcb73f271c1457ee0d4996ce334db
 modules:
-  - application-foundation
+  - media-storage
+  - notifications
+  - data-postgres
+  - identity
+  - api-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
     - blueprints/foundation/foundation.manifest.yaml
-    - docs/FOUNDATION_F6_PERFORMANCE_REPORT.md
-    - docs/evidence/F6_POSTGRESQL18_PERFORMANCE_PROOF.md
-    - scripts/verify-f5-api-security.py
-    - scripts/verify-f6-performance.py
+    - tooling/registry/events.registry.yaml
+    - scripts/generate-event-bindings.py
+    - scripts/verify-f0-f4-foundation.py
+    - scripts/verify-f7-files-side-effects.py
+    - packages/media-storage/**
+    - packages/notifications/**
+    - packages/data-postgres/migrations/0003_f7_outbox.sql
+    - packages/data-postgres/tests/postgres18.integration.test.mjs
+    - packages/identity/src/contracts.ts
+    - packages/identity/src/authentication.ts
+    - packages/identity/src/generated/events.generated.ts
+    - packages/identity/tests/identity.test.mjs
+    - apps/api/package.json
+    - apps/api/src/platform/runtime.ts
+    - apps/api/tests/f5-http.integration.test.mjs
+    - apps/api/tests/f7-files-side-effects.integration.test.mjs
+    - package.json
+    - pnpm-lock.yaml
+    - docs/FOUNDATION_F7_FILES_SIDE_EFFECTS_REPORT.md
   forbiddenPaths:
     - .github/**
     - tooling/governance.config.yaml
     - tooling/policies/**
     - tooling/schemas/**
     - tooling/trust-root/**
-    - tooling/registry/**
+    - tooling/registry/rules.registry.yaml
     - .platform/**
-    - apps/**
-    - packages/**
+    - apps/web/**
+    - apps/api/src/modules/catalog/**
     - contracts/**
-    - package.json
-    - pnpm-lock.yaml
   allowNewFiles: true
-  allowDependencies: false
-  allowMigrations: false
+  allowedNewFiles:
+    - packages/media-storage/**
+    - packages/notifications/**
+    - packages/data-postgres/migrations/0003_f7_outbox.sql
+    - apps/api/tests/f7-files-side-effects.integration.test.mjs
+    - scripts/verify-f7-files-side-effects.py
+    - docs/FOUNDATION_F7_FILES_SIDE_EFFECTS_REPORT.md
+  allowDependencies: true
+  allowedDependencies:
+    - '@taymex/notifications'
+    - '@taymex/audit'
+    - '@taymex/data-postgres'
+    - '@taymex/identity'
+    - drizzle-orm
+    - sharp
+  allowMigrations: true
   allowPublicContractChanges: false
   allowPlatformChanges: false
-  allowArchitectureChanges: false
+  allowArchitectureChanges: true
   allowVisualBaselineChanges: false
   allowBreakingContractChanges: false
   allowDestructiveMigrations: false
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F6-CLOSURE-EXACT-SHA
-    statement: F6 closure evidence is tied to exact TAYMEX revision c98a084a86a751acd8fe68e49769e9dd4e4c8b7e and ENGINEERING_PLATFORM revision c3d865ee97f33c7d0247e00fdd02e0c771ea6f98, with Node 24.14.0, pnpm 11.24.0, and PostgreSQL 18.6 / 180006 recorded.
-  - id: AC-F6-CLOSURE-DETERMINISTIC
-    statement: Real PostgreSQL proof demonstrates one-query representative audit retrieval, repeated fingerprint budget one, bounded-list rejection before database I/O, no reviewed-loop database I/O, set-based identity persistence, and use of the existing audit_records_action_idx without introducing a performance-only index.
-  - id: AC-F6-CLOSURE-NO-LATENCY-FRAMEWORK
-    statement: F6 remains a deterministic performance-correctness foundation and does not introduce generalized load testing or synthetic p95/p99 PR gates.
-  - id: AC-F6-CLOSURE-RUNTIME
-    statement: The exact proven revision passes clean install, build, typecheck, package tests, PostgreSQL 18 migrations and regressions, real HTTP integration, and actual API health/readiness smoke.
-  - id: AC-F6-CLOSURE-GOVERNANCE
-    statement: The governed F6 implementation and hygiene repair segments pass governance and trust verification; consumer boundary and handoff verification pass on the exact proven final revision.
-  - id: AC-F6-CLOSURE-MATURITY
-    statement: Only performance.query-runtime is promoted by F6 proof, F6 is closed, the foundation advances only to F7 readiness, and later capabilities remain at their prior maturity.
-  - id: AC-F6-CLOSURE-NONRUNTIME
-    statement: The closure diff contains only task metadata, maturity/evidence documentation, and structural verifier updates; no runtime, SQL, dependency, migration, contract, platform, or trust-root implementation changes are introduced after the exact-SHA proof.
+  - id: AC-F7-MEDIA-BOUNDARY
+    statement: Media bytes are accepted only through one provider-neutral storage boundary; user-controlled names never become filesystem paths or storage keys, path-like original names are rejected, extension/MIME/content must agree, upload size is bounded before persistence, stored bytes have SHA-256 integrity metadata, stored metadata is validated on read, and private download/delete require explicit authorization.
+  - id: AC-F7-MEDIA-SANITIZATION
+    statement: The supported image path validates container structure and CRC/dimension bounds where applicable, decodes and re-encodes through one pinned image decoder without copying embedded metadata, writes activity through the existing audit contract, compensates a stored upload when required audit persistence fails, restores a deleted object when required delete audit persistence fails, and rejects malformed or unsupported content rather than storing it under a trusted media type.
+  - id: AC-F7-EVENT-REGISTRY
+    statement: Transactional notification side effects use an event declared in the canonical event registry with generated typed bindings; unregistered or incorrectly classified delivery events cannot be enqueued through the F7 runtime path.
+  - id: AC-F7-TRANSACTIONAL-OUTBOX
+    statement: Password-reset and email-verification secret-delivery requests enqueue encrypted outbox records inside the same PostgreSQL transaction as challenge creation and the corresponding identity event; no external provider I/O occurs inside that transaction.
+  - id: AC-F7-OUTBOX-SAFETY
+    statement: Outbox processing uses bounded batches, database leasing with SKIP LOCKED semantics, retry scheduling, terminal dead-letter state, opaque error codes, and provider idempotency keys; plaintext secrets are absent from persisted outbox columns and logs.
+  - id: AC-F7-NO-BROKER-FRAMEWORK
+    statement: F7 does not introduce Kafka RabbitMQ Redis queues BullMQ a generalized worker framework or a multi-provider storage ecosystem; the database outbox and filesystem proof adapter exist only to establish the required foundation contracts.
+  - id: AC-F7-REAL-PROOF
+    statement: F7 remains IMPLEMENTED and currentStage remains F7 until media filesystem behavior and PostgreSQL 18 migration outbox concurrency retry encryption and transactional rollback execute against the exact committed F7 implementation revision on Node 24 and pnpm 11.24.
+  - id: AC-F7-REGRESSION
+    statement: F0-F6 verifiers package tests governance trust consumer-boundary and handoff remain passing without weakening prior gates or changing the frozen Catalog feature slice.
 assumptions:
-  - statement: The operator executed the full F6 validation harness on TAYMEX c98a084a86a751acd8fe68e49769e9dd4e4c8b7e with all fourteen sections passing and returned the raw validation ZIP without modifying the tested repository.
+  - statement: PostgreSQL 18 remains the approved durable store for the transactional outbox and no broker is required to prove the current F7 side-effect boundary.
     status: verified
-    evidence: docs/evidence/F6_POSTGRESQL18_PERFORMANCE_PROOF.md
-  - statement: The returned proof package has SHA-256 4aabd7f64c290def141055ccc33acc86aa52637b21731927395fd5b13f893b2a and records PostgreSQL server_version_num 180006.
+    evidence: blueprints/project-profiles/taymex.yaml
+  - statement: The existing identity password-reset and email-verification delivery seam is the smallest real side-effect path that can pressure-test transactional durability without resuming product feature expansion.
     status: verified
-    evidence: docs/evidence/F6_POSTGRESQL18_PERFORMANCE_PROOF.md
-  - statement: The accompanying ENGINEERING_PLATFORM revision remains c3d865ee97f33c7d0247e00fdd02e0c771ea6f98.
+    evidence: packages/identity/src/authentication.ts
+  - statement: Initial secure media proof may intentionally support a narrow image allowlist rather than claiming safe handling of arbitrary active document formats before a governed scanner/sanitizer exists.
     status: verified
-    evidence: docs/evidence/F6_POSTGRESQL18_PERFORMANCE_PROOF.md
+    evidence: docs/FOUNDATION_BLUEPRINT.md
 obligations:
-  securityDelta: not-applicable
-  performance: critical-budget
+  securityDelta: completed
+  performance: standard
   ui: not-applicable
   responsive: not-applicable
   accessibility: not-applicable
   concurrency: tested
   idempotency: tested
+  events:
+    - notification.secret-delivery.requested
 functional:
   invariants:
-    - Stage closure is based on real exact-SHA PostgreSQL and runtime evidence, not on documentation or structural checks alone.
-    - The F6 closure commit must not modify the runtime implementation proven at c98a084a86a751acd8fe68e49769e9dd4e4c8b7e.
-    - PASS belongs to the tested SHA and is reusable by the closure commit only because the closure diff is non-runtime and cannot affect the proven SQL, HTTP, migration, query-count, query-plan, or persistence behavior.
-    - F6 proof does not imply generalized load capacity, p95/p99 SLO proof, production traffic saturation, remote merge authority, UI/browser proof, or later side-effect and operations proof.
-    - Product feature expansion remains blocked until the complete Foundation Readiness Gate passes.
+    - Original filenames and request MIME values are metadata only and never determine trusted content type or storage path.
+    - Unsupported or malformed uploads fail before durable storage; partial filesystem writes are cleaned up.
+    - Private media cannot be downloaded or deleted without an explicit authorization decision.
+    - Secret-delivery plaintext is encrypted before durable outbox persistence and is never written to logs or error text.
+    - Outbox enqueue participates in the active identity transaction; provider delivery occurs only after a separate claim step outside the originating transaction.
+    - A dedupe key uniquely represents one secret-delivery request and provider calls receive the same stable idempotency key on retry.
+    - Retry count and claim batch size are bounded; poison deliveries become DEAD rather than retrying forever.
+    - No F7 implementation creates a broker abstraction hierarchy public CDN path generic scheduler or product-specific notification matrix.
+    - F7 proof is tied to the exact committed implementation SHA and does not inherit PostgreSQL proof from F6.
   statesAndTransitions:
-    - F6 implemented with exact-SHA PostgreSQL proof pending -> F6 PROVEN and CLOSED only after returned raw evidence is independently reviewed.
-    - F6 CLOSED -> currentStage F7 means F7 READY only; it does not mean F7 implementation has started or any F7 capability has been promoted.
+    - Media upload transitions VALIDATING to STORED only after byte validation sanitization integrity hashing and provider persistence succeed.
+    - Media object transitions STORED to DELETED only through authorized cleanup.
+    - Outbox record transitions PENDING to PROCESSING to DELIVERED, or PROCESSING back to PENDING with a future availability time, or to DEAD after the bounded retry limit.
+    - F7 implementation pending -> F7 IMPLEMENTED after structural and unit-capable gates; F7 IMPLEMENTED -> F7 PROVEN/CLOSED only after exact-SHA Node 24 pnpm 11.24 PostgreSQL 18 and filesystem proof is returned and reviewed.
   edgeCases:
-    - local validation can reveal syntax/toolchain defects that structural verification did not execute
-    - compiler-generated metadata can dirty a repository after otherwise successful typechecking
-    - PostgreSQL query plans are only accepted for the declared representative real path and existing index
-    - closure metadata must not be mistaken for a new runtime revision requiring fabricated proof
+    - filename attempts path traversal while content is otherwise valid
+    - declared MIME disagrees with magic bytes
+    - image contains removable metadata or malformed segment/chunk lengths
+    - storage provider fails after temporary write starts
+    - two processors race to claim the same outbox message
+    - provider succeeds but delivery acknowledgement races with lease expiry
+    - provider repeatedly fails until the dead-letter threshold
+    - duplicate secret-delivery enqueue uses the same dedupe key
+    - originating identity transaction rolls back after outbox enqueue is attempted
   failureModes:
-    - using proof from an older runtime SHA after a runtime-affecting change
-    - promoting unrelated later-stage capabilities because F6 passed
-    - broadening F6 into a generalized benchmark or latency framework
-    - weakening governance, trust, query budgets, or verifiers to transform a failed proof into PASS
+    - trusting extension or Content-Type without inspecting bytes
+    - storing uploads under user-controlled paths or public web roots
+    - persisting plaintext reset or verification secrets in the outbox
+    - performing provider network I/O inside the identity database transaction
+    - infinite retries or unbounded outbox claims
+    - weakening existing verifiers or bypassing transactionality to obtain PASS
+    - expanding F7 into a generalized queue broker storage CDN or background-jobs platform
 requiredGates:
   - TASK-001
   - BASE-001
   - SCP-001
   - SCP-002
   - DEP-001
-  - PLT-001
+  - MIG-001
+  - ARCH-001
   - RISK-001
   - TRUST-001
   - MODEL-001
   - DATA-001
+  - MIG-002

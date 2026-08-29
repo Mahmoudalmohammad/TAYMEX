@@ -1,0 +1,47 @@
+id: media-storage
+layer: foundation
+owner: media
+sourceRoots:
+  - packages/media-storage/src
+tags:
+  - layer:foundation
+  - foundation:media
+  - security:private-storage
+  - security:content-validation
+dependencies:
+  allowedModules:
+    - audit
+  allowedTags: []
+data:
+  owns: []
+  readsViaContracts: []
+  classification: confidential
+  adapter: none
+  schemaRoots: []
+settings:
+  defines: []
+  consumes: []
+permissions:
+  defines: []
+  consumes: []
+events:
+  emits: []
+  consumes: []
+contracts:
+  owns: []
+  consumes: []
+api:
+  internalOnly: true
+securityTags:
+  - magic-byte-validation
+  - opaque-storage-key
+  - authorization-gated-read
+  - image-decode-reencode
+  - metadata-stripping
+  - sensitive-access-audit
+performanceTags:
+  - bounded-upload-size
+  - bounded-buffer-processing
+extensionModes:
+  - USE
+  - EXTEND

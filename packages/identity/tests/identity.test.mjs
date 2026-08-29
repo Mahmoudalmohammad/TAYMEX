@@ -313,7 +313,7 @@ test('password change verifies current password, changes hash and revokes all ex
 
 
 
-test('password-reset challenge and security event execute inside the atomic boundary while external delivery is after commit', async () => {
+test('password-reset challenge event and durable delivery enqueue execute inside the same atomic boundary', async () => {
   let inTransaction = false;
   const transaction = {
     async run(work) {
@@ -327,12 +327,13 @@ test('password-reset challenge and security event execute inside the atomic boun
   const account = await h.service.provisionPasswordAccount({ email: 'atomic-reset@taymex.example', password: PASSWORD });
   const originalEmit = h.events.emit.bind(h.events);
   h.events.emit = async (event) => {
-    if (event.code === 'identity.password-reset.requested') assert.equal(inTransaction, true);
+    if (event.eventId === 'identity.password-reset.requested') assert.equal(inTransaction, true);
     return originalEmit(event);
   };
   const originalDeliver = h.delivery.deliver.bind(h.delivery);
   h.delivery.deliver = async (delivery) => {
-    assert.equal(inTransaction, false);
+    assert.equal(inTransaction, true);
+    assert.match(delivery.deliveryId, /^[0-9a-f-]{36}$/u);
     return originalDeliver(delivery);
   };
 

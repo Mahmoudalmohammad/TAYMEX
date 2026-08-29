@@ -1,0 +1,50 @@
+id: notifications
+layer: foundation
+owner: notifications
+sourceRoots:
+  - packages/notifications/src
+tags:
+  - layer:foundation
+  - foundation:notifications
+  - side-effects:transactional-outbox
+  - security:encrypted-delivery-payload
+dependencies:
+  allowedModules:
+    - data-postgres
+    - identity
+  allowedTags:
+    - layer:foundation
+data:
+  owns:
+    - db.table.foundation_outbox_messages
+  readsViaContracts: []
+  classification: sensitive
+  adapter: drizzle-postgres
+  schemaRoots:
+    - packages/notifications/src/schema.ts
+settings:
+  defines: []
+  consumes: []
+permissions:
+  defines: []
+  consumes: []
+events:
+  emits:
+    - notification.secret-delivery.requested
+  consumes: []
+contracts:
+  owns: []
+  consumes: []
+api:
+  internalOnly: true
+securityTags:
+  - encrypted-at-rest-payload
+  - opaque-provider-errors
+  - no-secret-logging
+  - provider-idempotency
+performanceTags:
+  - bounded-outbox-batch
+  - indexed-claim-path
+extensionModes:
+  - USE
+  - EXTEND

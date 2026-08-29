@@ -84,3 +84,10 @@ events:
     delivery: in-process
     classification: sensitive
     lifecycle: experimental
+  - id: notification.secret-delivery.requested
+    owner: notifications
+    version: 1
+    delivery: outbox
+    classification: sensitive
+    idempotencyKey: deliveryId
+    lifecycle: experimental

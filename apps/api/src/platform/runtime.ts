@@ -31,6 +31,12 @@ import {
   checkPostgresReadiness,
 } from '@taymex/data-postgres';
 import { PostgresSettingsValueStore, SettingsRuntimeService } from '@taymex/settings-runtime';
+import {
+  AesGcmNotificationPayloadCodec,
+  PostgresNotificationOutboxStore,
+  SecretDeliveryOutboxSink,
+  notificationEncryptionKeyFromBase64,
+} from '@taymex/notifications';
 import { permissionKeys } from '../generated/permissions.generated.js';
 import { ProcessAuthenticationThrottle } from './process-authentication-throttle.js';
 import { ProcessRateLimiter } from './process-rate-limiter.js';
@@ -88,11 +94,7 @@ export async function createApiRuntime(): Promise<ApiRuntime> {
   });
   const roleStore = new PostgresRoleAccessStore(database);
   const roles = new RoleAccessService(roleStore, permissionCatalog, events, transactions);
-  const secretDelivery: SecretDeliverySink = Object.freeze({
-    async deliver(): Promise<void> {
-      throw new Error('Secret delivery is unavailable until the governed F7 provider boundary is enabled.');
-    },
-  });
+  const secretDelivery = createSecretDeliverySink(database, clock);
   const sessionTtlMs = integerEnv('SESSION_TTL_MS', 12 * 60 * 60_000, 60_000, 7 * 24 * 60 * 60_000);
   const identity = new IdentityService(
     new PostgresIdentityRepository(database),
@@ -144,6 +146,16 @@ export async function createApiRuntime(): Promise<ApiRuntime> {
     sessionTtlSeconds: Math.floor(sessionTtlMs / 1000),
     close: () => database.close(),
   });
+}
+
+
+function createSecretDeliverySink(database: PostgresDatabase, clock: SystemClock): SecretDeliverySink {
+  const encodedKey = requiredEnv('NOTIFICATION_OUTBOX_ENCRYPTION_KEY');
+  return new SecretDeliveryOutboxSink(
+    new PostgresNotificationOutboxStore(database),
+    new AesGcmNotificationPayloadCodec(notificationEncryptionKeyFromBase64(encodedKey)),
+    () => clock.now(),
+  );
 }
 
 function requiredEnv(name: string): string {
