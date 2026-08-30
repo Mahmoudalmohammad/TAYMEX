@@ -119,6 +119,105 @@ releaseLifecycle:
     database: restore-only-from-verified-backup-when-forward-repair-is-not-safe
     noHistoryRewrite: true
 
+productionLogging:
+  format: line-delimited-json
+  timestampPolicy: iso8601-utc
+  severityLevels:
+    - debug
+    - info
+    - warn
+    - error
+    - fatal
+  serviceIdentity:
+    web: taymex-web
+    api: taymex-api
+  releaseIdentityRequired:
+    gitCommitSha: true
+    appVersion: true
+    buildRevision: true
+    environment: true
+  correlationIdPolicy:
+    header: x-correlation-id
+    format: string-non-blank-max-128
+    fallbackGeneration: uuidv4
+    propagationRequiredAcrossContext: true
+  safeErrorRepresentation:
+    clientFacingStackExposure: forbidden
+    preserveStructuredErrorCode: true
+    structuredErrorFormat:
+      - code
+      - category
+      - messageKey
+      - correlationId
+  redactionRules:
+    sensitiveFieldRedaction: recursive-sanitization
+    secretExclusion: mandatory
+    authorizationHeaderExclusion: mandatory
+    cookieSessionSecretExclusion: mandatory
+    databaseCredentialsExclusion: mandatory
+    passwordHashExclusion: mandatory
+    requestBodyPasswordExclusion: mandatory
+  egress:
+    applicationLevel: stdout-stderr-unbuffered
+    collectorDeliveryResponsibility: deployment-collector-or-sidecar
+  telemetryExport:
+    metricsExportStatus: PENDING_PROVIDER_PROFILE
+    traceExportStatus: PENDING_PROVIDER_PROFILE
+    logDeliveryProofStatus: PENDING_PROVIDER_PROFILE
+  retentionOwnership: platform-and-regulatory-retention-policy
+
+productionDiagnostics:
+  liveness:
+    endpoint: /api/health
+    scope: process-liveness
+    isolatedFromExternalDependencies: true
+    databaseDependencyForbidden: true
+  readiness:
+    endpoint: /api/health/ready
+    scope: dependency-readiness
+    checks:
+      - database
+    failClosedOnDependencyDown: true
+  diagnosticsMetadata:
+    allowedFields:
+      - service
+      - version
+      - environment
+      - buildRevision
+      - status
+      - checkedAt
+    sensitiveConfigurationExclusion: mandatory
+    databaseConnectionStringExclusion: mandatory
+  lifecycleEvents:
+    startupEvidence: process-initialization-logged
+    shutdownEvidence: graceful-shutdown-hooks-enabled
+    dependencyDownEvidence: readiness-returns-down-on-dependency-failure
+
+deploymentAbuseProtection:
+  multiInstanceEnforcement: deployment-edge-or-gateway-required
+  localDefenseInDepth:
+    perProcessRateLimiting: IMPLEMENTED_LOCAL_BASELINE
+    bodySizeLimitBytes: 1048576
+    requestTimeoutMs: 15000
+    maxParamLength: 240
+    onProtoPoisoning: error
+    onConstructorPoisoning: error
+    corsStrictOriginAllowlist: true
+    paginationMaxLimit: 100
+  edgeProtection:
+    status: PENDING_PROVIDER_PROFILE
+    distributedRateLimitingStatus: PENDING_PROVIDER_PROFILE
+    requiredEdgePolicies:
+      - ipRateLimiting
+      - authenticatedUserLimiting
+      - sensitiveFlowStricterLimits
+      - signinBruteForceProtection
+      - requestBodySizeBounds
+      - requestTimeoutBounds
+      - connectionConcurrencyBounds
+      - paginationMaxBounds
+      - upstreamDownstreamTimeout
+
 closureRequirements:
   localBaselineMayClaim: IMPLEMENTED
   provenRequires:
@@ -132,3 +231,5 @@ closureRequirements:
     - proven deployment on production profile
     - artifact provenance verification
     - backup/restore obligations satisfied separately
+    - production telemetry collector delivery active and proven
+    - distributed edge abuse protection active on edge/gateway

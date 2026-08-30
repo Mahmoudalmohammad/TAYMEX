@@ -1,23 +1,21 @@
-id: FOUNDATION-F9-BACKUP-RESTORE-RECOVERY-012
-title: Implement F9 backup, restore and recovery authority baseline and real PostgreSQL 18 drill
+id: FOUNDATION-F9-OBSERVABILITY-ABUSE-013
+title: Establish F9 production observability, diagnostics and deployment abuse protection baseline
 mode: security-change
 risk: R4
 objective: >-
-  Establish one executable F9 Recovery Authority for database backup, restore, SHA-256 integrity, encryption, and failure domain separation; prove real PostgreSQL 18 backup, isolated destination restore, schema/data/trigger verification, and negative tamper/checksum rejection without claiming unverified cloud or RPO/RTO SLA readiness; advance only operations.backup-restore from DESIGNED to IMPLEMENTED; and integrate recovery verification into governance CI.
-baseRevision: fc767c623e94c9f1afc33c1685fb2a4a7efbba09
+  Expand the canonical production-delivery authority with strict production logging, ISO-8601 UTC timestamps, service/release identity, non-leaking correlation IDs, recursive credential/token/DSN redaction, clear architectural separation of liveness from dependency readiness, and multi-instance edge abuse protection requirements without prematurely claiming unverified cloud telemetry or edge provider capabilities; execute real NestJS/Fastify HTTP runtime verification demonstrating correlation propagation, stack masking, security event logging, zero secrets leaked, and Fastify body limits; and integrate verification into governance CI.
+baseRevision: e452a88d061041e376f533f09708aa63882da8c4
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
     - .github/workflows/governance.yml
+    - operations/f9/production-delivery.authority.yaml
     - blueprints/foundation/foundation.manifest.yaml
-    - operations/f9/recovery.authority.yaml
-    - scripts/drill-f9-recovery.py
-    - scripts/f9-recovery-application-proof.mjs
-    - scripts/verify-f9-recovery.py
-    - scripts/verify-f9-production-delivery.py
-    - docs/FOUNDATION_F9_BACKUP_RESTORE_RECOVERY_BASELINE.md
+    - scripts/verify-f9-observability-abuse.py
+    - scripts/verify-f9-observability-runtime.mjs
+    - docs/FOUNDATION_F9_OBSERVABILITY_DIAGNOSTICS_ABUSE_PROTECTION_BASELINE.md
     - package.json
   forbiddenPaths:
     - .github/workflows/trust-root.yml
@@ -31,12 +29,9 @@ scope:
     - pnpm-lock.yaml
   allowNewFiles: true
   allowedNewFiles:
-    - operations/f9/recovery.authority.yaml
-    - scripts/drill-f9-recovery.py
-    - scripts/f9-recovery-application-proof.mjs
-    - scripts/verify-f9-recovery.py
-    - scripts/verify-f9-production-delivery.py
-    - docs/FOUNDATION_F9_BACKUP_RESTORE_RECOVERY_BASELINE.md
+    - scripts/verify-f9-observability-abuse.py
+    - scripts/verify-f9-observability-runtime.mjs
+    - docs/FOUNDATION_F9_OBSERVABILITY_DIAGNOSTICS_ABUSE_PROTECTION_BASELINE.md
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
@@ -48,28 +43,23 @@ scope:
   allowControlPlaneChanges: true
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F9-RECOVERY-AUTHORITY
-    statement: One machine-readable Recovery Authority defines database backup, isolated restore, SHA-256 integrity, encryption, least-privilege roles, PITR requirements, and BIA-governed RPO/RTO status.
-  - id: AC-F9-POSTGRES18-DRILL
-    statement: A deterministic backup-and-restore drill executes on real PostgreSQL 18 against an isolated clean destination database, validating migration history, table definitions, fixture data, append-only triggers, and database readiness.
-  - id: AC-F9-INTEGRITY-NEGATIVE-PROOF
-    statement: SHA-256 checksum mismatch on a mutated/tampered backup archive strictly rejects the restore candidate before any restore attempt.
-  - id: AC-F9-NO-SECRETS-LEAKED
-    statement: Database credentials, connection passwords, and sensitive records are strictly redacted from logs, evidence, and manifests.
-  - id: AC-F9-OBSERVATION-METRICS
-    statement: Durations and byte sizes for backup, restore, and verification are recorded as observation baselines without inventing arbitrary production SLA gates.
-  - id: AC-F9-MATURITY-BOUNDED
-    statement: Only operations.backup-restore advances from DESIGNED to IMPLEMENTED with explicit remaining items for production cloud provider and PITR proof.
+  - id: AC-F9-OBSERVABILITY-AUTHORITY
+    statement: The production-delivery authority defines line-delimited JSON logging, UTC timestamps, release/service identity, correlation propagation, safe error representation, strict recursive redaction, and clear separation of process liveness from dependency readiness.
+  - id: AC-F9-RUNTIME-LOGGING-PROOF
+    statement: Real HTTP runtime execution demonstrates that correlation IDs propagate from request header through response header into structured log records, with zero leakage of passwords, hashes, tokens, or database connection credentials.
+  - id: AC-F9-SAFE-ERROR-MASKING
+    statement: Internal error stack traces are strictly masked from client HTTP responses while preserving safe structured error codes and correlation tracking.
+  - id: AC-F9-ABUSE-PROTECTION-BASELINE
+    statement: In-process request body size bounds, timeouts, parameter limits, and throttling are verified locally while multi-instance distributed rate limiting and WAF protection are formally designated as edge/gateway responsibilities marked PENDING_PROVIDER_PROFILE.
+  - id: AC-F9-NEGATIVE-PROOF-GATES
+    statement: Automated verifiers strictly reject premature PROVEN claims for telemetry delivery or edge protection when cloud provider profiles are unprovisioned.
 assumptions:
-  - statement: R13 is the reviewed F9-001 implemented canonical baseline at TAYMEX fc767c623e94c9f1afc33c1685fb2a4a7efbba09.
+  - statement: R15 is the accepted F9-002 canonical baseline at TAYMEX e452a88d061041e376f533f09708aa63882da8c4.
     status: verified
     evidence: blueprints/foundation/foundation.manifest.yaml
-  - statement: Production RPO and RTO targets require a formal Business Impact Analysis and must remain PENDING_BIA rather than being estimated.
+  - statement: Cloud telemetry collector forwarders and distributed edge WAF providers are not provisioned in local validation and remain PENDING_PROVIDER_PROFILE.
     status: verified
-    evidence: operations/f9/recovery.authority.yaml
-  - statement: Real cloud backup storage and continuous WAL archiving providers are not provisioned in this local environment and remain PENDING_PROVIDER_SELECTION.
-    status: verified
-    evidence: operations/f9/recovery.authority.yaml
+    evidence: operations/f9/production-delivery.authority.yaml
 obligations:
   securityDelta: required
   performance: not-applicable
@@ -80,23 +70,21 @@ obligations:
   idempotency: required
 functional:
   invariants:
-    - A backup archive is not considered recoverable until proven through a verified restore drill on an isolated clean database.
-    - Checksum verification is mandatory before executing restore.
-    - Restoring over the active source database is strictly forbidden.
-    - Database triggers and constraints must remain fully active and enforced in the restored database.
+    - Log egress must never contain passwords, password hashes, bearer tokens, or database passwords.
+    - Process liveness probe must never fail due to external database connectivity.
+    - Client error responses must never expose internal stack traces.
+    - Per-process in-memory limiters must not be claimed as multi-instance distributed rate limiters.
   statesAndTransitions:
-    - Recovery authority missing -> IMPLEMENTED_LOCAL_BASELINE only after machine-readable contract and verifiers are committed.
-    - DESIGNED -> IMPLEMENTED for operations.backup-restore upon successful local PostgreSQL 18 drill and negative proof.
-    - IMPLEMENTED -> PROVEN requires real cloud provider, continuous WAL streaming/PITR, and BIA-approved RPO/RTO.
+    - Observability and abuse authority extended -> IMPLEMENTED_LOCAL_BASELINE only after machine-readable contracts, runtime proof, and verifiers are committed.
+    - IMPLEMENTED -> PROVEN requires real cloud telemetry collector proof and distributed edge abuse protection.
   edgeCases:
-    - corrupted or tampered backup files must fail checksum verification and abort restore preflight
-    - missing encryption or checksum requirements in the authority must cause the verifier to fail
-    - premature claim of PROVEN maturity must be rejected by the recovery verifier
+    - Malformed JSON payloads must return 400 validation error without unhandled exception stack traces.
+    - Oversized payloads exceeding body limit must return 413 without process crashing.
+    - Authentication failures must record security event logs with safe reason codes and no password leakage.
   failureModes:
-    - relying on pg_dump exit code alone without testing database restore
-    - restoring into the live production database instead of an isolated target
-    - hardcoding speculative RPO/RTO SLA numbers before business agreement
-    - exposing database passwords or connection secrets in test logs or manifests
+    - Exposing database passwords or authorization tokens in structured logs or diagnostics.
+    - Failing process liveness because PostgreSQL is temporarily unreachable.
+    - Hardcoding speculative cloud vendor log ingestion endpoints before deployment profile selection.
 requiredGates:
   - TASK-001
   - BASE-001
