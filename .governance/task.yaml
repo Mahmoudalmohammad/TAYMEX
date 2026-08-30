@@ -1,16 +1,17 @@
-id: FOUNDATION-F8-SSR-UNIT-FORMAT-006
-title: Repair F8 SSR unit-formatting runtime failure
+id: FOUNDATION-F8-RSC-SERIALIZATION-007
+title: Repair F8 RSC serialization boundary for localized pagination copy
 mode: fix
 risk: R2
 objective: >-
-  Repair the exact F8 server-rendering failure exposed by real Node 24 runtime proof by replacing the unsupported Intl.NumberFormat unit identifier with an ECMA-402 sanctioned representative unit, while keeping TAYMEX solar quantity codes and conversions in the canonical domain quantity layer and changing no F8 behavior beyond the broken proof sample.
-baseRevision: 5c9eba07894a441a4bfec77d23b8260655f35ff0
+  Repair the exact F8 React Server Component serialization failure exposed by R9 by making the UI reference copy passed from the server to the client data-only and serializable, while preserving locale-specific pagination wording and leaving pagination behavior inside the client boundary.
+baseRevision: 24419f7374e7769ee78e8423c13822a89e27c052
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - apps/web/src/i18n/formatting.ts
+    - apps/web/src/i18n/ui-reference-messages.ts
+    - apps/web/src/components/f8-reference-surface.tsx
   forbiddenPaths:
     - .github/**
     - .platform/**
@@ -22,6 +23,7 @@ scope:
     - scripts/**
     - apps/api/**
     - apps/web/proxy.ts
+    - apps/web/app/**
     - pnpm-lock.yaml
     - pnpm-workspace.yaml
   allowNewFiles: false
@@ -37,25 +39,25 @@ scope:
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-SSR-UNIT-SANCTIONED
-    statement: The F8 representative Intl.NumberFormat unit sample uses an ECMA-402 sanctioned unit identifier and no longer throws during Node 24 server rendering for AR, TR, or EN.
-  - id: AC-F8-SOLAR-UNIT-BOUNDARY
-    statement: Solar engineering units such as W, kW, Wh, and kWh remain owned by the existing canonical TAYMEX quantity/unit primitives; this repair does not invent an Intl alias, conversion, duplicate unit registry, or solar calculation behavior.
-  - id: AC-F8-RUNTIME-REGRESSION-GATE
-    statement: The existing production build and exact-SHA Chromium/CDP proof remain the runtime regression gates; no local workaround, dependency, fallback renderer, or browser-only bypass is introduced.
+  - id: AC-F8-RSC-SERIALIZABLE-COPY
+    statement: The UiReferenceCopy object passed from the server page into F8ReferenceSurface contains serializable data only and no ordinary function-valued property.
+  - id: AC-F8-PAGINATION-LOCALE-PRESERVED
+    statement: Arabic, Turkish, and English pagination wording remains locale-specific through a serializable page/count template whose interpolation executes inside the Client Component boundary.
+  - id: AC-F8-RSC-RUNTIME-REGRESSION-GATE
+    statement: The existing production build and exact-SHA Chromium/CDP proof remain the runtime regression gates; no Server Function, dependency, server action, fallback renderer, page relocation, or client-only routing workaround is introduced.
 assumptions:
-  - statement: R8 passed sections 1 through 9 and failed first in section 10 when SSR evaluated Intl.NumberFormat with unit kilowatt on the /ar/foundation/ui proof route.
+  - statement: R9 passed sections 1 through 9 and failed first in section 10 because uiReferenceMessages supplied a pageOf function inside the copy prop passed from a Server Component to the client-marked F8ReferenceSurface.
     status: verified
-    evidence: F8 local validation R8 first-failure report and web-process.log from 2026-08-30T091348Z.
-  - statement: ECMAScript Internationalization specifies a limited sanctioned set of unit identifiers for Intl.NumberFormat unit style; kilowatt is not in that set while celsius is.
+    evidence: F8 local validation R9 first-failure report and web-process.log from 2026-08-30T093144Z.
+  - statement: React Server Components require props crossing from Server Components to Client Components to be serializable; ordinary functions are not supported unless they are Server Functions, which is not appropriate for pure pagination label formatting.
     status: verified
-    evidence: ECMA-402 measurement-unit identifiers and Node 24 R8 runtime evidence.
+    evidence: React use-client and use-server reference documentation reviewed on 2026-08-30.
 obligations:
   securityDelta: not-applicable
   performance: standard
   ui: standard
   responsive: not-applicable
-  accessibility: not-applicable
+  accessibility: required
   concurrency: not-applicable
   idempotency: not-applicable
 requiredGates:

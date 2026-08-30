@@ -10,6 +10,9 @@ import type { UiFormatExamples } from '../i18n/formatting';
 import type { UiReferenceCopy } from '../i18n/ui-reference-messages';
 
 type Row={id:string;name:string;status:string;amount:string};
+function formatPageLabel(template:string,page:number,count:number){
+  return template.replace('{page}',String(page)).replace('{count}',String(count));
+}
 export function F8ReferenceSurface({copy,formats}:{copy:UiReferenceCopy;formats:UiFormatExamples}) {
   const [theme,setTheme]=useState<'light'|'dark'>('light');
   const rows:Row[]=[
@@ -51,7 +54,7 @@ export function F8ReferenceSurface({copy,formats}:{copy:UiReferenceCopy;formats:
         {id:'status',header:copy.colStatus,cell:row=>row.status},
         {id:'amount',header:copy.colAmount,align:'numeric',cell:row=>row.amount},
       ]}/>
-      <Pagination page={1} pageCount={3} label={copy.pagination} previousLabel={copy.previous} nextLabel={copy.next} pageLabel={copy.pageOf}/>
+      <Pagination page={1} pageCount={3} label={copy.pagination} previousLabel={copy.previous} nextLabel={copy.next} pageLabel={(page,count)=>formatPageLabel(copy.pageOfTemplate,page,count)}/>
     </section>
 
     <section data-taymex-reference-section aria-labelledby="f8-feedback-heading">
