@@ -1,33 +1,37 @@
-id: FOUNDATION-F8-CONSUMER-A11Y-TOUCH-RESPONSIVE-009
-title: Consume updated platform UI and AppShell packages with touch targets and normalize root box-sizing
+id: FOUNDATION-F8-CLOSURE-010
+title: Close F8 from exact-SHA Chromium and integrated local proof
 mode: fix
 risk: R3
 objective: >-
-  Consume updated @engineering-platform/ui and @engineering-platform/app-shell runtime artifacts containing 44px touch targets, 0s reduced motion duration, and autoFocus on mobile drawer close button, while normalizing root box-sizing in taymex.css to prevent mobile horizontal overflow.
-baseRevision: 84f71d666ad6ef822ed3ccf959028e442d074652
+  Close F8 from the independently reviewed exact-SHA local validation proof at TAYMEX 545c8733ef99d1f9bf2a2c95565a35dd8ebec97a and ENGINEERING_PLATFORM f95612d51c2f5b724c62e8cbc782189970802777; record Node 24.14.0, pnpm 11.24.0, PostgreSQL 18.6 and Chromium 149 real proof; promote only the F8 localization/UI/integrated-harness capabilities demonstrated by that evidence to PROVEN; preserve all F9/F10 obligations; update earlier-stage verifiers for lawful later-stage progression; and advance foundation.currentStage to F9 without modifying the runtime/UI implementation proven by R11.
+baseRevision: 545c8733ef99d1f9bf2a2c95565a35dd8ebec97a
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - .platform/runtime.lock.yaml
-    - .platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
-    - .platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
-    - apps/web/app/taymex.css
-    - pnpm-lock.yaml
+    - blueprints/foundation/foundation.manifest.yaml
+    - docs/FOUNDATION_F8_UI_UX_REPORT.md
+    - docs/evidence/F8_UI_UX_REAL_PROOF.md
+    - scripts/verify-f7-files-side-effects.py
+    - scripts/verify-f8-ui-ux.py
   forbiddenPaths:
     - .github/**
-    - tooling/**
+    - tooling/governance.config.yaml
+    - tooling/policies/**
+    - tooling/schemas/**
+    - tooling/trust-root/**
+    - tooling/registry/**
+    - .platform/**
+    - apps/**
     - packages/**
     - contracts/**
-    - blueprints/**
-    - docs/**
-    - scripts/**
-    - apps/api/**
-    - pnpm-workspace.yaml
-  allowNewFiles: false
-  allowedNewFiles: []
-  allowDependencies: true
+    - package.json
+    - pnpm-lock.yaml
+  allowNewFiles: true
+  allowedNewFiles:
+    - docs/evidence/F8_UI_UX_REAL_PROOF.md
+  allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
@@ -38,25 +42,57 @@ scope:
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-CONSUME-A11Y-FIX
-    statement: The consumer runtime lock, lockfile, and UI/app-shell artifacts are updated to the platform release with 44px touch targets, zero reduced motion durations, and drawer focus trapping.
-  - id: AC-F8-BOX-SIZING
-    statement: Root box-sizing border-box reset is added to taymex.css to prevent mobile viewport horizontal overflow.
-  - id: AC-F8-CONSUMER-BOUNDARY-PASS
-    statement: The consumer boundary verification passes with 6 locked artifacts and 0 escapes.
+  - id: AC-F8-CLOSURE-EXACT-SHA
+    statement: F8 closure evidence is tied to exact TAYMEX revision 545c8733ef99d1f9bf2a2c95565a35dd8ebec97a and ENGINEERING_PLATFORM revision f95612d51c2f5b724c62e8cbc782189970802777 with the pinned Node pnpm PostgreSQL and Chromium versions recorded.
+  - id: AC-F8-CLOSURE-BROWSER
+    statement: Real production Next.js and Chromium/CDP proof demonstrates representative AR RTL TR/EN LTR mobile/tablet/desktop behavior, theme switching, reduced motion, overflow, focus/accessibility smoke, locale formatting, and retained screenshot evidence.
+  - id: AC-F8-CLOSURE-INTEGRATED
+    statement: The same exact-SHA campaign passes clean install, build, strict typecheck, package regressions, F0-F8 structural verification, PostgreSQL 18 regressions, real F5 HTTP and API process smoke, Consumer Boundary, Handoff, Governance, Trust, and final Git integrity.
+  - id: AC-F8-CLOSURE-MATURITY
+    statement: Only the F8 localization UI and integrated-harness capabilities demonstrated by the proof are promoted to PROVEN; F8 closes and the foundation advances only to F9 readiness while later operations recovery public-web and integrated-final-proof obligations retain their existing maturity.
+  - id: AC-F8-CLOSURE-NONRUNTIME
+    statement: The closure diff contains only task metadata, maturity/evidence documentation, and structural verifier progression updates; no runtime UI artifact dependency contract migration platform or trust-root implementation is changed after the exact-SHA proof.
 assumptions:
-  - statement: Mobile horizontal overflow and touch target validation failed in R11 due to unreset box-sizing in consumer CSS and undersized clear button and native input bounds in platform UI.
+  - statement: The returned R11 workspace contains the unmodified final proof directory .local-validation-results/f8_20260830_132322 and reports F8_REAL_PROOF=PASS while deliberately leaving F8_CLOSED=NO for main-workflow review.
     status: verified
-    evidence: F8 R11 Chromium CDP browser proof passing at 390px viewport.
+    evidence: docs/evidence/F8_UI_UX_REAL_PROOF.md
+  - statement: The reviewed R11 workspace archive SHA-256 is 37bc36752e51e1ff152db74955b14a005c7b1c21d6915207ba626d87f65eedd1.
+    status: verified
+    evidence: docs/evidence/F8_UI_UX_REAL_PROOF.md
+  - statement: The final tested platform revision is f95612d51c2f5b724c62e8cbc782189970802777 and both tested worktrees are clean.
+    status: verified
+    evidence: docs/evidence/F8_UI_UX_REAL_PROOF.md
 obligations:
   securityDelta: not-applicable
   performance: standard
   ui: standard
-  responsive: not-applicable
+  responsive: required
   accessibility: required
   concurrency: not-applicable
   idempotency: not-applicable
+functional:
+  invariants:
+    - PASS remains attached to the tested R11 runtime SHAs and is reused by closure only because this closure does not modify the proven runtime or UI implementation.
+    - F8 closure must not promote F9 operations recovery remote trust public-web or production maturity.
+    - Product feature expansion remains blocked until all required foundation capabilities reach their exit maturity.
+  statesAndTransitions:
+    - F8 exact-SHA real proof PASS with F8_CLOSED=NO -> F8 PROVEN and CLOSED only after independent evidence review.
+    - F8 CLOSED -> currentStage F9 means F9 READY only and does not mean F9 implementation or proof has occurred.
+  edgeCases:
+    - browser/runtime defects can escape structural verification and require exact-SHA re-proof before closure
+    - closure metadata must not be mistaken for a new runtime revision with fabricated browser evidence
+  failureModes:
+    - using proof from an older runtime SHA after a runtime-affecting change
+    - promoting unrelated later-stage capabilities because F8 passed
+    - weakening UI accessibility governance trust or boundary checks to convert a failed browser proof into PASS
 requiredGates:
   - TASK-001
+  - BASE-001
   - SCP-001
+  - SCP-002
+  - DEP-001
+  - PLT-001
   - RISK-001
+  - TRUST-001
+  - MODEL-001
+  - DATA-001

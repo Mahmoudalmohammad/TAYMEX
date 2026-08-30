@@ -10,7 +10,7 @@ foundation:
     - PROVEN
     - PRODUCTION_PROVEN
   readinessRule: Every capability with requiredBeforeFeatureExpansion=true must be at or above exitMaturity.
-  currentStage: F8
+  currentStage: F9
   validationSlice:
     module: catalog
     status: FROZEN_FOR_FOUNDATION_PROOF
@@ -359,7 +359,7 @@ capabilities:
   - id: localization.i18n-bidi-formatting
     area: localization
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: experience
     purpose: AR/TR/EN routing, RTL/LTR, translation policy, bidi, time/number/currency/unit formatting.
@@ -375,13 +375,13 @@ capabilities:
       - apps/web/proxy.ts
       - packages/foundation/src/localization.ts
       - packages/foundation/tests/foundation.test.mjs
-    remaining:
-      - Prove document language/direction, mixed-script handling, and locale-aware number/currency/date/unit formatting in the exact-SHA browser runtime.
+      - docs/evidence/F8_UI_UX_REAL_PROOF.md
+    remaining: []
 
   - id: ui.design-tokens-theme-typography
     area: experience
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: experience
     purpose: Approved semantic theme, typography, spacing/density, radii/elevation, icons, and brand mapping.
@@ -389,13 +389,13 @@ capabilities:
       - .platform/runtime.lock.yaml
       - blueprints/theme-profiles/taymex.yaml
       - apps/web/app/taymex-theme.generated.css
-    remaining:
-      - Prove light/dark theme application and actual production UI build against the locked platform artifacts in the exact-SHA browser runtime.
+      - docs/evidence/F8_UI_UX_REAL_PROOF.md
+    remaining: []
 
   - id: ui.shell-navigation
     area: experience
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: experience
     purpose: Responsive accessible application shell mechanisms and product-specific navigation composition rules.
@@ -403,13 +403,13 @@ capabilities:
       - apps/web/src/components/admin-shell.tsx
       - blueprints/experience/navigation.manifest.yaml
       - apps/web/proxy.ts
-    remaining:
-      - Prove desktop collapse, mobile modal navigation, keyboard focus behavior, and RTL/LTR shell behavior in the exact-SHA browser runtime.
+      - docs/evidence/F8_UI_UX_REAL_PROOF.md
+    remaining: []
 
   - id: ui.components-patterns-states
     area: experience
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: experience
     purpose: Shared forms, tables, dialogs, feedback, page states, filters, and composable CRUD patterns.
@@ -418,13 +418,13 @@ capabilities:
       - apps/web/app/[locale]/foundation/ui/page.tsx
       - apps/web/src/components/f8-reference-surface.tsx
       - apps/web/ui.verification.yaml
-    remaining:
-      - Prove the used component/pattern states on the real TAYMEX reference route with exact-SHA browser evidence.
+      - docs/evidence/F8_UI_UX_REAL_PROOF.md
+    remaining: []
 
   - id: ui.responsive-rtl-accessibility-visual
     area: experience
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: experience
     purpose: Mobile-first, RTL/LTR, keyboard/touch accessibility, axe and governed visual regression.
@@ -432,8 +432,8 @@ capabilities:
       - apps/web/ui.verification.yaml
       - scripts/verify-f8-ui-ux.py
       - docs/FOUNDATION_F8_UI_UX_REPORT.md
-    remaining:
-      - Produce exact-SHA Chromium evidence for representative mobile/tablet/desktop, AR RTL plus TR/EN LTR, light/dark, keyboard/focus/accessibility smoke, reduced motion, overflow, and screenshots before F8 closure.
+      - docs/evidence/F8_UI_UX_REAL_PROOF.md
+    remaining: []
 
   - id: files.media-storage
     area: application-services
@@ -477,7 +477,7 @@ capabilities:
   - id: testing.integrated-harness
     area: quality
     requiredBeforeFeatureExpansion: true
-    currentMaturity: IMPLEMENTED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: quality
     purpose: Reusable unit, integration, DB, API, E2E, UI, accessibility, security, concurrency, and performance test paths.
@@ -487,8 +487,8 @@ capabilities:
       - packages/data-postgres/tests/data-postgres.test.mjs
       - packages/data-postgres/tests/postgres18.integration.test.mjs
       - docs/evidence/F5_HTTP_SECURITY_PROOF.md
-    remaining:
-      - Add and prove browser/UI/accessibility harnesses in F8 and performance harnesses in F6; PostgreSQL 18 and real API HTTP integration paths are already proven.
+      - docs/evidence/F8_UI_UX_REAL_PROOF.md
+    remaining: []
 
   - id: operations.environment-secrets-delivery
     area: operations

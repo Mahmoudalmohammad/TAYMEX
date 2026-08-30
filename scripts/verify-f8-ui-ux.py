@@ -19,15 +19,21 @@ def capability(manifest, cid):
     raise AssertionError(f'missing capability {cid}')
 
 manifest=y('blueprints/foundation/foundation.manifest.yaml')
-ok('stage-f8',manifest['foundation']['currentStage']=='F8')
+ok('stage-f8-closure-progression',manifest['foundation']['currentStage'] in {'F9','F10'})
 expected={
- 'localization.i18n-bidi-formatting':'IMPLEMENTED',
- 'ui.design-tokens-theme-typography':'IMPLEMENTED',
- 'ui.shell-navigation':'IMPLEMENTED',
- 'ui.components-patterns-states':'IMPLEMENTED',
- 'ui.responsive-rtl-accessibility-visual':'IMPLEMENTED',
+ 'localization.i18n-bidi-formatting':'PROVEN',
+ 'ui.design-tokens-theme-typography':'PROVEN',
+ 'ui.shell-navigation':'PROVEN',
+ 'ui.components-patterns-states':'PROVEN',
+ 'ui.responsive-rtl-accessibility-visual':'PROVEN',
+ 'testing.integrated-harness':'PROVEN',
 }
 for cid,maturity in expected.items(): ok(f'maturity-{cid}',capability(manifest,cid)['currentMaturity']==maturity)
+proof_path='docs/evidence/F8_UI_UX_REAL_PROOF.md'
+for cid in expected:
+    item=capability(manifest,cid)
+    ok(f'proof-{cid}',proof_path in item.get('evidence',[]))
+    ok(f'remaining-{cid}',not item.get('remaining'))
 
 runtime=y('.platform/runtime.lock.yaml')
 ui_versions={i['name']:i for i in runtime['artifacts'] if i['name'] in {

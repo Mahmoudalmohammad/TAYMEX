@@ -20,6 +20,8 @@ F8 completes the used UI/UX foundation without creating a second design system i
 
 `/{locale}/foundation/ui` is the F8 proof surface. It is not a parallel product UI or a component fork; it imports the exact locked platform artifacts used by application pages.
 
-## Honest maturity
+## Exact-SHA proof and closure
 
-The structural implementation can move relevant F8 capabilities to `IMPLEMENTED`. `PROVEN` requires exact-SHA Node 24 build/typecheck, Chromium runtime checks across AR/TR/EN and representative mobile/tablet/desktop widths, RTL/LTR assertions, keyboard/focus/accessibility smoke, reduced-motion, theme switching, overflow/layout checks and screenshot evidence. F8 remains open until that evidence is returned and reviewed.
+The final bounded local-repair campaign proved the used F8 foundation on exact TAYMEX revision `545c8733ef99d1f9bf2a2c95565a35dd8ebec97a` and ENGINEERING_PLATFORM revision `f95612d51c2f5b724c62e8cbc782189970802777` with Node `v24.14.0`, pnpm `11.24.0`, PostgreSQL `18.6`, and Chromium `149.0.7827.114`. The full runner passed build/typecheck/tests, F0-F8 structural verification, PostgreSQL regressions, real HTTP/API process smoke, representative AR RTL / TR-EN LTR browser scenarios, light/dark theme, reduced motion, responsive overflow, touch/focus/accessibility smoke, screenshots, Governance, Trust, Consumer Boundary, Handoff, and final exact-SHA integrity.
+
+The accepted proof is recorded in `docs/evidence/F8_UI_UX_REAL_PROOF.md`. Therefore the F8 capabilities proven by this campaign are promoted to `PROVEN`, F8 is **CLOSED**, and `foundation.currentStage` advances to `F9`. This closure does not modify the runtime/UI code that was proven and does not imply F9 operations, backup/restore, remote merge authority, public-web, or production readiness.

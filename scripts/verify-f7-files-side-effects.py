@@ -42,7 +42,7 @@ capabilities = {
 }
 files_cap = mapping(capabilities.get("files.media-storage"))
 notify_cap = mapping(capabilities.get("notifications.events-side-effects"))
-check("F7 closure advances foundation to F8 readiness", foundation.get("currentStage") == "F8", str(foundation.get("currentStage")))
+check("F7 closure remains valid through lawful later-stage progression", foundation.get("currentStage") in {"F8", "F9", "F10"}, str(foundation.get("currentStage")))
 proof_path = "docs/evidence/F7_FILES_SIDE_EFFECTS_REAL_PROOF.md"
 for cid, capability in (("files.media-storage", files_cap), ("notifications.events-side-effects", notify_cap)):
     check(f"{cid} is PROVEN from exact-SHA real proof", capability.get("currentMaturity") == "PROVEN", str(capability.get("currentMaturity")))
