@@ -1,26 +1,30 @@
-id: FOUNDATION-F8-VERIFIER-HYGIENE-004
-title: Align F8 verifier with adopted governance artifact
+id: FOUNDATION-F8-PROXY-TYPECHECK-005
+title: Repair F8 locale proxy strict typing
 mode: fix
 risk: R2
 objective: >-
-  Align the F8 structural verifier with the trust-verified governance 0.1.5 artifact adopted immediately after the F8 UI implementation, without changing application runtime, UI behavior, platform artifacts, or capability maturity.
-baseRevision: 7d3ee8d2a643675e25421107d01d949dbf3fe9fc
+  Repair the exact F8 locale proxy TypeScript defect exposed by the Node 24 production build by ensuring the path segment is normalized to a definite string before locale membership checks and request-header propagation, without changing locale behavior, design-system artifacts, capability maturity, or any earlier foundation surface.
+baseRevision: bd9ea862e2da8a765cb77d442930d1850593e0a3
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - scripts/verify-f8-ui-ux.py
+    - apps/web/proxy.ts
   forbiddenPaths:
     - .github/**
     - .platform/**
     - tooling/**
-    - apps/**
     - packages/**
     - contracts/**
     - blueprints/**
+    - docs/**
+    - scripts/**
+    - apps/api/**
     - pnpm-lock.yaml
+    - pnpm-workspace.yaml
   allowNewFiles: false
+  allowedNewFiles: []
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
@@ -32,12 +36,14 @@ scope:
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-GOV-VERSION
-    statement: The F8 verifier requires the exact trust-verified governance 0.1.5 artifact now locked by the repository and changes no runtime behavior or maturity.
+  - id: AC-F8-PROXY-DEFINITE-LOCALE
+    statement: The locale proxy never passes string-or-undefined to locale membership checks or request headers; missing path segments resolve to the governed default locale without changing supported-locale behavior.
+  - id: AC-F8-PROXY-BUILD-GATE
+    statement: The existing web TypeScript/build gates remain the regression protection for this strict-typing defect; no local workaround, dependency, or duplicate locale resolver is introduced.
 assumptions:
-  - statement: Governance 0.1.5 transport is trust-verified on the immediately preceding commit.
+  - statement: The F8 real local validation on bd9ea862 failed first at Next.js production TypeScript checking in apps/web/proxy.ts before Chromium proof began.
     status: verified
-    evidence: trust-root verification for 039f17e956e509a8d57846be7ce7d480b602f008 to 7d3ee8d2a643675e25421107d01d949dbf3fe9fc.
+    evidence: F8 local validation first-failure report for bd9ea862 on Node v24.14.0 and pnpm 11.24.0.
 obligations:
   securityDelta: not-applicable
   performance: standard

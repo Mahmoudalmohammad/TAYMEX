@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { DEFAULT_LOCALE, TAYMEX_LOCALES } from './src/i18n/locales.generated';
 
 export function proxy(request:NextRequest) {
-  const firstSegment=request.nextUrl.pathname.split('/').filter(Boolean)[0];
+  const firstSegment=request.nextUrl.pathname.split('/').filter(Boolean)[0] ?? DEFAULT_LOCALE;
   const locale=(TAYMEX_LOCALES as readonly string[]).includes(firstSegment) ? firstSegment : DEFAULT_LOCALE;
   const requestHeaders=new Headers(request.headers);
   requestHeaders.set('x-taymex-locale',locale);
