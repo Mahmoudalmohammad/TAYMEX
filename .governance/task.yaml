@@ -1,25 +1,23 @@
-id: FOUNDATION-F9-OBSERVABILITY-ABUSE-013
-title: Establish F9 production observability, diagnostics and deployment abuse protection baseline
+id: FOUNDATION-F9-REMOTE-TRUST-014
+title: Activate and prove real GitHub remote trust and merge controls on Mahmoudalmohammad/TAYMEX
 mode: security-change
 risk: R4
 objective: >-
-  Expand the canonical production-delivery authority with strict production logging, ISO-8601 UTC timestamps, service/release identity, non-leaking correlation IDs, recursive credential/token/DSN redaction, clear architectural separation of liveness from dependency readiness, and multi-instance edge abuse protection requirements without prematurely claiming unverified cloud telemetry or edge provider capabilities; execute real NestJS/Fastify HTTP runtime verification demonstrating correlation propagation, stack masking, security event logging, zero secrets leaked, and Fastify body limits; and integrate verification into governance CI.
-baseRevision: e452a88d061041e376f533f09708aa63882da8c4
+  Activate remote trust authority on the real GitHub repository Mahmoudalmohammad/TAYMEX, resolve CODEOWNERS with the authenticated repository owner @Mahmoudalmohammad, configure and enforce GitHub Ruleset with required status checks (trust-root, governance-summary, f9-production-delivery) on default branch main, advance governance.trust-root capability to PROVEN, and execute real negative proof proving merge is blocked before checks succeed.
+baseRevision: 902761be424743e7d91d8bcd970a40963821f571
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - .github/workflows/governance.yml
+    - .github/CODEOWNERS
     - operations/f9/production-delivery.authority.yaml
     - blueprints/foundation/foundation.manifest.yaml
-    - scripts/verify-f9-observability-abuse.py
-    - scripts/verify-f9-observability-runtime.mjs
-    - docs/FOUNDATION_F9_OBSERVABILITY_DIAGNOSTICS_ABUSE_PROTECTION_BASELINE.md
-    - package.json
+    - scripts/verify-f9-production-delivery.py
+    - docs/evidence/F9_REMOTE_TRUST_ACTIVATION_PROOF.md
   forbiddenPaths:
     - .github/workflows/trust-root.yml
-    - .github/CODEOWNERS
+    - .github/workflows/governance.yml
     - tooling/trust-root/**
     - tooling/schemas/trust-root.schema.json
     - .platform/**
@@ -29,9 +27,7 @@ scope:
     - pnpm-lock.yaml
   allowNewFiles: true
   allowedNewFiles:
-    - scripts/verify-f9-observability-abuse.py
-    - scripts/verify-f9-observability-runtime.mjs
-    - docs/FOUNDATION_F9_OBSERVABILITY_DIAGNOSTICS_ABUSE_PROTECTION_BASELINE.md
+    - docs/evidence/F9_REMOTE_TRUST_ACTIVATION_PROOF.md
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
@@ -43,21 +39,18 @@ scope:
   allowControlPlaneChanges: true
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F9-OBSERVABILITY-AUTHORITY
-    statement: The production-delivery authority defines line-delimited JSON logging, UTC timestamps, release/service identity, correlation propagation, safe error representation, strict recursive redaction, and clear separation of process liveness from dependency readiness.
-  - id: AC-F9-RUNTIME-LOGGING-PROOF
-    statement: Real HTTP runtime execution demonstrates that correlation IDs propagate from request header through response header into structured log records, with zero leakage of passwords, hashes, tokens, or database connection credentials.
-  - id: AC-F9-SAFE-ERROR-MASKING
-    statement: Internal error stack traces are strictly masked from client HTTP responses while preserving safe structured error codes and correlation tracking.
-  - id: AC-F9-ABUSE-PROTECTION-BASELINE
-    statement: In-process request body size bounds, timeouts, parameter limits, and throttling are verified locally while multi-instance distributed rate limiting and WAF protection are formally designated as edge/gateway responsibilities marked PENDING_PROVIDER_PROFILE.
-  - id: AC-F9-NEGATIVE-PROOF-GATES
-    statement: Automated verifiers strictly reject premature PROVEN claims for telemetry delivery or edge protection when cloud provider profiles are unprovisioned.
+  - id: AC-F9-REMOTE-TRUST-ACTIVATED
+    statement: The production-delivery authority records activationStatus ACTIVATED and binds exact repository coordinates Mahmoudalmohammad/TAYMEX with default branch main.
+  - id: AC-F9-CODEOWNERS-RESOLVED
+    statement: CODEOWNERS placeholder @taymex/platform-owners is replaced with real authenticated repository owner @Mahmoudalmohammad across all protected control-plane paths.
+  - id: AC-F9-RULESET-ACTIVE
+    statement: Active GitHub Ruleset on main enforces pull requests, blocks direct deletion, blocks non-fast-forward pushes, and requires status checks trust-root, governance-summary, and f9-production-delivery.
+  - id: AC-F9-REAL-NEGATIVE-PROOF
+    statement: A real GitHub Pull Request proves that merge is strictly blocked when required status checks have not passed, and becomes merge-eligible only after checks succeed.
+  - id: AC-F9-TRUST-ROOT-PROVEN
+    statement: The capability governance.trust-root transitions from INTEGRATED to PROVEN with zero remaining obligations.
 assumptions:
-  - statement: R15 is the accepted F9-002 canonical baseline at TAYMEX e452a88d061041e376f533f09708aa63882da8c4.
-    status: verified
-    evidence: blueprints/foundation/foundation.manifest.yaml
-  - statement: Cloud telemetry collector forwarders and distributed edge WAF providers are not provisioned in local validation and remain PENDING_PROVIDER_PROFILE.
+  - statement: Mahmoudalmohammad/TAYMEX is the authenticated and accessible remote repository with admin permissions.
     status: verified
     evidence: operations/f9/production-delivery.authority.yaml
 obligations:
@@ -70,21 +63,18 @@ obligations:
   idempotency: required
 functional:
   invariants:
-    - Log egress must never contain passwords, password hashes, bearer tokens, or database passwords.
-    - Process liveness probe must never fail due to external database connectivity.
-    - Client error responses must never expose internal stack traces.
-    - Per-process in-memory limiters must not be claimed as multi-instance distributed rate limiters.
+    - Default branch main must reject direct force push and deletion.
+    - Pull requests targeting main must fail merge evaluation until required status checks pass.
+    - Codeowner placeholder identities must not remain in active production governance.
   statesAndTransitions:
-    - Observability and abuse authority extended -> IMPLEMENTED_LOCAL_BASELINE only after machine-readable contracts, runtime proof, and verifiers are committed.
-    - IMPLEMENTED -> PROVEN requires real cloud telemetry collector proof and distributed edge abuse protection.
+    - remoteTrust.activationStatus -> ACTIVATED
+    - governance.trust-root -> PROVEN
   edgeCases:
-    - Malformed JSON payloads must return 400 validation error without unhandled exception stack traces.
-    - Oversized payloads exceeding body limit must return 413 without process crashing.
-    - Authentication failures must record security event logs with safe reason codes and no password leakage.
+    - Personal free accounts enforce rulesets on public repositories without requiring GitHub Enterprise.
+    - Ordinary pull requests must wait for required status checks before merge eligibility.
   failureModes:
-    - Exposing database passwords or authorization tokens in structured logs or diagnostics.
-    - Failing process liveness because PostgreSQL is temporarily unreachable.
-    - Hardcoding speculative cloud vendor log ingestion endpoints before deployment profile selection.
+    - Claiming PROVEN without active remote ruleset enforcement.
+    - Retaining placeholder CODEOWNERS handles.
 requiredGates:
   - TASK-001
   - BASE-001
