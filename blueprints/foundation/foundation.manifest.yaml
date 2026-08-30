@@ -518,6 +518,7 @@ capabilities:
       - operations/f9/recovery.authority.yaml
       - scripts/verify-f9-recovery.py
       - scripts/drill-f9-recovery.py
+      - scripts/f9-recovery-application-proof.mjs
       - docs/FOUNDATION_F9_BACKUP_RESTORE_RECOVERY_BASELINE.md
     remaining:
       - Select deployment storage/database profile and configure cloud-native encrypted backup store.

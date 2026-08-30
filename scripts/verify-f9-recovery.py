@@ -9,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 AUTH = ROOT / 'operations/f9/recovery.authority.yaml'
 MANIFEST = ROOT / 'blueprints/foundation/foundation.manifest.yaml'
 WORKFLOW = ROOT / '.github/workflows/governance.yml'
+APP_PROOF = ROOT / 'scripts/f9-recovery-application-proof.mjs'
+DRILL_SCRIPT = ROOT / 'scripts/drill-f9-recovery.py'
 
 checks: list[str] = []
 def check(name: str, condition: bool, detail: str = '') -> None:
@@ -84,7 +86,13 @@ def run_authority_checks(a: dict, m: dict):
     cap = capability(m, 'operations.backup-restore')
     check('cap-maturity-implemented', cap['currentMaturity'] == 'IMPLEMENTED')
     check('cap-not-premature-proven', cap['currentMaturity'] != 'PROVEN')
-    for exp_ev in ('operations/f9/recovery.authority.yaml', 'scripts/verify-f9-recovery.py', 'scripts/drill-f9-recovery.py', 'docs/FOUNDATION_F9_BACKUP_RESTORE_RECOVERY_BASELINE.md'):
+    for exp_ev in (
+        'operations/f9/recovery.authority.yaml',
+        'scripts/verify-f9-recovery.py',
+        'scripts/drill-f9-recovery.py',
+        'scripts/f9-recovery-application-proof.mjs',
+        'docs/FOUNDATION_F9_BACKUP_RESTORE_RECOVERY_BASELINE.md',
+    ):
         check(f'cap-evidence-{Path(exp_ev).stem}', exp_ev in cap.get('evidence', []))
     check('cap-has-remaining', bool(cap.get('remaining')))
 
@@ -136,6 +144,19 @@ def main():
 
     run_authority_checks(auth_data, manifest_data)
     run_negative_verifier_tests(auth_data, manifest_data)
+
+    # Check application proof script existence and modules
+    check('app-proof-script-exists', APP_PROOF.exists())
+    app_proof_text = APP_PROOF.read_text(encoding='utf-8')
+    check('app-proof-data-postgres', 'packages/data-postgres' in app_proof_text)
+    check('app-proof-identity', 'packages/identity' in app_proof_text)
+    check('app-proof-settings', 'packages/settings-runtime' in app_proof_text)
+    check('app-proof-audit', 'packages/audit' in app_proof_text)
+    check('app-proof-pass-signal', 'APPLICATION_RESTORED_STATE_PROOF=PASS' in app_proof_text)
+
+    # Check drill script invokes application proof
+    drill_text = DRILL_SCRIPT.read_text(encoding='utf-8')
+    check('drill-invokes-app-proof', 'f9-recovery-application-proof.mjs' in drill_text)
 
     # Verify CI workflow includes recovery verifier
     workflow_text = WORKFLOW.read_text(encoding='utf-8')

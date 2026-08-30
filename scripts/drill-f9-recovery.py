@@ -151,6 +151,7 @@ def compute_sha256(path: Path) -> str:
 def main():
     config = get_db_config()
     dest_dbname = 'taymex_recovery_test_db'
+    regression_dbname = 'taymex_recovery_regression_db'
 
     print(f'Starting F9-002 PostgreSQL 18 Backup/Restore Recovery Drill...')
     print(f'Source Database: {config["dbname"]} (Host: {config["host"]}:{config["port"]})')
@@ -218,38 +219,38 @@ def main():
         if dest_settings_count != source_settings_count:
             raise AssertionError(f'Settings count mismatch: source={source_settings_count}, dest={dest_settings_count}')
 
-        # Verify specific fixture record values in restored database
-        restored_email = run_psql("SELECT email FROM identity_accounts WHERE id='a0000000-0000-4000-8000-000000000001';", dest_dbname, config)
-        if restored_email != 'recovery.drill@taymex.test':
-            raise AssertionError(f'Restored account email mismatch: {restored_email}')
+        # Step 7: Application-level Restored State Proof
+        print('\nExecuting Application-Level Restored State Proof...')
+        dest_url = f"postgresql://{config['user']}:{config['password']}@{config['host']}:{config['port']}/{dest_dbname}"
+        app_proof_script = ROOT / 'scripts/f9-recovery-application-proof.mjs'
+        app_proof_cmd = ['node', str(app_proof_script), dest_url]
+        app_proof_res = subprocess.run(app_proof_cmd, capture_output=True, text=True, cwd=str(ROOT))
+        if app_proof_res.returncode != 0:
+            print('Application proof stderr:', app_proof_res.stderr)
+            raise RuntimeError(f'Application restored-state proof failed (exit {app_proof_res.returncode}): {app_proof_res.stderr.strip()}')
+        print(app_proof_res.stdout.strip())
 
-        restored_setting = run_psql("SELECT value_json->>'enabled' FROM runtime_setting_values WHERE setting_key='recovery.drill.enabled';", dest_dbname, config)
-        if restored_setting != 'true':
-            raise AssertionError(f'Restored setting mismatch: {restored_setting}')
-
-        # Step 7: Verify database triggers and invariants in restored database (append-only trigger must be active)
-        trigger_blocked = False
-        try:
-            run_psql("UPDATE audit_records SET severity='warning' WHERE id='d0000000-0000-4000-8000-000000000001';", dest_dbname, config)
-        except RuntimeError as e:
-            if 'audit_records is append-only' in str(e):
-                trigger_blocked = True
-        if not trigger_blocked:
-            raise AssertionError('Restored database failed to enforce append-only audit trigger!')
-        print('PASS: Restored database correctly enforces append-only audit triggers.')
-
-        # Step 8: Application readiness check against restored database
-        readiness_ok = run_psql('SELECT 1;', dest_dbname, config) == '1'
-        if not readiness_ok:
-            raise AssertionError('Restored database failed readiness query check.')
-        print('PASS: Restored database readiness probe returned 1.')
+        # Step 8: Run Full PostgreSQL 18 Regression Suite on Cloned Restored Database
+        print('\nExecuting PostgreSQL 18 Integration Regression against Cloned Restored Database...')
+        run_psql(f'DROP DATABASE IF EXISTS {regression_dbname};', 'postgres', config)
+        run_psql(f'CREATE DATABASE {regression_dbname} WITH TEMPLATE {dest_dbname};', 'postgres', config)
+        regression_url = f"postgresql://{config['user']}:{config['password']}@{config['host']}:{config['port']}/{regression_dbname}"
+        reg_env = os.environ.copy()
+        reg_env['TEST_DATABASE_URL'] = regression_url
+        reg_env['F4_DATABASE_TESTS'] = '1'
+        reg_cmd = ['node', '--test', 'packages/data-postgres/tests/postgres18.integration.test.mjs']
+        reg_res = subprocess.run(reg_cmd, capture_output=True, text=True, env=reg_env, cwd=str(ROOT))
+        if reg_res.returncode != 0:
+            print('Regression stderr:', reg_res.stderr)
+            raise RuntimeError(f'PostgreSQL 18 regression suite failed on restored clone: {reg_res.stderr.strip()}')
+        print('PASS: PostgreSQL 18 integration regression passed against restored database clone.')
+        run_psql(f'DROP DATABASE IF EXISTS {regression_dbname};', 'postgres', config)
 
         # Step 9: Negative Proof (Tamper / Mutation Detection)
-        print('Executing Negative Tamper & Integrity Mismatch Proof...')
+        print('\nExecuting Negative Tamper & Integrity Mismatch Proof...')
         tampered_file = Path(tmpdir) / 'taymex_tampered_backup.dump'
         with open(backup_file, 'rb') as src, open(tampered_file, 'wb') as dst:
             data = bytearray(src.read())
-            # Mutate bytes at offset 128
             data[128] = (data[128] ^ 0xFF)
             dst.write(data)
 
@@ -258,7 +259,6 @@ def main():
             raise AssertionError('Tampered archive sha256 unexpectedly matched original!')
         print(f'PASS: Detected SHA-256 mismatch on corrupted archive ({tampered_sha256[:12]}... != {backup_sha256[:12]}...)')
 
-        # Assert pre-restore verification rejects tampered archive
         checksum_verified = (compute_sha256(tampered_file) == backup_sha256)
         if checksum_verified:
             raise AssertionError('Pre-restore checksum verification failed to reject tampered archive!')
@@ -303,6 +303,18 @@ def main():
                 'data_integrity': 'MATCH',
                 'trigger_integrity': 'ENFORCED',
                 'readiness_probe': 'UP'
+            },
+            'application_restored_state_proof': {
+                'status': 'PASS',
+                'command': 'node scripts/f9-recovery-application-proof.mjs',
+                'database_target': dest_dbname,
+                'modules_exercised': ['@taymex/data-postgres', '@taymex/identity', '@taymex/settings-runtime', '@taymex/audit'],
+                'account_loaded_via_repository': 'recovery.drill@taymex.test',
+                'setting_loaded_via_service': 'recovery.drill.enabled',
+                'audit_queried_via_store': 'f9.recovery.drill.initiate',
+                'idempotency_replay_claimed': 'replay',
+                'database_readiness_adapter': 'UP',
+                'cloned_db_regression_suite': 'PASS'
             },
             'negative_proof': {
                 'tamper_detection': 'PASS',
