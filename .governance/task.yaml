@@ -1,16 +1,16 @@
-id: FOUNDATION-F8-PROXY-TYPECHECK-005
-title: Repair F8 locale proxy strict typing
+id: FOUNDATION-F8-SSR-UNIT-FORMAT-006
+title: Repair F8 SSR unit-formatting runtime failure
 mode: fix
 risk: R2
 objective: >-
-  Repair the exact F8 locale proxy TypeScript defect exposed by the Node 24 production build by ensuring the path segment is normalized to a definite string before locale membership checks and request-header propagation, without changing locale behavior, design-system artifacts, capability maturity, or any earlier foundation surface.
-baseRevision: bd9ea862e2da8a765cb77d442930d1850593e0a3
+  Repair the exact F8 server-rendering failure exposed by real Node 24 runtime proof by replacing the unsupported Intl.NumberFormat unit identifier with an ECMA-402 sanctioned representative unit, while keeping TAYMEX solar quantity codes and conversions in the canonical domain quantity layer and changing no F8 behavior beyond the broken proof sample.
+baseRevision: 5c9eba07894a441a4bfec77d23b8260655f35ff0
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - apps/web/proxy.ts
+    - apps/web/src/i18n/formatting.ts
   forbiddenPaths:
     - .github/**
     - .platform/**
@@ -21,6 +21,7 @@ scope:
     - docs/**
     - scripts/**
     - apps/api/**
+    - apps/web/proxy.ts
     - pnpm-lock.yaml
     - pnpm-workspace.yaml
   allowNewFiles: false
@@ -36,14 +37,19 @@ scope:
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-PROXY-DEFINITE-LOCALE
-    statement: The locale proxy never passes string-or-undefined to locale membership checks or request headers; missing path segments resolve to the governed default locale without changing supported-locale behavior.
-  - id: AC-F8-PROXY-BUILD-GATE
-    statement: The existing web TypeScript/build gates remain the regression protection for this strict-typing defect; no local workaround, dependency, or duplicate locale resolver is introduced.
+  - id: AC-F8-SSR-UNIT-SANCTIONED
+    statement: The F8 representative Intl.NumberFormat unit sample uses an ECMA-402 sanctioned unit identifier and no longer throws during Node 24 server rendering for AR, TR, or EN.
+  - id: AC-F8-SOLAR-UNIT-BOUNDARY
+    statement: Solar engineering units such as W, kW, Wh, and kWh remain owned by the existing canonical TAYMEX quantity/unit primitives; this repair does not invent an Intl alias, conversion, duplicate unit registry, or solar calculation behavior.
+  - id: AC-F8-RUNTIME-REGRESSION-GATE
+    statement: The existing production build and exact-SHA Chromium/CDP proof remain the runtime regression gates; no local workaround, dependency, fallback renderer, or browser-only bypass is introduced.
 assumptions:
-  - statement: The F8 real local validation on bd9ea862 failed first at Next.js production TypeScript checking in apps/web/proxy.ts before Chromium proof began.
+  - statement: R8 passed sections 1 through 9 and failed first in section 10 when SSR evaluated Intl.NumberFormat with unit kilowatt on the /ar/foundation/ui proof route.
     status: verified
-    evidence: F8 local validation first-failure report for bd9ea862 on Node v24.14.0 and pnpm 11.24.0.
+    evidence: F8 local validation R8 first-failure report and web-process.log from 2026-08-30T091348Z.
+  - statement: ECMAScript Internationalization specifies a limited sanctioned set of unit identifiers for Intl.NumberFormat unit style; kilowatt is not in that set while celsius is.
+    status: verified
+    evidence: ECMA-402 measurement-unit identifiers and Node 24 R8 runtime evidence.
 obligations:
   securityDelta: not-applicable
   performance: standard
