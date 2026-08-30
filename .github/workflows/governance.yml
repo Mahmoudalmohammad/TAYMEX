@@ -25,3 +25,4 @@ jobs:
         with: {python-version: '3.12'}
       - run: python -m pip install 'PyYAML==6.0.3'
       - run: python3 scripts/verify-f9-production-delivery.py
+      - run: python3 scripts/verify-f9-recovery.py

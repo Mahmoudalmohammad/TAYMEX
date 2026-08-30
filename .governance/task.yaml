@@ -1,21 +1,22 @@
-id: FOUNDATION-F9-PRODUCTION-DELIVERY-AUTHORITY-011
-title: Implement F9 production and delivery authority baseline
+id: FOUNDATION-F9-BACKUP-RESTORE-RECOVERY-012
+title: Implement F9 backup, restore and recovery authority baseline and real PostgreSQL 18 drill
 mode: security-change
 risk: R4
 objective: >-
-  Establish one executable F9 authority for remote merge protection, deployment environments, secret delivery, exact artifact identity, migration sequencing and rollback semantics without falsely claiming remote or production proof; wire the verifier into governance CI; advance only operations.environment-secrets-delivery from DESIGNED to IMPLEMENTED; and keep external merge/deployment activation explicitly pending until real remote identities and a deployment provider exist.
-baseRevision: 56a64a8c406e13d36343c05bd3d473076bc86401
+  Establish one executable F9 Recovery Authority for database backup, restore, SHA-256 integrity, encryption, and failure domain separation; prove real PostgreSQL 18 backup, isolated destination restore, schema/data/trigger verification, and negative tamper/checksum rejection without claiming unverified cloud or RPO/RTO SLA readiness; advance only operations.backup-restore from DESIGNED to IMPLEMENTED; and integrate recovery verification into governance CI.
+baseRevision: fc767c623e94c9f1afc33c1685fb2a4a7efbba09
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
     - .github/workflows/governance.yml
-    - .github/rulesets/README.md
     - blueprints/foundation/foundation.manifest.yaml
-    - operations/f9/production-delivery.authority.yaml
+    - operations/f9/recovery.authority.yaml
+    - scripts/drill-f9-recovery.py
+    - scripts/verify-f9-recovery.py
     - scripts/verify-f9-production-delivery.py
-    - docs/FOUNDATION_F9_PRODUCTION_DELIVERY_AUTHORITY_BASELINE.md
+    - docs/FOUNDATION_F9_BACKUP_RESTORE_RECOVERY_BASELINE.md
     - package.json
   forbiddenPaths:
     - .github/workflows/trust-root.yml
@@ -29,9 +30,11 @@ scope:
     - pnpm-lock.yaml
   allowNewFiles: true
   allowedNewFiles:
-    - operations/f9/production-delivery.authority.yaml
+    - operations/f9/recovery.authority.yaml
+    - scripts/drill-f9-recovery.py
+    - scripts/verify-f9-recovery.py
     - scripts/verify-f9-production-delivery.py
-    - docs/FOUNDATION_F9_PRODUCTION_DELIVERY_AUTHORITY_BASELINE.md
+    - docs/FOUNDATION_F9_BACKUP_RESTORE_RECOVERY_BASELINE.md
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
@@ -43,28 +46,28 @@ scope:
   allowControlPlaneChanges: true
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F9-AUTHORITY-SINGLE
-    statement: One machine-readable authority owns remote merge requirements, deployment profiles, secrets, artifact promotion, migrations and rollback, and the verifier rejects contradictory or falsely activated state.
-  - id: AC-F9-REMOTE-FAIL-CLOSED
-    statement: Remote merge authority remains explicitly pending while repository coordinates and real CODEOWNERS identities are unavailable; activation requires ruleset, required-check and red-team evidence.
-  - id: AC-F9-SECRETS
-    statement: Secret values are forbidden from repository, generated agent context, normal logs and configuration exports; long-lived cloud credentials are forbidden and OIDC short-lived authentication is required when supported by the selected provider.
-  - id: AC-F9-DELIVERY
-    statement: Delivery is defined as build once and promote the same exact-SHA artifact, with explicit migration, readiness, smoke and schema-compatible rollback rules.
-  - id: AC-F9-CI
-    statement: Governance CI contains a dedicated f9-production-delivery job that executes the F9 authority verifier without modifying the trust-root workflow.
-  - id: AC-F9-MATURITY
-    statement: Only operations.environment-secrets-delivery advances to IMPLEMENTED; remote trust remains INTEGRATED and no F9 capability is promoted to PROVEN without real external evidence.
+  - id: AC-F9-RECOVERY-AUTHORITY
+    statement: One machine-readable Recovery Authority defines database backup, isolated restore, SHA-256 integrity, encryption, least-privilege roles, PITR requirements, and BIA-governed RPO/RTO status.
+  - id: AC-F9-POSTGRES18-DRILL
+    statement: A deterministic backup-and-restore drill executes on real PostgreSQL 18 against an isolated clean destination database, validating migration history, table definitions, fixture data, append-only triggers, and database readiness.
+  - id: AC-F9-INTEGRITY-NEGATIVE-PROOF
+    statement: SHA-256 checksum mismatch on a mutated/tampered backup archive strictly rejects the restore candidate before any restore attempt.
+  - id: AC-F9-NO-SECRETS-LEAKED
+    statement: Database credentials, connection passwords, and sensitive records are strictly redacted from logs, evidence, and manifests.
+  - id: AC-F9-OBSERVATION-METRICS
+    statement: Durations and byte sizes for backup, restore, and verification are recorded as observation baselines without inventing arbitrary production SLA gates.
+  - id: AC-F9-MATURITY-BOUNDED
+    statement: Only operations.backup-restore advances from DESIGNED to IMPLEMENTED with explicit remaining items for production cloud provider and PITR proof.
 assumptions:
-  - statement: R12 is the reviewed F8-closed F9-ready canonical baseline at TAYMEX 56a64a8c406e13d36343c05bd3d473076bc86401.
+  - statement: R13 is the reviewed F9-001 implemented canonical baseline at TAYMEX fc767c623e94c9f1afc33c1685fb2a4a7efbba09.
     status: verified
     evidence: blueprints/foundation/foundation.manifest.yaml
-  - statement: The current archive does not contain a real TAYMEX GitHub remote identity and therefore external merge authority cannot be proven locally.
+  - statement: Production RPO and RTO targets require a formal Business Impact Analysis and must remain PENDING_BIA rather than being estimated.
     status: verified
-    evidence: docs/FOUNDATION_F9_PRODUCTION_DELIVERY_AUTHORITY_BASELINE.md
-  - statement: No cloud deployment provider has been selected, so staging and production deployment activation must remain pending rather than being guessed.
+    evidence: operations/f9/recovery.authority.yaml
+  - statement: Real cloud backup storage and continuous WAL archiving providers are not provisioned in this local environment and remain PENDING_PROVIDER_SELECTION.
     status: verified
-    evidence: operations/f9/production-delivery.authority.yaml
+    evidence: operations/f9/recovery.authority.yaml
 obligations:
   securityDelta: required
   performance: not-applicable
@@ -75,23 +78,23 @@ obligations:
   idempotency: required
 functional:
   invariants:
-    - Local verifier success cannot be used as evidence that GitHub merge protection or a production deployment is active.
-    - Secret values never become application Settings or repository configuration values.
-    - A released artifact is identified by exact Git SHA and SHA-256 and is not rebuilt differently per environment.
-    - Product feature expansion remains blocked while required F9 capabilities are below exit maturity.
+    - A backup archive is not considered recoverable until proven through a verified restore drill on an isolated clean database.
+    - Checksum verification is mandatory before executing restore.
+    - Restoring over the active source database is strictly forbidden.
+    - Database triggers and constraints must remain fully active and enforced in the restored database.
   statesAndTransitions:
-    - F9 authority missing -> IMPLEMENTED_LOCAL_BASELINE only after machine-readable contract and verifier are committed.
-    - PENDING_REAL_REMOTE -> activated only after repository identity ruleset required checks code owners and red-team evidence exist.
-    - PENDING_PROVIDER_SELECTION -> deployment activated only after an explicit provider/profile and protected environment are selected and proven.
+    - Recovery authority missing -> IMPLEMENTED_LOCAL_BASELINE only after machine-readable contract and verifiers are committed.
+    - DESIGNED -> IMPLEMENTED for operations.backup-restore upon successful local PostgreSQL 18 drill and negative proof.
+    - IMPLEMENTED -> PROVEN requires real cloud provider, continuous WAL streaming/PITR, and BIA-approved RPO/RTO.
   edgeCases:
-    - a placeholder CODEOWNERS identity must prevent an activated remote-trust claim
-    - a deployment provider must not be inferred from local Docker or PostgreSQL proof
-    - an application rollback after a migration is blocked unless schema compatibility is known
+    - corrupted or tampered backup files must fail checksum verification and abort restore preflight
+    - missing encryption or checksum requirements in the authority must cause the verifier to fail
+    - premature claim of PROVEN maturity must be rejected by the recovery verifier
   failureModes:
-    - treating repository workflow files as proof that remote branch rules are active
-    - storing cloud access keys as long-lived repository or GitHub secrets when OIDC is available
-    - rebuilding different application artifacts for staging and production
-    - destructive schema rollback without verified recovery evidence
+    - relying on pg_dump exit code alone without testing database restore
+    - restoring into the live production database instead of an isolated target
+    - hardcoding speculative RPO/RTO SLA numbers before business agreement
+    - exposing database passwords or connection secrets in test logs or manifests
 requiredGates:
   - TASK-001
   - BASE-001

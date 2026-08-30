@@ -1,0 +1,72 @@
+schemaVersion: 1
+id: taymex.f9-recovery-authority
+stage: F9
+status: IMPLEMENTED_LOCAL_BASELINE
+
+databaseBackup:
+  strategy: logical-portable-archive
+  tool: pg_dump
+  format: custom
+  flags:
+    - --format=custom
+    - --no-owner
+    - --no-privileges
+  failOnError: true
+  characterEncoding: UTF-8
+  dataPageChecksums: required-server-invariant
+
+databaseRestore:
+  strategy: isolated-destination-restore
+  tool: pg_restore
+  flags:
+    - --clean
+    - --if-exists
+    - --single-transaction
+    - --exit-on-error
+  failOnError: true
+  targetValidation:
+    requireIsolatedCleanDatabase: true
+    sameSourceDatabaseRestoreForbidden: true
+    postRestoreSchemaVerification: true
+    postRestoreTriggerVerification: true
+    postRestoreInvariantVerification: true
+    postRestoreReadinessProbe: true
+
+integrity:
+  algorithm: SHA-256
+  verificationRequiredBeforeRestore: true
+  failOnChecksumMismatch: true
+  negativeProofRequirement: tamper-mutation-detection-tested
+
+security:
+  encryptionAtRestRequired: true
+  encryptionInTransitRequired: true
+  leastPrivilegeBackupRoleRequired: true
+  sensitiveDataInLogsOrManifestForbidden: true
+  failureDomainSeparationRequired: true
+  immutabilityOrRansomwareResistanceRequired: true
+  productionStorageStatus: PENDING_PROVIDER_SELECTION
+
+continuousBackupAndPITR:
+  requirement: mandatory-for-production
+  localProofStatus: PENDING_PROVIDER_SELECTION
+  distinction: logical-pg-dump-is-baseline-recovery;production-pitr-requires-continuous-wal-archiving-or-managed-provider
+
+targets:
+  rpoStatus: PENDING_BIA
+  rtoStatus: PENDING_BIA
+  retentionAuthority: regulatory-and-business-impact-policy
+  restoreDrillRequirement: mandatory-automated-and-periodic
+
+mediaRecovery:
+  status: PENDING_PROVIDER
+  note: media-file-recovery-policy-bound-when-remote-storage-provider-is-selected
+
+closureRequirements:
+  localBaselineMayClaim: IMPLEMENTED
+  provenRequires:
+    - real cloud backup provider and encrypted offsite storage
+    - continuous WAL streaming or cloud-native PITR proof
+    - business-impact-analysis approved RPO and RTO targets
+    - periodic production restore drill runbook execution
+    - media file recovery path proven

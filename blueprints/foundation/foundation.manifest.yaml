@@ -510,13 +510,20 @@ capabilities:
   - id: operations.backup-restore
     area: operations
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: IMPLEMENTED
     exitMaturity: PROVEN
     owner: operations
     purpose: Backup policy plus tested database/file restore path appropriate to the selected deployment.
-    evidence: []
+    evidence:
+      - operations/f9/recovery.authority.yaml
+      - scripts/verify-f9-recovery.py
+      - scripts/drill-f9-recovery.py
+      - docs/FOUNDATION_F9_BACKUP_RESTORE_RECOVERY_BASELINE.md
     remaining:
-      - Select deployment storage/database profile, define RPO/RTO, and perform restore proof.
+      - Select deployment storage/database profile and configure cloud-native encrypted backup store.
+      - Define approved RPO and RTO targets derived from a completed Business Impact Analysis (BIA).
+      - Configure continuous WAL archiving / PITR streaming or managed cloud equivalent.
+      - Execute periodic production restore drills with failover runbook verification.
 
   - id: public-web.seo-foundation
     area: public-web
