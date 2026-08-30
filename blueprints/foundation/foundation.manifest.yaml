@@ -20,14 +20,17 @@ capabilities:
   - id: governance.trust-root
     area: governance
     requiredBeforeFeatureExpansion: true
-    currentMaturity: INTEGRATED
+    currentMaturity: PROVEN
     exitMaturity: PROVEN
     owner: engineering-foundation
     purpose: Non-self-authorized verifier, protected control plane, trusted base, and merge authority.
     evidence:
       - docs/BOOTSTRAP_EVIDENCE.md
-    remaining:
-      - Activate and prove required merge rules/status checks on the real remote repository.
+      - docs/evidence/F9_REMOTE_TRUST_ACTIVATION_PROOF.md
+      - operations/f9/production-delivery.authority.yaml
+      - .github/workflows/trust-root.yml
+      - .github/workflows/governance.yml
+    remaining: []
 
   - id: architecture.runtime-boundaries
     area: architecture

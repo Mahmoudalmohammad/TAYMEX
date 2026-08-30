@@ -5,11 +5,11 @@ status: IMPLEMENTED_LOCAL_BASELINE
 
 remoteTrust:
   provider: github
-  activationStatus: PENDING_REAL_REMOTE
+  activationStatus: ACTIVATED
   repositoryIdentity:
-    owner: null
-    repository: null
-    defaultBranch: null
+    owner: Mahmoudalmohammad
+    repository: TAYMEX
+    defaultBranch: main
   requiredMergeControls:
     pullRequestRequired: true
     codeOwnerReviewRequired: true

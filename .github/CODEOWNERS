@@ -1,6 +1,6 @@
-# Replace @taymex/platform-owners with the real protected team before GitHub activation.
-/.governance/task.yaml @taymex/platform-owners
-/.github/ @taymex/platform-owners
-/tooling/ @taymex/platform-owners
-/.platform/governance.lock.yaml @taymex/platform-owners
-/.platform/artifacts/governance/ @taymex/platform-owners
+# Real GitHub owner for protected control-plane files.
+/.governance/task.yaml @Mahmoudalmohammad
+/.github/ @Mahmoudalmohammad
+/tooling/ @Mahmoudalmohammad
+/.platform/governance.lock.yaml @Mahmoudalmohammad
+/.platform/artifacts/governance/ @Mahmoudalmohammad

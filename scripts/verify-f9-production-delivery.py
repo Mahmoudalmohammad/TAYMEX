@@ -35,8 +35,13 @@ check('foundation-stage', m['foundation']['currentStage'] in {'F9', 'F10'})
 
 rt = a['remoteTrust']
 check('remote-provider', rt['provider'] == 'github')
-check('remote-not-falsely-activated', rt['activationStatus'] == 'PENDING_REAL_REMOTE')
-check('remote-identity-unclaimed', all(rt['repositoryIdentity'][k] is None for k in ('owner','repository','defaultBranch')))
+if rt['activationStatus'] == 'ACTIVATED':
+    check('remote-identity-complete', all(rt['repositoryIdentity'][k] for k in ('owner', 'repository', 'defaultBranch')))
+    check('activated-codeowners-no-placeholder', '@taymex/platform-owners' not in CODEOWNERS.read_text(encoding='utf-8'))
+else:
+    check('remote-not-falsely-activated', rt['activationStatus'] == 'PENDING_REAL_REMOTE')
+    check('remote-identity-unclaimed', all(rt['repositoryIdentity'][k] is None for k in ('owner','repository','defaultBranch')))
+
 controls = rt['requiredMergeControls']
 for key in ('pullRequestRequired','codeOwnerReviewRequired','dismissStaleApprovals','conversationResolutionRequired','blockForcePushes','blockBranchDeletion','ordinaryAgentBypassForbidden'):
     check(f'merge-control-{key}', controls[key] is True)
@@ -85,8 +90,12 @@ check('ops-implemented-not-proven', ops['currentMaturity'] == 'IMPLEMENTED')
 check('ops-authority-evidence', 'operations/f9/production-delivery.authority.yaml' in ops.get('evidence', []))
 check('ops-verifier-evidence', 'scripts/verify-f9-production-delivery.py' in ops.get('evidence', []))
 check('ops-still-remaining', bool(ops.get('remaining')))
+
 trust = capability(m, 'governance.trust-root')
-check('trust-not-overclaimed', trust['currentMaturity'] == 'INTEGRATED' and bool(trust.get('remaining')))
+if rt['activationStatus'] == 'ACTIVATED':
+    check('trust-proven-on-activation', trust['currentMaturity'] == 'PROVEN')
+else:
+    check('trust-not-overclaimed', trust['currentMaturity'] == 'INTEGRATED' and bool(trust.get('remaining')))
 
 workflow = WORKFLOW.read_text(encoding='utf-8')
 check('workflow-f9-job-name', 'f9-production-delivery:' in workflow)
