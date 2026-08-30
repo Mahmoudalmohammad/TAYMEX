@@ -1,20 +1,20 @@
-id: FOUNDATION-F8-RSC-SERIALIZATION-007
-title: Repair F8 RSC serialization boundary for localized pagination copy
+id: FOUNDATION-F8-CONSUMER-UI-RAC-SLOT-008
+title: Consume updated UI package with slotted status message
 mode: fix
-risk: R2
+risk: R3
 objective: >-
-  Repair the exact F8 React Server Component serialization failure exposed by R9 by making the UI reference copy passed from the server to the client data-only and serializable, while preserving locale-specific pagination wording and leaving pagination behavior inside the client boundary.
-baseRevision: 24419f7374e7769ee78e8423c13822a89e27c052
+  Consume updated @engineering-platform/ui runtime artifact containing accessible span statusMessage in form fields, resolving RAC slot validation error during SSR and hydration.
+baseRevision: ef8054b9f7507dc6b0c6ba950a9298054989ddfa
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
-    - apps/web/src/i18n/ui-reference-messages.ts
-    - apps/web/src/components/f8-reference-surface.tsx
+    - .platform/runtime.lock.yaml
+    - .platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
+    - pnpm-lock.yaml
   forbiddenPaths:
     - .github/**
-    - .platform/**
     - tooling/**
     - packages/**
     - contracts/**
@@ -22,13 +22,11 @@ scope:
     - docs/**
     - scripts/**
     - apps/api/**
-    - apps/web/proxy.ts
-    - apps/web/app/**
-    - pnpm-lock.yaml
+    - apps/web/**
     - pnpm-workspace.yaml
   allowNewFiles: false
   allowedNewFiles: []
-  allowDependencies: false
+  allowDependencies: true
   allowMigrations: false
   allowPublicContractChanges: false
   allowPlatformChanges: false
@@ -39,19 +37,14 @@ scope:
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-RSC-SERIALIZABLE-COPY
-    statement: The UiReferenceCopy object passed from the server page into F8ReferenceSurface contains serializable data only and no ordinary function-valued property.
-  - id: AC-F8-PAGINATION-LOCALE-PRESERVED
-    statement: Arabic, Turkish, and English pagination wording remains locale-specific through a serializable page/count template whose interpolation executes inside the Client Component boundary.
-  - id: AC-F8-RSC-RUNTIME-REGRESSION-GATE
-    statement: The existing production build and exact-SHA Chromium/CDP proof remain the runtime regression gates; no Server Function, dependency, server action, fallback renderer, page relocation, or client-only routing workaround is introduced.
+  - id: AC-F8-CONSUME-UI-FIX
+    statement: The consumer runtime lock, lockfile, and UI artifact are updated to the platform release with accessible span status message elements.
+  - id: AC-F8-CONSUMER-BOUNDARY-PASS
+    statement: The consumer boundary verification passes with 6 locked artifacts and 0 escapes.
 assumptions:
-  - statement: R9 passed sections 1 through 9 and failed first in section 10 because uiReferenceMessages supplied a pageOf function inside the copy prop passed from a Server Component to the client-marked F8ReferenceSurface.
+  - statement: React Aria Components slot validation failed in R10 because unslotted Text components were rendered for field status messages in @engineering-platform/ui.
     status: verified
-    evidence: F8 local validation R9 first-failure report and web-process.log from 2026-08-30T093144Z.
-  - statement: React Server Components require props crossing from Server Components to Client Components to be serializable; ordinary functions are not supported unless they are Server Functions, which is not appropriate for pure pagination label formatting.
-    status: verified
-    evidence: React use-client and use-server reference documentation reviewed on 2026-08-30.
+    evidence: F8 R10 local validation web-process.log.
 obligations:
   securityDelta: not-applicable
   performance: standard
