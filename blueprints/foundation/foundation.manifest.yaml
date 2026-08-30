@@ -493,16 +493,19 @@ capabilities:
   - id: operations.environment-secrets-delivery
     area: operations
     requiredBeforeFeatureExpansion: true
-    currentMaturity: DESIGNED
+    currentMaturity: IMPLEMENTED
     exitMaturity: PROVEN
     owner: operations
     purpose: Validated environment profiles, secrets, CI/merge gates, deployment, migration and rollback/roll-forward mechanics.
     evidence:
       - .github/workflows/governance.yml
       - .github/workflows/trust-root.yml
+      - operations/f9/production-delivery.authority.yaml
+      - scripts/verify-f9-production-delivery.py
+      - docs/FOUNDATION_F9_PRODUCTION_DELIVERY_AUTHORITY_BASELINE.md
     remaining:
-      - Activate real remote merge authority.
-      - Prove build/deploy configuration and migration lifecycle in the selected environment profile.
+      - Activate and red-team prove real remote merge authority with resolved repository/team identities.
+      - Select the remote deployment provider/profile and prove protected-environment deployment, migration, health/smoke and exact-artifact promotion.
 
   - id: operations.backup-restore
     area: operations

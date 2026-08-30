@@ -1,36 +1,37 @@
-id: FOUNDATION-F8-CLOSURE-010
-title: Close F8 from exact-SHA Chromium and integrated local proof
-mode: fix
-risk: R3
+id: FOUNDATION-F9-PRODUCTION-DELIVERY-AUTHORITY-011
+title: Implement F9 production and delivery authority baseline
+mode: security-change
+risk: R4
 objective: >-
-  Close F8 from the independently reviewed exact-SHA local validation proof at TAYMEX 545c8733ef99d1f9bf2a2c95565a35dd8ebec97a and ENGINEERING_PLATFORM f95612d51c2f5b724c62e8cbc782189970802777; record Node 24.14.0, pnpm 11.24.0, PostgreSQL 18.6 and Chromium 149 real proof; promote only the F8 localization/UI/integrated-harness capabilities demonstrated by that evidence to PROVEN; preserve all F9/F10 obligations; update earlier-stage verifiers for lawful later-stage progression; and advance foundation.currentStage to F9 without modifying the runtime/UI implementation proven by R11.
-baseRevision: 545c8733ef99d1f9bf2a2c95565a35dd8ebec97a
+  Establish one executable F9 authority for remote merge protection, deployment environments, secret delivery, exact artifact identity, migration sequencing and rollback semantics without falsely claiming remote or production proof; wire the verifier into governance CI; advance only operations.environment-secrets-delivery from DESIGNED to IMPLEMENTED; and keep external merge/deployment activation explicitly pending until real remote identities and a deployment provider exist.
+baseRevision: 56a64a8c406e13d36343c05bd3d473076bc86401
 modules:
   - application-foundation
 scope:
   allowedPaths:
     - .governance/task.yaml
+    - .github/workflows/governance.yml
+    - .github/rulesets/README.md
     - blueprints/foundation/foundation.manifest.yaml
-    - docs/FOUNDATION_F8_UI_UX_REPORT.md
-    - docs/evidence/F8_UI_UX_REAL_PROOF.md
-    - scripts/verify-f7-files-side-effects.py
-    - scripts/verify-f8-ui-ux.py
+    - operations/f9/production-delivery.authority.yaml
+    - scripts/verify-f9-production-delivery.py
+    - docs/FOUNDATION_F9_PRODUCTION_DELIVERY_AUTHORITY_BASELINE.md
+    - package.json
   forbiddenPaths:
-    - .github/**
-    - tooling/governance.config.yaml
-    - tooling/policies/**
-    - tooling/schemas/**
+    - .github/workflows/trust-root.yml
+    - .github/CODEOWNERS
     - tooling/trust-root/**
-    - tooling/registry/**
+    - tooling/schemas/trust-root.schema.json
     - .platform/**
     - apps/**
     - packages/**
     - contracts/**
-    - package.json
     - pnpm-lock.yaml
   allowNewFiles: true
   allowedNewFiles:
-    - docs/evidence/F8_UI_UX_REAL_PROOF.md
+    - operations/f9/production-delivery.authority.yaml
+    - scripts/verify-f9-production-delivery.py
+    - docs/FOUNDATION_F9_PRODUCTION_DELIVERY_AUTHORITY_BASELINE.md
   allowDependencies: false
   allowMigrations: false
   allowPublicContractChanges: false
@@ -39,52 +40,58 @@ scope:
   allowVisualBaselineChanges: false
   allowBreakingContractChanges: false
   allowDestructiveMigrations: false
-  allowControlPlaneChanges: false
+  allowControlPlaneChanges: true
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-CLOSURE-EXACT-SHA
-    statement: F8 closure evidence is tied to exact TAYMEX revision 545c8733ef99d1f9bf2a2c95565a35dd8ebec97a and ENGINEERING_PLATFORM revision f95612d51c2f5b724c62e8cbc782189970802777 with the pinned Node pnpm PostgreSQL and Chromium versions recorded.
-  - id: AC-F8-CLOSURE-BROWSER
-    statement: Real production Next.js and Chromium/CDP proof demonstrates representative AR RTL TR/EN LTR mobile/tablet/desktop behavior, theme switching, reduced motion, overflow, focus/accessibility smoke, locale formatting, and retained screenshot evidence.
-  - id: AC-F8-CLOSURE-INTEGRATED
-    statement: The same exact-SHA campaign passes clean install, build, strict typecheck, package regressions, F0-F8 structural verification, PostgreSQL 18 regressions, real F5 HTTP and API process smoke, Consumer Boundary, Handoff, Governance, Trust, and final Git integrity.
-  - id: AC-F8-CLOSURE-MATURITY
-    statement: Only the F8 localization UI and integrated-harness capabilities demonstrated by the proof are promoted to PROVEN; F8 closes and the foundation advances only to F9 readiness while later operations recovery public-web and integrated-final-proof obligations retain their existing maturity.
-  - id: AC-F8-CLOSURE-NONRUNTIME
-    statement: The closure diff contains only task metadata, maturity/evidence documentation, and structural verifier progression updates; no runtime UI artifact dependency contract migration platform or trust-root implementation is changed after the exact-SHA proof.
+  - id: AC-F9-AUTHORITY-SINGLE
+    statement: One machine-readable authority owns remote merge requirements, deployment profiles, secrets, artifact promotion, migrations and rollback, and the verifier rejects contradictory or falsely activated state.
+  - id: AC-F9-REMOTE-FAIL-CLOSED
+    statement: Remote merge authority remains explicitly pending while repository coordinates and real CODEOWNERS identities are unavailable; activation requires ruleset, required-check and red-team evidence.
+  - id: AC-F9-SECRETS
+    statement: Secret values are forbidden from repository, generated agent context, normal logs and configuration exports; long-lived cloud credentials are forbidden and OIDC short-lived authentication is required when supported by the selected provider.
+  - id: AC-F9-DELIVERY
+    statement: Delivery is defined as build once and promote the same exact-SHA artifact, with explicit migration, readiness, smoke and schema-compatible rollback rules.
+  - id: AC-F9-CI
+    statement: Governance CI contains a dedicated f9-production-delivery job that executes the F9 authority verifier without modifying the trust-root workflow.
+  - id: AC-F9-MATURITY
+    statement: Only operations.environment-secrets-delivery advances to IMPLEMENTED; remote trust remains INTEGRATED and no F9 capability is promoted to PROVEN without real external evidence.
 assumptions:
-  - statement: The returned R11 workspace contains the unmodified final proof directory .local-validation-results/f8_20260830_132322 and reports F8_REAL_PROOF=PASS while deliberately leaving F8_CLOSED=NO for main-workflow review.
+  - statement: R12 is the reviewed F8-closed F9-ready canonical baseline at TAYMEX 56a64a8c406e13d36343c05bd3d473076bc86401.
     status: verified
-    evidence: docs/evidence/F8_UI_UX_REAL_PROOF.md
-  - statement: The reviewed R11 workspace archive SHA-256 is 37bc36752e51e1ff152db74955b14a005c7b1c21d6915207ba626d87f65eedd1.
+    evidence: blueprints/foundation/foundation.manifest.yaml
+  - statement: The current archive does not contain a real TAYMEX GitHub remote identity and therefore external merge authority cannot be proven locally.
     status: verified
-    evidence: docs/evidence/F8_UI_UX_REAL_PROOF.md
-  - statement: The final tested platform revision is f95612d51c2f5b724c62e8cbc782189970802777 and both tested worktrees are clean.
+    evidence: docs/FOUNDATION_F9_PRODUCTION_DELIVERY_AUTHORITY_BASELINE.md
+  - statement: No cloud deployment provider has been selected, so staging and production deployment activation must remain pending rather than being guessed.
     status: verified
-    evidence: docs/evidence/F8_UI_UX_REAL_PROOF.md
+    evidence: operations/f9/production-delivery.authority.yaml
 obligations:
-  securityDelta: not-applicable
-  performance: standard
-  ui: standard
-  responsive: required
-  accessibility: required
+  securityDelta: required
+  performance: not-applicable
+  ui: not-applicable
+  responsive: not-applicable
+  accessibility: not-applicable
   concurrency: not-applicable
-  idempotency: not-applicable
+  idempotency: required
 functional:
   invariants:
-    - PASS remains attached to the tested R11 runtime SHAs and is reused by closure only because this closure does not modify the proven runtime or UI implementation.
-    - F8 closure must not promote F9 operations recovery remote trust public-web or production maturity.
-    - Product feature expansion remains blocked until all required foundation capabilities reach their exit maturity.
+    - Local verifier success cannot be used as evidence that GitHub merge protection or a production deployment is active.
+    - Secret values never become application Settings or repository configuration values.
+    - A released artifact is identified by exact Git SHA and SHA-256 and is not rebuilt differently per environment.
+    - Product feature expansion remains blocked while required F9 capabilities are below exit maturity.
   statesAndTransitions:
-    - F8 exact-SHA real proof PASS with F8_CLOSED=NO -> F8 PROVEN and CLOSED only after independent evidence review.
-    - F8 CLOSED -> currentStage F9 means F9 READY only and does not mean F9 implementation or proof has occurred.
+    - F9 authority missing -> IMPLEMENTED_LOCAL_BASELINE only after machine-readable contract and verifier are committed.
+    - PENDING_REAL_REMOTE -> activated only after repository identity ruleset required checks code owners and red-team evidence exist.
+    - PENDING_PROVIDER_SELECTION -> deployment activated only after an explicit provider/profile and protected environment are selected and proven.
   edgeCases:
-    - browser/runtime defects can escape structural verification and require exact-SHA re-proof before closure
-    - closure metadata must not be mistaken for a new runtime revision with fabricated browser evidence
+    - a placeholder CODEOWNERS identity must prevent an activated remote-trust claim
+    - a deployment provider must not be inferred from local Docker or PostgreSQL proof
+    - an application rollback after a migration is blocked unless schema compatibility is known
   failureModes:
-    - using proof from an older runtime SHA after a runtime-affecting change
-    - promoting unrelated later-stage capabilities because F8 passed
-    - weakening UI accessibility governance trust or boundary checks to convert a failed browser proof into PASS
+    - treating repository workflow files as proof that remote branch rules are active
+    - storing cloud access keys as long-lived repository or GitHub secrets when OIDC is available
+    - rebuilding different application artifacts for staging and production
+    - destructive schema rollback without verified recovery evidence
 requiredGates:
   - TASK-001
   - BASE-001

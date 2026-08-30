@@ -4,5 +4,6 @@ Before this repository is considered merge-protected, configure the default-bran
 - code-owner approval;
 - `trust-root` status;
 - `governance-summary` status;
+- `f9-production-delivery` status;
 - no force push / branch deletion;
 - no ordinary agent bypass.

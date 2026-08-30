@@ -1,0 +1,134 @@
+schemaVersion: 1
+id: taymex.f9-production-delivery-authority
+stage: F9
+status: IMPLEMENTED_LOCAL_BASELINE
+
+remoteTrust:
+  provider: github
+  activationStatus: PENDING_REAL_REMOTE
+  repositoryIdentity:
+    owner: null
+    repository: null
+    defaultBranch: null
+  requiredMergeControls:
+    pullRequestRequired: true
+    codeOwnerReviewRequired: true
+    dismissStaleApprovals: true
+    conversationResolutionRequired: true
+    blockForcePushes: true
+    blockBranchDeletion: true
+    ordinaryAgentBypassForbidden: true
+    requiredChecks:
+      - trust-root
+      - governance-summary
+      - f9-production-delivery
+  activationEvidenceRequired:
+    - real repository coordinates
+    - resolved CODEOWNERS identities with no placeholders
+    - active default-branch ruleset export or API evidence
+    - required-check source evidence
+    - ordinary-agent red-team pull request rejected from merge
+
+environments:
+  authority: this-file
+  profiles:
+    local-validation:
+      class: local
+      deployable: false
+      protectedEnvironmentRequired: false
+      secretsSource: process-environment-ephemeral
+      cloudAuthentication: none
+    staging:
+      class: remote
+      deployable: true
+      activationStatus: PENDING_PROVIDER_SELECTION
+      protectedEnvironmentRequired: true
+      githubEnvironment: staging
+      secretsSource: protected-environment-or-approved-provider
+      cloudAuthentication: oidc-short-lived-required-when-supported
+    production:
+      class: remote
+      deployable: true
+      activationStatus: PENDING_PROVIDER_SELECTION
+      protectedEnvironmentRequired: true
+      githubEnvironment: production
+      secretsSource: protected-environment-or-approved-provider
+      cloudAuthentication: oidc-short-lived-required-when-supported
+
+configurationAuthority:
+  deployConfiguration:
+    sourceOrder:
+      - platform-default
+      - project-default
+      - environment-deployment-override
+    arbitraryFeatureLocalFallbackForbidden: true
+  secrets:
+    valuesInRepository: forbidden
+    valuesInGeneratedAgentContext: forbidden
+    valuesInLogsOrConfigExports: forbidden
+    longLivedCloudCredentials: forbidden
+    cloudAccess: oidc-short-lived-required-when-supported
+    runtimeSecretRefs:
+      - DATABASE_URL
+      - NOTIFICATION_OUTBOX_ENCRYPTION_KEY
+  nonSecretRuntimeConfig:
+    - NODE_ENV
+    - HOST
+    - CORS_ALLOWED_ORIGINS
+    - APP_VERSION
+    - BUILD_REVISION
+
+artifactPolicy:
+  buildOncePromoteSameArtifact: true
+  identity:
+    - git-commit-sha
+    - artifact-sha256
+  environmentSpecificRebuildForbidden: true
+  sourceTreeDeploymentForbidden: true
+  provenance:
+    requiredBeforeProductionActivation: true
+    mechanism: github-artifact-attestation-or-equivalent
+    activationStatus: PENDING_REAL_REMOTE_AND_PLAN_CAPABILITY
+
+migrationPolicy:
+  command: pnpm db:migrate
+  productionMode: forward-only-by-default
+  destructiveMigrationsDefault: forbidden
+  preDeployDatabaseBackupRequiredForRiskyMigration: true
+  schemaCompatibilityRequiredForApplicationRollback: true
+  failedMigrationStrategy: stop-deployment-and-repair-or-restore
+
+releaseLifecycle:
+  order:
+    - verify-exact-sha
+    - build-artifact
+    - verify-artifact-integrity
+    - attest-artifact-when-activated
+    - acquire-environment-authorization
+    - create-pre-migration-backup-when-required
+    - apply-migrations
+    - deploy-same-artifact
+    - readiness-health-check
+    - runtime-smoke
+    - finalize-release-record
+  health:
+    readinessEndpoint: /api/health/ready
+    livenessEndpoint: /api/health
+  rollback:
+    application: previous-known-good-artifact-only-if-schema-compatible
+    database: restore-only-from-verified-backup-when-forward-repair-is-not-safe
+    noHistoryRewrite: true
+
+closureRequirements:
+  localBaselineMayClaim: IMPLEMENTED
+  provenRequires:
+    - real remote merge controls active and red-team tested
+    - selected staging or production deployment provider/profile
+    - protected deployment environment active
+    - short-lived deployment authentication proven where provider supports OIDC
+    - exact artifact identity recorded through deployment
+    - migration lifecycle and health/smoke proof
+  productionProvenRequires:
+    - proven deployment on production profile
+    - artifact provenance verification
+    - backup/restore obligations satisfied separately
