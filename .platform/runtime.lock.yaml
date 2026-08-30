@@ -13,14 +13,14 @@ artifacts:
 - name: '@engineering-platform/ui'
   version: 0.2.0
   file: .platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
-  sha256: bc93b5218495423f17de01dfcd2090ed5196abf246944336aa7c167341e63f49
-  size: 10614
+  sha256: f76a215a8f69b7a1fda28b07b42a42a049cd708894f5312d730ef03390bda2f3
+  size: 10732
   format: npm-tgz
 - name: '@engineering-platform/app-shell'
   version: 0.2.0
   file: .platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
-  sha256: 7b591f505c6efed5a646a15680f824c286b9db622c07c50f3a791bd937fb1683
-  size: 3703
+  sha256: 75a8dab1a4d577e8684b8e968131cf2640abbf32e0aeaf7be41d1326ae94c6b9
+  size: 3712
   format: npm-tgz
 - name: '@engineering-platform/ui-patterns'
   version: 0.2.0

@@ -1,10 +1,10 @@
-id: FOUNDATION-F8-CONSUMER-UI-RAC-SLOT-008
-title: Consume updated UI package with slotted status message
+id: FOUNDATION-F8-CONSUMER-A11Y-TOUCH-RESPONSIVE-009
+title: Consume updated platform UI and AppShell packages with touch targets and normalize root box-sizing
 mode: fix
 risk: R3
 objective: >-
-  Consume updated @engineering-platform/ui runtime artifact containing accessible span statusMessage in form fields, resolving RAC slot validation error during SSR and hydration.
-baseRevision: ef8054b9f7507dc6b0c6ba950a9298054989ddfa
+  Consume updated @engineering-platform/ui and @engineering-platform/app-shell runtime artifacts containing 44px touch targets, 0s reduced motion duration, and autoFocus on mobile drawer close button, while normalizing root box-sizing in taymex.css to prevent mobile horizontal overflow.
+baseRevision: 84f71d666ad6ef822ed3ccf959028e442d074652
 modules:
   - application-foundation
 scope:
@@ -12,6 +12,8 @@ scope:
     - .governance/task.yaml
     - .platform/runtime.lock.yaml
     - .platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz
+    - .platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz
+    - apps/web/app/taymex.css
     - pnpm-lock.yaml
   forbiddenPaths:
     - .github/**
@@ -22,7 +24,6 @@ scope:
     - docs/**
     - scripts/**
     - apps/api/**
-    - apps/web/**
     - pnpm-workspace.yaml
   allowNewFiles: false
   allowedNewFiles: []
@@ -37,14 +38,16 @@ scope:
   allowControlPlaneChanges: false
   allowTrustRootChanges: false
 acceptance:
-  - id: AC-F8-CONSUME-UI-FIX
-    statement: The consumer runtime lock, lockfile, and UI artifact are updated to the platform release with accessible span status message elements.
+  - id: AC-F8-CONSUME-A11Y-FIX
+    statement: The consumer runtime lock, lockfile, and UI/app-shell artifacts are updated to the platform release with 44px touch targets, zero reduced motion durations, and drawer focus trapping.
+  - id: AC-F8-BOX-SIZING
+    statement: Root box-sizing border-box reset is added to taymex.css to prevent mobile viewport horizontal overflow.
   - id: AC-F8-CONSUMER-BOUNDARY-PASS
     statement: The consumer boundary verification passes with 6 locked artifacts and 0 escapes.
 assumptions:
-  - statement: React Aria Components slot validation failed in R10 because unslotted Text components were rendered for field status messages in @engineering-platform/ui.
+  - statement: Mobile horizontal overflow and touch target validation failed in R11 due to unreset box-sizing in consumer CSS and undersized clear button and native input bounds in platform UI.
     status: verified
-    evidence: F8 R10 local validation web-process.log.
+    evidence: F8 R11 Chromium CDP browser proof passing at 390px viewport.
 obligations:
   securityDelta: not-applicable
   performance: standard

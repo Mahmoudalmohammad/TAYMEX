@@ -237,7 +237,7 @@ packages:
     resolution: {integrity: sha512-PJR+bOmMOPH8AtcTGAyYNiuJ3/Fcoj2XN/gBEWzDIKh254XO+mM9XoXHk5GNEhodxeMznbg7BlRojVbKN+gC6g==}
 
   '@engineering-platform/app-shell@file:.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz':
-    resolution: {integrity: sha512-mRHcEAeA2NWhepvd84R0OZy6z2XMq3DeCSEYhrE8qaPe0+dTyaSHqY9rZ5tiv0CinHqAhzuowhAByRYjfV07Bw==, tarball: file:.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz}
+    resolution: {integrity: sha512-wP0qDNi955DeY9o2He45S1EG7H31d8lY1BMXcE8zZAadBi7oNJz4RCI8n62AyXvAMwkelZyOFZwRoyvvTbB0kA==, tarball: file:.platform/artifacts/runtime/engineering-platform-app-shell-0.2.0.tgz}
     version: 0.2.0
     peerDependencies:
       react: ^19.2.0
@@ -261,7 +261,7 @@ packages:
       react: ^19.2.0
 
   '@engineering-platform/ui@file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz':
-    resolution: {integrity: sha512-8izvDJ1qqaTOgzVaMjKXSlhJXx3cPYYSwJoCIpa6gcTCNHpvvLdtMiqmq8FGlE0R0akK2FyQ7uFSJ2/Kw/NNEw==, tarball: file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz}
+    resolution: {integrity: sha512-wootTD1WbgtlqiQrD5e9pPodb1WvFbNu8vau1C/VVKFrrXYL55v+erI94MixiZx8Tgyxt+/yyvfTeoW6W91NIg==, tarball: file:.platform/artifacts/runtime/engineering-platform-ui-0.2.0.tgz}
     version: 0.2.0
     peerDependencies:
       react: ^19.2.0

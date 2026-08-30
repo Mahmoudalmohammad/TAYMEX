@@ -1,4 +1,5 @@
 html, body { margin: 0; min-height: 100%; }
+*, *::before, *::after { box-sizing: border-box; }
 body { background: var(--ep-semantic-color-surface-canvas); color: var(--ep-semantic-color-text-default); font-family: var(--ep-font-family-sans); }
 a { color: var(--ep-semantic-color-text-brand); }
 [data-taymex-placeholder], [data-taymex-public-home] { padding: var(--ep-space-6); max-width: var(--ep-size-contentcomfortable); margin-inline: auto; }
